@@ -1,19 +1,14 @@
 package util;
 
-/**
- * Configurazione globale dell'applicazione (Singleton) per gestire la modalita'
- * Demo vs Full (DBMS o File System) e l'utente attualmente loggato.
- */
 public class SessionManager {
 
     private static SessionManager instance;
-    private ModalitaEsecuzione modalita = ModalitaEsecuzione.DEMO_IN_MEMORY;
+    private ModalitaEsecuzione modalita = ModalitaEsecuzione.DEMO;
     private String emailUtenteLoggato;
     private String ruoloUtenteLoggato;
     private String nomeUtenteLoggato;
 
     private SessionManager() {
-        // Costruttore privato per Singleton
     }
 
     public static synchronized SessionManager getInstance() {
