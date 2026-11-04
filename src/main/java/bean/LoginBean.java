@@ -1,0 +1,62 @@
+package bean;
+
+import frostly.exception.DatiNonValidiException;
+
+/**
+ * Bean per il login: blocca input malformati direttamente nei setter
+ * prima di arrivare al Control e al Model.
+ */
+public class LoginBean {
+
+    private String email;
+    private String password;
+    private String ruoloAutenticato;
+    private String nomeCompleto;
+
+    public LoginBean() {
+        // Costruttore vuoto JavaBean
+    }
+
+    public LoginBean(String email, String password) throws DatiNonValidiException {
+        setEmail(email);
+        setPassword(password);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public final void setEmail(String email) throws DatiNonValidiException {
+        if (email == null || email.trim().isEmpty() || !email.contains("@")) {
+            throw new DatiNonValidiException("Email non valida: deve contenere '@'.");
+        }
+        this.email = email.trim();
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public final void setPassword(String password) throws DatiNonValidiException {
+        if (password == null || password.trim().length() < 4) {
+            throw new DatiNonValidiException("Password non valida: inserire almeno 4 caratteri.");
+        }
+        this.password = password;
+    }
+
+    public String getRuoloAutenticato() {
+        return ruoloAutenticato;
+    }
+
+    public void setRuoloAutenticato(String ruoloAutenticato) {
+        this.ruoloAutenticato = ruoloAutenticato;
+    }
+
+    public String getNomeCompleto() {
+        return nomeCompleto;
+    }
+
+    public void setNomeCompleto(String nomeCompleto) {
+        this.nomeCompleto = nomeCompleto;
+    }
+}
