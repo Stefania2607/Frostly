@@ -4,6 +4,7 @@ import bean.EmergenzaBean;
 import bean.TurnoBean;
 import dao.DAOFactory;
 import dao.FrostlyDAO;
+import dao.TurnoDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import frostly.exception.TurnoNonDisponibileException;
@@ -17,17 +18,16 @@ import model.Notifica;
 import model.Turno;
 
 /**
- * Controller applicativo STATELESS per i casi d'uso:
- * - UC1: Pubblicazione e variazione dei turni settimanali
- * - UC2: Segnalazione emergenza da parte del Dipendente e gestione sostituzione da parte del Maestro Gelataio.
+ * Controller applicativo STATELESS per i Turni e le Emergenze (UC1 e UC2).
+ * Usa TurnoDAO (fornito da DAOFactory in versione Memory, DBMS o FileSystem).
  */
 public class GestioneTurniEmergenzeControl {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
     public List<TurnoBean> visualizzaTuttiTurni() throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        List<Turno> turni = dao.caricaTuttiTurni();
+        TurnoDAO turnoDao = DAOFactory.getTurnoDAO();
+        List<Turno> turni = turnoDao.caricaTuttiTurni();
         List<TurnoBean> risultato = new ArrayList<>();
         for (Turno t : turni) {
             risultato.add(convertiTurnoInBean(t));
@@ -36,8 +36,8 @@ public class GestioneTurniEmergenzeControl {
     }
 
     public List<TurnoBean> visualizzaTurniDipendente(String emailDipendente) throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        List<Turno> turni = dao.caricaTuttiTurni();
+        TurnoDAO turnoDao = DAOFactory.getTurnoDAO();
+        List<Turno> turni = turnoDao.caricaTuttiTurni();
         List<TurnoBean> risultato = new ArrayList<>();
         for (Turno t : turni) {
             if (t.getDipendenteAssegnato().getEmail().equalsIgnoreCase(emailDipendente)) {
@@ -49,30 +49,27 @@ public class GestioneTurniEmergenzeControl {
 
     public TurnoBean pubblicaNuovoTurno(TurnoBean beanInput) throws FrostlyException {
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        TurnoDAO turnoDao = DAOFactory.getTurnoDAO();
 
-        // 1. Carica tutte le Entity necessarie
-        List<Turno> turniEsistenti = dao.caricaTuttiTurni();
+        List<Turno> turniEsistenti = turnoDao.caricaTuttiTurni();
         Dipendente dipendente = dao.trovaDipendentePerEmail(beanInput.getEmailDipendente());
         if (dipendente == null) {
             throw new DatiNonValidiException("Dipendente non trovato con email: " + beanInput.getEmailDipendente());
         }
 
-        // 2. Verifica conflitti d'orario tramite l'operazione di business dell'Entity Dipendente
         if (!dipendente.isDisponibile(beanInput.getData(), beanInput.getOraInizio(), beanInput.getOraFine())) {
             throw new TurnoNonDisponibileException("Il dipendente " + dipendente
                     + " ha gia' un turno in conflitto per " + beanInput.getData()
                     + " nella fascia " + beanInput.getOraInizio() + "-" + beanInput.getOraFine());
         }
 
-        // 3. Crea l'Entity Turno con puntatore diretto a Dipendente e la pubblica
         String nuovoCodice = String.format("TRN-%02d", turniEsistenti.size() + 1);
         Turno nuovoTurno = new Turno(nuovoCodice, beanInput.getData(), beanInput.getOraInizio(),
                 beanInput.getOraFine(), dipendente);
         nuovoTurno.pubblica();
         dipendente.aggiungiTurno(nuovoTurno);
 
-        // 4. Persiste l'Entity e invia la notifica al Dipendente
-        dao.salvaTurno(nuovoTurno);
+        turnoDao.salvaTurno(nuovoTurno);
         dao.inviaNotifica(new Notifica(
                 dipendente.getEmail(),
                 "Nuovo Turno Pubblicato",
@@ -85,8 +82,9 @@ public class GestioneTurniEmergenzeControl {
 
     public EmergenzaBean segnalaEmergenzaTurno(EmergenzaBean beanInput) throws FrostlyException {
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        TurnoDAO turnoDao = DAOFactory.getTurnoDAO();
 
-        List<Turno> turni = dao.caricaTuttiTurni();
+        List<Turno> turni = turnoDao.caricaTuttiTurni();
         List<Emergenza> emergenze = dao.caricaTutteEmergenze();
         Dipendente richiedente = dao.trovaDipendentePerEmail(beanInput.getEmailRichiedente());
 
@@ -105,7 +103,7 @@ public class GestioneTurniEmergenzeControl {
         String codiceEmergenza = String.format("EMG-%02d", emergenze.size() + 1);
         Emergenza nuovaEmergenza = new Emergenza(codiceEmergenza, turnoCoinvolto, richiedente, beanInput.getMotivazione());
 
-        dao.salvaTurno(turnoCoinvolto);
+        turnoDao.salvaTurno(turnoCoinvolto);
         dao.salvaEmergenza(nuovaEmergenza);
 
         dao.inviaNotifica(new Notifica(
@@ -122,6 +120,7 @@ public class GestioneTurniEmergenzeControl {
     public EmergenzaBean approvaEmergenzaConSostituto(String codiceEmergenza, String emailSostituto, String notaMaestro)
             throws FrostlyException {
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        TurnoDAO turnoDao = DAOFactory.getTurnoDAO();
 
         Emergenza emergenza = trovaEmergenzaEntity(dao, codiceEmergenza);
         Dipendente sostituto = dao.trovaDipendentePerEmail(emailSostituto);
@@ -138,7 +137,7 @@ public class GestioneTurniEmergenzeControl {
         Dipendente richiedenteOriginale = emergenza.getRichiedente();
         emergenza.approvaConSostituto(sostituto, notaMaestro);
 
-        dao.salvaTurno(turno);
+        turnoDao.salvaTurno(turno);
         dao.salvaEmergenza(emergenza);
 
         dao.inviaNotifica(new Notifica(
@@ -161,10 +160,11 @@ public class GestioneTurniEmergenzeControl {
     public EmergenzaBean rifiutaEmergenza(String codiceEmergenza, String motivazioneRifiuto)
             throws FrostlyException {
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        TurnoDAO turnoDao = DAOFactory.getTurnoDAO();
         Emergenza emergenza = trovaEmergenzaEntity(dao, codiceEmergenza);
 
         emergenza.rifiuta(motivazioneRifiuto);
-        dao.salvaTurno(emergenza.getTurno());
+        turnoDao.salvaTurno(emergenza.getTurno());
         dao.salvaEmergenza(emergenza);
 
         dao.inviaNotifica(new Notifica(

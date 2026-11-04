@@ -63,6 +63,13 @@
                 </configuration>
             </plugin>
 
+            <!-- Plugin per eseguire i Test JUnit 5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+
             <!-- Plugin per far partire il progetto direttamente da Maven! -->
             <plugin>
                 <groupId>org.openjfx</groupId>
