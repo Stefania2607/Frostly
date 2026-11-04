@@ -5,6 +5,7 @@ import bean.NotificaBean;
 import dao.DAOFactory;
 import dao.FrostlyDAO;
 import frostly.exception.DatiNonValidiException;
+import frostly.exception.FrostlyException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Cliente;
@@ -14,8 +15,8 @@ import model.Notifica;
 import util.SessionManager;
 
 /**
- * Controller applicativo STATELESS per l'autenticazione degli attori
- * (MaestroGelataio, Dipendente, Cliente) e il recupero delle notifiche personali.
+ * Controller applicativo STATELESS per l'autenticazione (Sign In),
+ * la registrazione di nuovi utenti (Sign Up) e il recupero delle notifiche personali.
  */
 public class LoginControl {
 
@@ -55,6 +56,19 @@ public class LoginControl {
         }
 
         throw new DatiNonValidiException("Credenziali errate: nessun utente trovato con questa email/password.");
+    }
+
+    public LoginBean registraUtente(LoginBean registrazioneBean) throws FrostlyException {
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        dao.registraNuovoUtente(
+                registrazioneBean.getNome(),
+                registrazioneBean.getCognome(),
+                registrazioneBean.getEmail(),
+                registrazioneBean.getPassword(),
+                registrazioneBean.getRuoloScelto());
+        registrazioneBean.setNomeCompleto(registrazioneBean.getNome() + " " + registrazioneBean.getCognome());
+        registrazioneBean.setRuoloAutenticato(registrazioneBean.getRuoloScelto());
+        return registrazioneBean;
     }
 
     public List<NotificaBean> recuperaNotificheUtente(String emailUtente) {

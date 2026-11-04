@@ -1,14 +1,35 @@
 package util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 public class SessionManager {
 
     private static SessionManager instance;
-    private ModalitaEsecuzione modalita = ModalitaEsecuzione.DEMO;
+    private ModalitaEsecuzione modalita;
     private String emailUtenteLoggato;
     private String ruoloUtenteLoggato;
     private String nomeUtenteLoggato;
 
     private SessionManager() {
+        this.modalita = caricaModalitaDaConfigurazione();
+    }
+
+    private ModalitaEsecuzione caricaModalitaDaConfigurazione() {
+        try (InputStream input = SessionManager.class.getResourceAsStream("/db.properties")) {
+            if (input != null) {
+                Properties prop = new Properties();
+                prop.load(input);
+                String mode = prop.getProperty("app.mode", "FULL").trim();
+                if ("DEMO".equalsIgnoreCase(mode)) {
+                    return ModalitaEsecuzione.DEMO;
+                }
+            }
+        } catch (IOException ignored) {
+            // Default FULL in caso di assenza proprietà
+        }
+        return ModalitaEsecuzione.FULL;
     }
 
     public static synchronized SessionManager getInstance() {

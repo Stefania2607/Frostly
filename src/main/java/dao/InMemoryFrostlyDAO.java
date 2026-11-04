@@ -1,5 +1,6 @@
 package dao;
 
+import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,6 +124,29 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
     @Override
     public MaestroGelataio getMaestroGelataio() {
         return maestro;
+    }
+
+    @Override
+    public void registraNuovoUtente(String nome, String cognome, String email, String password, String ruolo)
+            throws FrostlyException {
+        if (maestro.getEmail().equalsIgnoreCase(email)
+                || trovaDipendentePerEmail(email) != null
+                || trovaClientePerEmail(email) != null) {
+            throw new DatiNonValidiException("Esiste gia' un utente registrato con l'email: " + email);
+        }
+        if ("DIPENDENTE".equalsIgnoreCase(ruolo)) {
+            dipendenti.add(new Dipendente(nome, cognome, email, password));
+        } else {
+            clienti.add(new Cliente(nome, cognome, email, password));
+        }
+    }
+
+    public void sincronizzaUtenteDaDb(String nome, String cognome, String email, String password, String ruolo) {
+        if ("DIPENDENTE".equalsIgnoreCase(ruolo) && trovaDipendentePerEmail(email) == null) {
+            dipendenti.add(new Dipendente(nome, cognome, email, password));
+        } else if ("CLIENTE".equalsIgnoreCase(ruolo) && trovaClientePerEmail(email) == null) {
+            clienti.add(new Cliente(nome, cognome, email, password));
+        }
     }
 
     @Override
