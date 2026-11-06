@@ -111,6 +111,37 @@ public class ConnectionManager {
                     + "stato VARCHAR(20) NOT NULL, "
                     + "risposta_maestro VARCHAR(255))");
 
+                        stmt.execute("CREATE TABLE IF NOT EXISTS ingredienti ("
+                    + "nome VARCHAR(64) PRIMARY KEY, "
+                    + "quantita_disponibile DOUBLE NOT NULL, "
+                    + "soglia_minima DOUBLE NOT NULL, "
+                    + "unita_misura VARCHAR(20) NOT NULL)");
+
+            boolean ingredientiVuoti = true;
+            try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM ingredienti")) {
+                if (rs.next()) {
+                    ingredientiVuoti = rs.getInt(1) == 0;
+                }
+            }
+            if (ingredientiVuoti) {
+                stmt.execute("INSERT INTO ingredienti (nome, quantita_disponibile, soglia_minima, unita_misura) VALUES "
+                        + "('Latte Fresco Alta Qualita', 25.0, 10.0, 'Litri'),"
+                        + "('Pasta Pistacchio di Bronte DOP', 6.0, 2.5, 'Kg'),"
+                        + "('Cioccolato Fondente Ecuador 75%', 8.0, 3.0, 'Kg'),"
+                        + "('Nocciola Piemonte IGP', 5.0, 2.0, 'Kg'),"
+                        + "('Polpa di Mango Alphonso', 1.5, 2.0, 'Kg')");
+            }
+
+            boolean emergenzeVuote = true;
+            try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM emergenze")) {
+                if (rs.next()) {
+                    emergenzeVuote = rs.getInt(1) == 0;
+                }
+            }
+            if (emergenzeVuote) {
+                stmt.execute("INSERT INTO emergenze (codice_emergenza, codice_turno, email_richiedente, email_sostituto, motivazione, stato, nota_risposta) VALUES "
+                        + "('EMG-01', 'TRN-03', 'mario@frostly.it', NULL, 'Visita medica improvvisa martedi mattina', 'IN_ATTESA', NULL)");
+            }
             stmt.execute("CREATE TABLE IF NOT EXISTS menu_gusti ("
                     + "nome_gusto VARCHAR(64) PRIMARY KEY, "
                     + "descrizione VARCHAR(255) NOT NULL, "

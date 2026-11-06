@@ -17,6 +17,8 @@ public interface FrostlyDAO {
 
     MaestroGelataio getMaestroGelataio();
 
+    void eliminaDipendente(String email) throws FrostlyException;
+
     void registraNuovoUtente(String nome, String cognome, String email, String password, String ruolo)
             throws FrostlyException;
 

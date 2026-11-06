@@ -69,10 +69,10 @@ public class ProduzioneOrdiniControl {
         try {
             prezzo = Double.parseDouble(prezzoTesto.trim().replace(",", "."));
         } catch (NumberFormatException | NullPointerException e) {
-            throw new DatiNonValidiException("Inserisci un prezzo al Kg valido (es. 24.0).");
+            throw new DatiNonValidiException("Inserisci un prezzo valido (es. 2.50 o 24.0).");
         }
         if (prezzo <= 0) {
-            throw new DatiNonValidiException("Il prezzo al Kg deve essere maggiore di zero.");
+            throw new DatiNonValidiException("Il prezzo deve essere maggiore di zero.");
         }
 
         String allergeniPuliti = (allergeni == null || allergeni.trim().isEmpty())
@@ -82,8 +82,11 @@ public class ProduzioneOrdiniControl {
         String sottoPulita = (sottocategoria == null || sottocategoria.trim().isEmpty())
                 ? catPulita : sottocategoria.trim();
         String imgPulita = immagineUrl == null ? "" : immagineUrl.trim();
-        if (!imgPulita.isEmpty() && !imgPulita.matches("(?i)^(https?|file)://.+")) {
-            throw new DatiNonValidiException("Il link della foto deve iniziare con http:// o https://");
+        if (!imgPulita.isEmpty()
+                && !imgPulita.matches("(?i)^(https?|file)://.+")
+                && !imgPulita.startsWith("immagini_menu/")
+                && !imgPulita.matches("^[A-Za-z0-9._-]+$")) {
+            throw new DatiNonValidiException("La foto deve essere un file locale (immagini_menu/...) o un link http:// o https://");
         }
 
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();

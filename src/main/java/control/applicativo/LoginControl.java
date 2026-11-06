@@ -92,6 +92,21 @@ public class LoginControl {
         return dipendenteBean;
     }
 
+    /** Eliminazione di un account dipendente: consentita esclusivamente al Maestro. */
+    public void eliminaProfiloDipendente(String emailDipendente) throws FrostlyException {
+        if (!RUOLO_MAESTRO.equals(SessionManager.getInstance().getRuoloUtenteLoggato())) {
+            throw new DatiNonValidiException("Operazione non consentita: solo il Maestro puo' eliminare profili dipendente.");
+        }
+        if (emailDipendente == null || emailDipendente.trim().isEmpty()) {
+            throw new DatiNonValidiException("Seleziona il dipendente da eliminare.");
+        }
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        if (dao.trovaDipendentePerEmail(emailDipendente.trim()) == null) {
+            throw new DatiNonValidiException("Nessun dipendente trovato con l'email: " + emailDipendente.trim());
+        }
+        dao.eliminaDipendente(emailDipendente.trim());
+    }
+
     /** Elenco dei dipendenti registrati, in formato "Nome Cognome | email". */
     public List<String> elencoDipendenti() {
         List<String> risultato = new ArrayList<>();

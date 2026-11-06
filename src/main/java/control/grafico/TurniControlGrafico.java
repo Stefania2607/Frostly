@@ -21,6 +21,11 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import java.util.List;
+import javafx.scene.control.Button;
+import javafx.scene.control.TabPane;
+import javafx.scene.layout.VBox;
+
 import util.SessionManager;
 
 /**
@@ -30,6 +35,22 @@ import util.SessionManager;
  */
 public class TurniControlGrafico {
 
+    @FXML
+    private TabPane tabPaneMaestro;
+    @FXML
+    private Button btnTendinaUrgenze;
+    @FXML
+    private VBox tendinaUrgenze;
+    @FXML
+    private ListView<String> listaUrgenzeMagazzino;
+    @FXML
+    private ListView<String> listaNotificheUrgenti;
+    @FXML
+    private TextField campoIngredienteUrgente;
+    @FXML
+    private TextField campoNomeIngredienteRifornimento;
+    @FXML
+    private TextField campoKgRifornimento;
     @FXML
     private Label lblIntestazione;
     @FXML
@@ -43,11 +64,19 @@ public class TurniControlGrafico {
     @FXML
     private ListView<String> listaRichiesteGusto;
     @FXML
+    private Label lblCategoriaFormMenu;
+    private String categoriaCorrenteSelezionata = "Gelati";
+    private String sottocategoriaCorrenteSelezionata = null;
+    @FXML
     private ComboBox<String> comboCategoriaMenu;
     @FXML
     private ComboBox<String> comboSottocategoriaMenu;
     @FXML
     private TextField campoImmagineMenu;
+    @FXML
+    private Label lblStatoFotoMenu;
+    @FXML
+    private Button btnRimuoviFoto;
     @FXML
     private ListView<String> listaDipendentiStaff;
     @FXML
@@ -66,6 +95,7 @@ public class TurniControlGrafico {
     private javafx.scene.layout.FlowPane grigliaMenuGestione;
     private LoginControlGrafico.VetrinaMenu vetrinaGestione;
     private final java.util.Map<String, GustoBean> menuCorrente = new java.util.LinkedHashMap<>();
+    private final java.util.Map<String, EmergenzaBean> mappaEmergenzeAttive = new java.util.LinkedHashMap<>();
 
     @FXML
     private ListView<IngredienteBean> listaMagazzino;
@@ -124,7 +154,12 @@ public class TurniControlGrafico {
             lblIntestazione.setText("Profilo Attivo: " + SessionManager.getInstance().getNomeUtenteLoggato()
                     + " (" + SessionManager.getInstance().getModalita() + ")");
         }
+        if (tendinaUrgenze != null) {
+            tendinaUrgenze.setVisible(false);
+            tendinaUrgenze.setManaged(false);
+        }
         configuraTendineESelezioneClick();
+        aggiornaBadgeReparto();
         aggiornaListe();
     }
 
@@ -182,8 +217,51 @@ public class TurniControlGrafico {
 
         if (listaEmergenze != null) {
             listaEmergenze.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && newVal.contains("|") && campoCodEmergenza != null) {
-                    campoCodEmergenza.setText(newVal.split("\\|")[0].trim());
+                if (newVal != null) {
+                    EmergenzaBean e = mappaEmergenzeAttive.get(newVal);
+                    if (e != null) {
+                        javafx.application.Platform.runLater(() -> apriPopupDettaglioEmergenza(e));
+                    }
+                }
+            });
+        }
+
+        if (listaUrgenzeMagazzino != null) {
+            listaUrgenzeMagazzino.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && newVal.contains("|")) {
+                    String nome = newVal.split("\\|")[0].replace("⚠️", "").trim();
+                    selezionaTab(3); // Porta direttamente al Magazzino
+                    if (campoNomeIngredienteRifornimento != null) {
+                        campoNomeIngredienteRifornimento.setText(nome);
+                    }
+                    if (campoKgRifornimento != null) {
+                        campoKgRifornimento.requestFocus();
+                    }
+                }
+            });
+        }
+
+        if (listaMagazzino != null) {
+            listaMagazzino.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && campoNomeIngredienteRifornimento != null) {
+                    campoNomeIngredienteRifornimento.setText(newVal.getNome());
+                    if (campoKgRifornimento != null) {
+                        campoKgRifornimento.requestFocus();
+                    }
+                }
+            });
+        }
+
+        if (listaDipendentiStaff != null) {
+            listaDipendentiStaff.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && newVal.contains("|") && campoEmailNuovoDip != null) {
+                    String[] parti = newVal.split("\\|");
+                    if (parti.length >= 2) {
+                        campoEmailNuovoDip.setText(parti[1].trim());
+                        String[] nc = parti[0].trim().split(" ");
+                        if (nc.length >= 1 && campoNomeNuovoDip != null) campoNomeNuovoDip.setText(nc[0]);
+                        if (nc.length >= 2 && campoCognomeNuovoDip != null) campoCognomeNuovoDip.setText(nc[1]);
+                    }
                 }
             });
         }
@@ -247,7 +325,8 @@ public class TurniControlGrafico {
 
         if (grigliaMenuGestione != null) {
             vetrinaGestione = new LoginControlGrafico.VetrinaMenu(
-                    boxCategorieMenu, boxSottocategorieMenu, grigliaMenuGestione, this::riempiFormGusto);
+                    boxCategorieMenu, boxSottocategorieMenu, grigliaMenuGestione,
+                    this::riempiFormGusto, this::alCambioFiltroVetrina);
         }
 
         if (listaMenuGestione != null) {
@@ -263,20 +342,80 @@ public class TurniControlGrafico {
         }
     }
 
+    private void aggiornaStatoFoto(String nomeFile) {
+        if (lblStatoFotoMenu == null) return;
+        if (nomeFile == null || nomeFile.trim().isEmpty()) {
+            lblStatoFotoMenu.setText("Nessuna foto selezionata");
+            lblStatoFotoMenu.setStyle("-fx-font-size: 12px; -fx-text-fill: #9c6644; -fx-font-style: italic;");
+            if (btnRimuoviFoto != null) {
+                btnRimuoviFoto.setVisible(false);
+                btnRimuoviFoto.setManaged(false);
+            }
+        } else {
+            String pulito = nomeFile;
+            int idx = Math.max(nomeFile.lastIndexOf('/'), nomeFile.lastIndexOf('\\'));
+            if (idx >= 0) pulito = nomeFile.substring(idx + 1);
+            if (pulito.contains("_") && pulito.substring(0, pulito.indexOf('_')).matches("^\\d{10,}$")) {
+                pulito = pulito.substring(pulito.indexOf('_') + 1);
+            }
+            lblStatoFotoMenu.setText("🖼️ Foto: " + pulito);
+            lblStatoFotoMenu.setStyle("-fx-font-size: 12px; -fx-text-fill: #2a9d8f; -fx-font-weight: bold;");
+            if (btnRimuoviFoto != null) {
+                btnRimuoviFoto.setVisible(true);
+                btnRimuoviFoto.setManaged(true);
+            }
+        }
+    }
+
+    @FXML
+    public void onClickRimuoviFoto() {
+        if (campoImmagineMenu != null) {
+            campoImmagineMenu.clear();
+        }
+        aggiornaStatoFoto(null);
+        aggiornaStatoFoto(null);
+    }
+
+    private void alCambioFiltroVetrina(String cat, String sotto) {
+        this.categoriaCorrenteSelezionata = cat;
+        this.sottocategoriaCorrenteSelezionata = sotto;
+        aggiornaBadgeReparto();
+    }
+
+    private void aggiornaBadgeReparto() {
+        if (lblCategoriaFormMenu != null) {
+            String testo = "📂 Reparto: " + LoginControlGrafico.emojiCategoria(categoriaCorrenteSelezionata) + " " + categoriaCorrenteSelezionata;
+            if (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty()) {
+                testo += " › " + sottocategoriaCorrenteSelezionata;
+            }
+            lblCategoriaFormMenu.setText(testo);
+        }
+        if (campoPrezzoGustoMenu != null) {
+            boolean isGelato = "Gelati".equalsIgnoreCase(categoriaCorrenteSelezionata);
+            campoPrezzoGustoMenu.setPromptText(isGelato ? "Prezzo €/kg" : "Prezzo €");
+        }
+    }
+
+    private String sottocategoriaPredefinita(String cat) {
+        if ("Caffetteria".equalsIgnoreCase(cat)) return "Caffe";
+        if ("Biscotti".equalsIgnoreCase(cat)) return "Secchi";
+        if ("Crostate".equalsIgnoreCase(cat)) return "Classiche";
+        if ("Tisane".equalsIgnoreCase(cat)) return "Infusi";
+        return "Creme";
+    }
+
     private void riempiFormGusto(GustoBean g) {
         campoNomeGustoMenu.setText(g.getNome());
         campoPrezzoGustoMenu.setText(String.valueOf(g.getPrezzoAlKg()));
         campoDescGustoMenu.setText(g.getDescrizione());
         campoAllergeniGustoMenu.setText(g.getAllergeni());
-        if (comboCategoriaMenu != null) {
-            comboCategoriaMenu.setValue(g.getCategoria());
-            aggiornaSottocategorieMenu(g.getCategoria());
-            comboSottocategoriaMenu.getEditor().setText(g.getSottocategoria());
-            comboSottocategoriaMenu.setValue(g.getSottocategoria());
-        }
+        this.categoriaCorrenteSelezionata = g.getCategoria();
+        this.sottocategoriaCorrenteSelezionata = g.getSottocategoria();
+        aggiornaBadgeReparto();
         if (campoImmagineMenu != null) {
             campoImmagineMenu.setText(g.getImmagineUrl());
         }
+        aggiornaStatoFoto(g.getImmagineUrl());
     }
 
     private void aggiornaSottocategorieMenu(String categoria) {
@@ -354,6 +493,140 @@ public class TurniControlGrafico {
     }
 
     @FXML
+    public void onClickEliminaDipendente() {
+        try {
+            String email = campoEmailNuovoDip != null ? campoEmailNuovoDip.getText() : null;
+            if (email == null || email.trim().isEmpty()) {
+                mostraErrore("⚠️ Seleziona prima un dipendente dalla lista sotto per eliminarlo.");
+                return;
+            }
+            new LoginControl().eliminaProfiloDipendente(email.trim());
+            mostraSuccesso("🗑️ Dipendente '" + email.trim() + "' eliminato con successo dallo staff.");
+            campoNomeNuovoDip.clear();
+            campoCognomeNuovoDip.clear();
+            campoEmailNuovoDip.clear();
+            campoPasswordNuovoDip.clear();
+            GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+            if (comboDipendenteTurno != null) {
+                comboDipendenteTurno.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
+            }
+            if (comboSostituto != null) {
+                comboSostituto.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
+            }
+            aggiornaListe();
+        } catch (FrostlyException e) {
+            mostraErrore("⚠️ " + e.getMessage());
+        }
+    }
+
+    private void apriPopupDettaglioEmergenza(EmergenzaBean e) {
+        javafx.stage.Stage popup = new javafx.stage.Stage();
+        popup.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        popup.setTitle("Frostly — Gestione Emergenza " + e.getCodiceEmergenza());
+        if (tendinaUrgenze != null && tendinaUrgenze.getScene() != null) {
+            popup.initOwner(tendinaUrgenze.getScene().getWindow());
+        }
+
+        VBox root = new VBox(14);
+        root.setStyle("-fx-padding: 24; -fx-background-color: #fffdfa;");
+        root.setPrefWidth(540);
+
+        Label lblTitolo = new Label("🚨 RICHIESTA DI SOSTITUZIONE URGENTE");
+        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #bc4749;");
+        Label lblSub = new Label("Codice: " + e.getCodiceEmergenza() + " • Turno: " + e.getCodiceTurno());
+        lblSub.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #7f5539;");
+
+        // Scheda info dipendente e turno
+        VBox cardInfo = new VBox(6);
+        cardInfo.setStyle("-fx-padding: 12 16; -fx-background-color: #f7ebe1; -fx-background-radius: 10; -fx-border-color: #e3d5ca; -fx-border-radius: 10;");
+        Label lblDip = new Label("👤 Dipendente: " + e.getNomeRichiedente() + " (" + e.getEmailRichiedente() + ")");
+        lblDip.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #3a2618;");
+        String turnoDettagli = e.getDataTurno() != null ? (e.getDataTurno() + " ore " + e.getOrarioTurno()) : "Turno di lavoro programmato";
+        Label lblTurno = new Label("📅 Turno coinvolto: " + e.getCodiceTurno() + " • " + turnoDettagli);
+        lblTurno.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #5c3a21;");
+        cardInfo.getChildren().addAll(lblDip, lblTurno);
+
+        // Sezione motivazione inserita a mano dal dipendente
+        VBox cardMotivo = new VBox(6);
+        cardMotivo.setStyle("-fx-padding: 12 16; -fx-background-color: #ffffff; -fx-background-radius: 10; -fx-border-color: #d5bdaf; -fx-border-radius: 10;");
+        Label lblMotivoTitolo = new Label("💬 Motivo comunicato dal dipendente:");
+        lblMotivoTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #bc4749;");
+        Label lblMotivoTesto = new Label("\"" + e.getMotivazione() + "\"");
+        lblMotivoTesto.setWrapText(true);
+        lblMotivoTesto.setStyle("-fx-font-size: 13.5px; -fx-font-style: italic; -fx-text-fill: #3a2618; -fx-font-family: 'Georgia';");
+        cardMotivo.getChildren().addAll(lblMotivoTitolo, lblMotivoTesto);
+
+        // Sezione modifica e riassegnazione turno
+        VBox cardAzione = new VBox(8);
+        Label lblSostituto = new Label("🔁 Scegli il dipendente per coprire e modificare il turno:");
+        lblSostituto.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #3a2618;");
+
+        ComboBox<String> comboSostitutoModal = new ComboBox<>();
+        comboSostitutoModal.setMaxWidth(Double.MAX_VALUE);
+        comboSostitutoModal.setPromptText("Seleziona sostituto dallo staff...");
+        for (String dipEmail : new GestioneTurniEmergenzeControl().getEmailTuttiDipendenti()) {
+            if (!dipEmail.equalsIgnoreCase(e.getEmailRichiedente())) {
+                comboSostitutoModal.getItems().add(dipEmail);
+            }
+        }
+        if (!comboSostitutoModal.getItems().isEmpty()) {
+            comboSostitutoModal.setValue(comboSostitutoModal.getItems().get(0));
+        }
+
+        Label lblNota = new Label("✍️ Nota o risposta del Maestro in tempo reale:");
+        lblNota.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #3a2618;");
+        TextField txtNota = new TextField("Sostituzione approvata e turno riassegnato");
+
+        cardAzione.getChildren().addAll(lblSostituto, comboSostitutoModal, lblNota, txtNota);
+
+        // Pulsanti di risposta rapida
+        HBox boxBottoni = new HBox(10);
+        boxBottoni.setAlignment(Pos.CENTER_RIGHT);
+
+        Button btnApprova = new Button("✔ Approva e Modifica Turno");
+        btnApprova.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 8 16; -fx-cursor: hand;");
+        btnApprova.setOnAction(evt -> {
+            try {
+                String sost = comboSostitutoModal.getValue();
+                if (sost == null || sost.trim().isEmpty()) {
+                    mostraErrore("⚠️ Seleziona prima un sostituto per riassegnare il turno.");
+                    return;
+                }
+                new GestioneTurniEmergenzeControl().approvaEmergenzaConSostituto(
+                        e.getCodiceEmergenza(), sost.trim(), txtNota.getText());
+                popup.close();
+                mostraSuccesso("✅ Emergenza approvata: Turno " + e.getCodiceTurno() + " riassegnato a " + sost);
+                aggiornaListe();
+            } catch (FrostlyException ex) {
+                mostraErrore("⚠️ " + ex.getMessage());
+            }
+        });
+
+        Button btnRifiuta = new Button("✖ Rifiuta Richiesta");
+        btnRifiuta.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 8 16; -fx-cursor: hand;");
+        btnRifiuta.setOnAction(evt -> {
+            try {
+                new GestioneTurniEmergenzeControl().rifiutaEmergenza(e.getCodiceEmergenza(), txtNota.getText());
+                popup.close();
+                mostraSuccesso("ℹ️ Emergenza " + e.getCodiceEmergenza() + " rifiutata.");
+                aggiornaListe();
+            } catch (FrostlyException ex) {
+                mostraErrore("⚠️ " + ex.getMessage());
+            }
+        });
+
+        Button btnChiudi = new Button("Chiudi");
+        btnChiudi.setStyle("-fx-background-color: #f5ebe0; -fx-text-fill: #5c3a21; -fx-background-radius: 16; -fx-padding: 8 14; -fx-cursor: hand;");
+        btnChiudi.setOnAction(evt -> popup.close());
+
+        boxBottoni.getChildren().addAll(btnChiudi, btnRifiuta, btnApprova);
+
+        root.getChildren().addAll(lblTitolo, lblSub, cardInfo, cardMotivo, cardAzione, boxBottoni);
+        popup.setScene(new javafx.scene.Scene(root));
+        popup.showAndWait();
+    }
+
+    @FXML
     public void onClickScegliFoto() {
         javafx.stage.FileChooser scelta = new javafx.stage.FileChooser();
         scelta.setTitle("Scegli la foto del prodotto");
@@ -364,16 +637,99 @@ public class TurniControlGrafico {
             return;
         }
         try {
-            // La foto viene copiata nella cartella 'immagini_menu' dell'app: resta valida anche se l'originale viene spostato
             java.nio.file.Path cartella = java.nio.file.Paths.get("immagini_menu");
             java.nio.file.Files.createDirectories(cartella);
+            java.nio.file.Path cartellaRes = java.nio.file.Paths.get("src/main/resources/immagini_menu");
+            if (java.nio.file.Files.exists(java.nio.file.Paths.get("src/main/resources"))) {
+                java.nio.file.Files.createDirectories(cartellaRes);
+            }
             String pulito = file.getName().replaceAll("[^A-Za-z0-9._-]", "_");
-            java.nio.file.Path destinazione = cartella.resolve(System.currentTimeMillis() + "_" + pulito);
-            java.nio.file.Files.copy(file.toPath(), destinazione);
-            campoImmagineMenu.setText(destinazione.toAbsolutePath().toUri().toString());
+            String nomeUnivoco = System.currentTimeMillis() + "_" + pulito;
+            java.nio.file.Path destinazione = cartella.resolve(nomeUnivoco);
+            java.nio.file.Files.copy(file.toPath(), destinazione, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            if (java.nio.file.Files.exists(cartellaRes)) {
+                java.nio.file.Files.copy(destinazione, cartellaRes.resolve(nomeUnivoco), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+            // Salviamo il percorso relativo portatile: funziona su qualsiasi computer (Mac, Windows, Linux)
+            campoImmagineMenu.setText("immagini_menu/" + nomeUnivoco);
+            aggiornaStatoFoto(file.getName());
             mostraSuccesso("🖼 Foto caricata: " + file.getName() + ". Premi 'Salva / Aggiorna' per applicarla.");
         } catch (java.io.IOException e) {
-            mostraErrore("⚠️ Impossibile copiare la foto: " + e.getMessage());
+            mostraErrore("⚠️ Impossibile salvare la foto: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void onToggleTendinaUrgenze() {
+        if (tendinaUrgenze != null) {
+            boolean visibile = !tendinaUrgenze.isVisible();
+            tendinaUrgenze.setVisible(visibile);
+            tendinaUrgenze.setManaged(visibile);
+        }
+    }
+
+    @FXML public void onClickApriSezioneMenu() { selezionaTab(1); }
+    @FXML public void onClickApriSezioneTurni() { selezionaTab(2); }
+    @FXML public void onClickApriSezioneMagazzino() { selezionaTab(3); }
+    @FXML public void onClickApriSezioneGusti() { selezionaTab(4); }
+    @FXML public void onClickApriSezioneStaff() { selezionaTab(5); }
+    @FXML public void onClickApriSezioneAvvisi() { selezionaTab(6); }
+    @FXML public void onClickTornaDashboard() { selezionaTab(0); }
+
+    private void selezionaTab(int indice) {
+        if (tabPaneMaestro != null && tabPaneMaestro.getTabs().size() > indice) {
+            tabPaneMaestro.getSelectionModel().select(indice);
+        }
+    }
+
+    @FXML
+    public void onClickRegistraRifornimentoManuale() {
+        try {
+            String nome = campoNomeIngredienteRifornimento != null ? campoNomeIngredienteRifornimento.getText() : null;
+            if (nome == null || nome.trim().isEmpty()) {
+                mostraErrore("⚠️ Seleziona prima una materia prima dalla lista.");
+                return;
+            }
+            String qtaTesto = campoKgRifornimento != null ? campoKgRifornimento.getText() : null;
+            if (qtaTesto == null || qtaTesto.trim().isEmpty()) {
+                mostraErrore("⚠️ Inserisci la quantita' arrivata (in Kg o Litri).");
+                return;
+            }
+            double qta;
+            try {
+                qta = Double.parseDouble(qtaTesto.trim().replace(",", "."));
+            } catch (NumberFormatException e) {
+                mostraErrore("⚠️ Inserisci un valore numerico valido (es. 10.0).");
+                return;
+            }
+            if (qta <= 0) {
+                mostraErrore("⚠️ La quantita' deve essere maggiore di zero.");
+                return;
+            }
+            new ProduzioneOrdiniControl().rifornisciIngredienteMagazzino(nome.trim(), qta);
+            mostraSuccesso("✅ Rifornimento registrato: aggiunti " + qta + " Kg/L di '" + nome.trim() + "' al magazzino!");
+            if (campoKgRifornimento != null) {
+                campoKgRifornimento.clear();
+            }
+            aggiornaListe();
+        } catch (FrostlyException e) {
+            mostraErrore("⚠️ " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void onClickRifornisciUrgente() {
+        try {
+            String nome = campoIngredienteUrgente != null ? campoIngredienteUrgente.getText() : null;
+            if (nome == null || nome.trim().isEmpty()) {
+                mostraErrore("⚠️ Seleziona prima una materia prima sotto soglia dalla lista.");
+                return;
+            }
+            new ProduzioneOrdiniControl().rifornisciIngredienteMagazzino(nome.trim(), 5.0);
+            mostraSuccesso("⚡ Scorte rifornite con successo (+5 Kg/L) per: " + nome.trim());
+            aggiornaListe();
+        } catch (FrostlyException e) {
+            mostraErrore("⚠️ " + e.getMessage());
         }
     }
 
@@ -392,20 +748,26 @@ public class TurniControlGrafico {
         if (campoImmagineMenu != null) {
             campoImmagineMenu.clear();
         }
+        aggiornaBadgeReparto();
         campoNomeGustoMenu.requestFocus();
     }
 
     @FXML
     public void onClickSalvaGustoMenu() {
         try {
+            String catDaSalvare = (categoriaCorrenteSelezionata != null && !categoriaCorrenteSelezionata.trim().isEmpty())
+                    ? categoriaCorrenteSelezionata : "Gelati";
+            String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
+                    ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
+
             new ProduzioneOrdiniControl().salvaOAggiornaGustoMenu(
                     campoNomeGustoMenu.getText(),
                     campoDescGustoMenu.getText(),
                     campoAllergeniGustoMenu.getText(),
                     campoPrezzoGustoMenu.getText(),
                     true,
-                    testoCombo(comboCategoriaMenu, "Gelati"),
-                    testoCombo(comboSottocategoriaMenu, "Creme"),
+                    catDaSalvare,
+                    sottoDaSalvare,
                     campoImmagineMenu == null ? "" : campoImmagineMenu.getText());
             mostraSuccesso("✅ Menu aggiornato con successo: '" + campoNomeGustoMenu.getText() + "' salvato!");
             aggiornaListe();
@@ -460,7 +822,10 @@ public class TurniControlGrafico {
             EmergenzaBean bean = new EmergenzaBean();
             bean.setEmailRichiedente(SessionManager.getInstance().getEmailUtenteLoggato());
             bean.setCodiceTurno(campoCodiceTurno.getText());
-            bean.setMotivazione(campoMotivazione.getText());
+            String motScritto = campoMotivazione != null ? campoMotivazione.getText().trim() : "";
+            String motRapido = comboMotivazioneRapida != null && comboMotivazioneRapida.getValue() != null ? comboMotivazioneRapida.getValue().trim() : "";
+            String motFinale = !motScritto.isEmpty() ? motScritto : (!motRapido.isEmpty() ? motRapido : "Imprevisto personale urgente");
+            bean.setMotivazione(motFinale);
 
             EmergenzaBean creata = new GestioneTurniEmergenzeControl().segnalaEmergenzaTurno(bean);
             mostraSuccesso("✅ Emergenza inviata al Maestro! Codice: " + creata.getCodiceEmergenza());
@@ -577,13 +942,15 @@ public class TurniControlGrafico {
 
         if (listaEmergenze != null) {
             listaEmergenze.getItems().clear();
+            mappaEmergenzeAttive.clear();
             for (EmergenzaBean e : turniCtrl.visualizzaTutteEmergenze()) {
                 if (!"IN_ATTESA".equals(e.getStato())) {
                     continue; // Le richieste approvate/rifiutate spariscono dalla lista
                 }
-                listaEmergenze.getItems().add(e.getCodiceEmergenza() + " | Turno " + e.getCodiceTurno()
-                        + " | Da: " + e.getNomeRichiedente() + " | Motivo: " + e.getMotivazione()
-                        + " | Stato: " + e.getStato() + " | Sostituto: " + e.getNomeSostituto());
+                String orarioInfo = e.getDataTurno() != null ? (" (" + e.getDataTurno() + " " + e.getOrarioTurno() + ")") : "";
+                String sintetica = "🚨 " + e.getNomeRichiedente() + " — Emergenza Turno " + e.getCodiceTurno() + orarioInfo;
+                mappaEmergenzeAttive.put(sintetica, e);
+                listaEmergenze.getItems().add(sintetica);
             }
         }
 
@@ -642,6 +1009,50 @@ public class TurniControlGrafico {
             listaNotifiche.getItems().clear();
             for (NotificaBean n : new LoginControl().recuperaNotificheUtente(emailUtente)) {
                 listaNotifiche.getItems().add("[" + n.getTimestamp() + "] " + n.getTitolo() + ": " + n.getMessaggio());
+            }
+        }
+
+        // Calcolo urgenze per la campanellina laterale del Maestro
+        int emergenzeAttive = 0;
+        for (EmergenzaBean e : turniCtrl.visualizzaTutteEmergenze()) {
+            if ("IN_ATTESA".equals(e.getStato())) {
+                emergenzeAttive++;
+            }
+        }
+
+        int scorteUrgenti = 0;
+        if (listaUrgenzeMagazzino != null) {
+            listaUrgenzeMagazzino.getItems().clear();
+            for (IngredienteBean ing : prodCtrl.visualizzaMagazzino()) {
+                if (ing.isSottoSoglia()) {
+                    scorteUrgenti++;
+                    listaUrgenzeMagazzino.getItems().add(ing.getNome() + " | Rimanenti: "
+                            + ing.getQuantitaDisponibile() + " " + ing.getUnitaMisura()
+                            + " (Min: " + ing.getSogliaMinima() + ")");
+                }
+            }
+            if (scorteUrgenti == 0) {
+                listaUrgenzeMagazzino.getItems().add("✅ Nessuna mancanza: materie prime ottimali");
+            }
+        }
+
+        int totaleUrgenze = emergenzeAttive + scorteUrgenti;
+        if (btnTendinaUrgenze != null) {
+            if (totaleUrgenze > 0) {
+                btnTendinaUrgenze.setText("🔔 Urgenze (" + totaleUrgenze + ")");
+                btnTendinaUrgenze.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 7 15; -fx-cursor: hand;");
+            } else {
+                btnTendinaUrgenze.setText("🔔 Notizie (0)");
+                btnTendinaUrgenze.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 7 15; -fx-cursor: hand;");
+            }
+        }
+
+        if (listaNotificheUrgenti != null) {
+            listaNotificheUrgenti.getItems().clear();
+            List<NotificaBean> listaN = new LoginControl().recuperaNotificheUtente(emailUtente);
+            for (int i = 0; i < Math.min(listaN.size(), 8); i++) {
+                NotificaBean nb = listaN.get(i);
+                listaNotificheUrgenti.getItems().add("[" + nb.getTimestamp() + "] " + nb.getTitolo() + ": " + nb.getMessaggio());
             }
         }
     }

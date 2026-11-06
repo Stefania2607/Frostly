@@ -137,6 +137,37 @@ public class LoginControlGrafico extends Application {
      * Riutilizzata sia dal menu pubblico (sola lettura) sia dalla gestione del Maestro e dei dipendenti,
      * dove un click su una scheda la seleziona e notifica il chiamante.
      */
+    public static String risolviPercorsoImmagine(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        String s = raw.trim();
+        if (s.startsWith("http://") || s.startsWith("https://")) {
+            return s;
+        }
+        String nomeFile = s;
+        int idxSlash = Math.max(s.lastIndexOf('/'), s.lastIndexOf('\\'));
+        if (idxSlash >= 0) {
+            nomeFile = s.substring(idxSlash + 1);
+        }
+        java.io.File fileLocale = new java.io.File("immagini_menu", nomeFile);
+        if (fileLocale.exists()) {
+            return fileLocale.toURI().toString();
+        }
+        java.net.URL res = LoginControlGrafico.class.getResource("/immagini_menu/" + nomeFile);
+        if (res != null) {
+            return res.toExternalForm();
+        }
+        java.io.File fileDiretto = new java.io.File(s);
+        if (fileDiretto.exists()) {
+            return fileDiretto.toURI().toString();
+        }
+        if (s.startsWith("file:")) {
+            return s;
+        }
+        return null;
+    }
+
     public static class VetrinaMenu {
 
         private static final List<String> ORDINE_CATEGORIE =
@@ -146,6 +177,7 @@ public class LoginControlGrafico extends Application {
         private final HBox boxSottocategorie;
         private final FlowPane griglia;
         private final java.util.function.Consumer<GustoBean> allaSelezione;
+        private final java.util.function.BiConsumer<String, String> alCambioFiltro;
 
         private List<GustoBean> prodotti = new ArrayList<>();
         private String categoriaSelezionata;
@@ -154,10 +186,21 @@ public class LoginControlGrafico extends Application {
 
         public VetrinaMenu(HBox boxCategorie, HBox boxSottocategorie, FlowPane griglia,
                            java.util.function.Consumer<GustoBean> allaSelezione) {
+            this(boxCategorie, boxSottocategorie, griglia, allaSelezione, null);
+        }
+
+        public VetrinaMenu(HBox boxCategorie, HBox boxSottocategorie, FlowPane griglia,
+                           java.util.function.Consumer<GustoBean> allaSelezione,
+                           java.util.function.BiConsumer<String, String> alCambioFiltro) {
             this.boxCategorie = boxCategorie;
             this.boxSottocategorie = boxSottocategorie;
             this.griglia = griglia;
             this.allaSelezione = allaSelezione;
+            this.alCambioFiltro = alCambioFiltro;
+        }
+
+        public String getCategoriaSelezionata() {
+            return categoriaSelezionata;
         }
 
         public void carica(List<GustoBean> nuoviProdotti) {
@@ -166,6 +209,9 @@ public class LoginControlGrafico extends Application {
             if (categoriaSelezionata == null || !categorie.contains(categoriaSelezionata)) {
                 categoriaSelezionata = categorie.isEmpty() ? null : categorie.get(0);
                 sottocategoriaSelezionata = null;
+            }
+            if (alCambioFiltro != null && categoriaSelezionata != null) {
+                alCambioFiltro.accept(categoriaSelezionata, sottocategoriaSelezionata);
             }
             disegnaTutto(categorie);
         }
@@ -216,6 +262,9 @@ public class LoginControlGrafico extends Application {
                 b.setOnAction(e -> {
                     categoriaSelezionata = c;
                     sottocategoriaSelezionata = null;
+                    if (alCambioFiltro != null) {
+                        alCambioFiltro.accept(c, null);
+                    }
                     disegnaTutto(categorie);
                 });
                 boxCategorie.getChildren().add(b);
@@ -249,6 +298,9 @@ public class LoginControlGrafico extends Application {
                     + " -fx-border-radius: 14;"));
             chip.setOnAction(e -> {
                 sottocategoriaSelezionata = valore;
+                if (alCambioFiltro != null) {
+                    alCambioFiltro.accept(categoriaSelezionata, valore);
+                }
                 disegnaSottocategorie();
                 disegnaProdotti();
             });
@@ -282,9 +334,10 @@ public class LoginControlGrafico extends Application {
             foto.setStyle("-fx-background-color: #f1e3d3; -fx-background-radius: 12 12 0 0;");
 
             String url = g.getImmagineUrl();
-            if (url != null && !url.trim().isEmpty()) {
+            String uriCaricabile = risolviPercorsoImmagine(url);
+            if (uriCaricabile != null) {
                 try {
-                    Image img = new Image(url.trim(), larghezza, altezzaFoto, false, true, true);
+                    Image img = new Image(uriCaricabile, larghezza, altezzaFoto, false, true, true);
                     ImageView vista = new ImageView(img);
                     vista.setFitWidth(larghezza);
                     vista.setFitHeight(altezzaFoto);

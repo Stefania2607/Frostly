@@ -152,6 +152,11 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
     }
 
     @Override
+    public void eliminaDipendente(String email) throws FrostlyException {
+        dipendenti.removeIf(d -> d.getEmail().equalsIgnoreCase(email));
+    }
+
+    @Override
     public void registraNuovoUtente(String nome, String cognome, String email, String password, String ruolo)
             throws FrostlyException {
         if (maestro.getEmail().equalsIgnoreCase(email)
@@ -171,6 +176,46 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
             dipendenti.add(new Dipendente(nome, cognome, email, password));
         } else if ("CLIENTE".equalsIgnoreCase(ruolo) && trovaClientePerEmail(email) == null) {
             clienti.add(new Cliente(nome, cognome, email, password));
+        }
+    }
+
+        public void sincronizzaIngredienteDaDb(String nome, double quantita, double sogliaMin, String unita) {
+        Ingrediente ing = trovaIngredientePerNome(nome);
+        if (ing != null) {
+            ing.setQuantitaDisponibile(quantita);
+        } else {
+            ingredienti.add(new Ingrediente(nome, quantita, sogliaMin, unita));
+        }
+    }
+
+    public void sincronizzaEmergenzaDaDb(String codEm, String codTurno, String emailRich, String emailSost, String motivo, String stato, String nota) {
+        for (Emergenza e : emergenze) {
+            if (e.getCodiceEmergenza().equalsIgnoreCase(codEm)) {
+                if ("APPROVATA".equalsIgnoreCase(stato)) {
+                    Dipendente sost = trovaDipendentePerEmail(emailSost);
+                    e.approvaConSostituto(sost, nota);
+                } else if ("RIFIUTATA".equalsIgnoreCase(stato)) {
+                    e.rifiuta(nota);
+                }
+                return;
+            }
+        }
+        Turno t = null;
+        for (Turno turn : turni) {
+            if (turn.getCodiceTurno().equalsIgnoreCase(codTurno)) {
+                t = turn;
+                break;
+            }
+        }
+        Dipendente rich = trovaDipendentePerEmail(emailRich);
+        if (t != null && rich != null) {
+            Emergenza em = new Emergenza(codEm, t, rich, motivo);
+            if ("APPROVATA".equalsIgnoreCase(stato)) {
+                em.approvaConSostituto(trovaDipendentePerEmail(emailSost), nota);
+            } else if ("RIFIUTATA".equalsIgnoreCase(stato)) {
+                em.rifiuta(nota);
+            }
+            emergenze.add(em);
         }
     }
 
