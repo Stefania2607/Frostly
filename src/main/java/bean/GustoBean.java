@@ -11,6 +11,9 @@ public class GustoBean {
     private double prezzoAlKg;
     private boolean disponibileOggi;
     private int vaschetteDisponibili;
+    private String categoria = "Gelati";
+    private String sottocategoria = "Creme";
+    private String immagineUrl = "";
 
     public GustoBean() {
         // Costruttore vuoto standard JavaBean
@@ -72,5 +75,29 @@ public class GustoBean {
 
     public void setVaschetteDisponibili(int vaschetteDisponibili) {
         this.vaschetteDisponibili = vaschetteDisponibili;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getSottocategoria() {
+        return sottocategoria;
+    }
+
+    public void setSottocategoria(String sottocategoria) {
+        this.sottocategoria = sottocategoria;
+    }
+
+    public String getImmagineUrl() {
+        return immagineUrl;
+    }
+
+    public void setImmagineUrl(String immagineUrl) {
+        this.immagineUrl = immagineUrl;
     }
 }

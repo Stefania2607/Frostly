@@ -11,7 +11,7 @@ import java.util.Properties;
 
 /**
  * Gestore della connessione JDBC realizzato con pattern GoF Singleton.
- * Legge i parametri di connessione al database MySQL (DBeaver) dal file 'db.properties'
+ * Legge i parametri di connessione al database MySQL dal file 'db.properties'
  * e mantiene UNA SOLA connessione aperta per tutta l'esecuzione dell'applicazione.
  */
 public class ConnectionManager {
@@ -111,6 +111,17 @@ public class ConnectionManager {
                     + "stato VARCHAR(20) NOT NULL, "
                     + "risposta_maestro VARCHAR(255))");
 
+            stmt.execute("CREATE TABLE IF NOT EXISTS menu_gusti ("
+                    + "nome_gusto VARCHAR(64) PRIMARY KEY, "
+                    + "descrizione VARCHAR(255) NOT NULL, "
+                    + "allergeni VARCHAR(128) NOT NULL, "
+                    + "prezzo_al_kg DOUBLE NOT NULL, "
+                    + "disponibile BOOLEAN NOT NULL, "
+                    + "categoria VARCHAR(40) NOT NULL DEFAULT 'Gelati', "
+                    + "sottocategoria VARCHAR(40) NOT NULL DEFAULT 'Creme', "
+                    + "immagine_url VARCHAR(500) NOT NULL DEFAULT '')");
+            migraMenuGusti(stmt);
+
             if (isMySql) {
                 stmt.execute("INSERT IGNORE INTO utenti (email, nome, cognome, password, ruolo) VALUES "
                         + "('maestro@frostly.it', 'Guglielmo', 'Bianchi', 'admin123', 'MAESTRO_GELATAIO'),"
@@ -125,6 +136,69 @@ public class ConnectionManager {
                         + "('TRN-02', 'Lunedi', '14:00', '20:00', 'giulia@frostly.it', 'PUBBLICATO'),"
                         + "('TRN-03', 'Martedi', '08:00', '14:00', 'mario@frostly.it', 'IN_EMERGENZA')");
             }
+
+            // Menu iniziale: inserito solo se la tabella e' vuota (valido sia per MySQL sia per SQLite)
+            boolean menuVuoto = true;
+            try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM menu_gusti")) {
+                if (rs.next()) {
+                    menuVuoto = rs.getInt(1) == 0;
+                }
+            }
+            if (menuVuoto) {
+                stmt.execute("INSERT INTO menu_gusti (nome_gusto, descrizione, allergeni, prezzo_al_kg, disponibile, categoria, sottocategoria) VALUES "
+                        + "('Pistacchio di Bronte DOP', 'Cremoso al pistacchio siciliano tostato', 'Latte, Frutta a guscio', 26.0, 1, 'Gelati', 'Creme'),"
+                        + "('Fondente Ecuador 75%', 'Cioccolato intenso monorigine', 'Latte', 24.0, 1, 'Gelati', 'Cioccolato'),"
+                        + "('Nocciola Piemonte IGP', 'Classico cremoso alle nocciole trilobate', 'Latte, Frutta a guscio', 25.0, 1, 'Gelati', 'Creme'),"
+                        + "('Crema Antica del Maestro', 'Tuorli freschi, vaniglia Bourbon e scorza di limone', 'Latte, Uova', 22.0, 1, 'Gelati', 'Creme'),"
+                        + "('Stracciatella Artigianale', 'Fiordilatte fresco con scaglie di fondente croccante', 'Latte', 23.0, 1, 'Gelati', 'Creme'),"
+                        + "('Sorbetto Mango Alphonso', 'Sorbetto 100% frutta fresca senza latte', 'Senza Lattosio', 24.0, 1, 'Gelati', 'Frutta')");
+            }
+            inserisciProdottiEsempio(stmt);
         }
+    }
+
+    /**
+     * Aggiunge le colonne categoria/sottocategoria/immagine_url ai database creati prima dell'introduzione
+     * delle categorie e assegna una sottocategoria ragionevole ai gusti gia' presenti.
+     */
+    private void migraMenuGusti(Statement stmt) throws SQLException {
+        boolean haCategoria = false;
+        try (java.sql.ResultSet rs = stmt.executeQuery("SELECT * FROM menu_gusti LIMIT 1")) {
+            java.sql.ResultSetMetaData md = rs.getMetaData();
+            for (int i = 1; i <= md.getColumnCount(); i++) {
+                if ("categoria".equalsIgnoreCase(md.getColumnName(i))) {
+                    haCategoria = true;
+                }
+            }
+        }
+        if (haCategoria) {
+            return;
+        }
+        stmt.execute("ALTER TABLE menu_gusti ADD COLUMN categoria VARCHAR(40) NOT NULL DEFAULT 'Gelati'");
+        stmt.execute("ALTER TABLE menu_gusti ADD COLUMN sottocategoria VARCHAR(40) NOT NULL DEFAULT 'Creme'");
+        stmt.execute("ALTER TABLE menu_gusti ADD COLUMN immagine_url VARCHAR(500) NOT NULL DEFAULT ''");
+        stmt.execute("UPDATE menu_gusti SET sottocategoria = 'Cioccolato' WHERE nome_gusto LIKE 'Fondente%'");
+        stmt.execute("UPDATE menu_gusti SET sottocategoria = 'Frutta' "
+                + "WHERE nome_gusto LIKE 'Sorbetto%' OR nome_gusto LIKE 'Mango%'");
+    }
+
+    /** Prodotti di esempio per le categorie non gelato: inseriti una sola volta, se non ne esiste nessuno. */
+    private void inserisciProdottiEsempio(Statement stmt) throws SQLException {
+        try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM menu_gusti WHERE categoria <> 'Gelati'")) {
+            if (rs.next() && rs.getInt(1) > 0) {
+                return;
+            }
+        }
+        stmt.execute("INSERT INTO menu_gusti (nome_gusto, descrizione, allergeni, prezzo_al_kg, disponibile, categoria, sottocategoria) VALUES "
+                + "('Caffe Espresso', 'Miscela 100% arabica tostata lentamente', 'Nessuno', 1.2, 1, 'Caffetteria', 'Caffe'),"
+                + "('Cappuccino', 'Espresso con latte fresco montato a vapore', 'Latte', 1.8, 1, 'Caffetteria', 'Caffe'),"
+                + "('Affogato al Caffe', 'Gelato fior di latte annegato nell''espresso caldo', 'Latte', 4.0, 1, 'Caffetteria', 'Specialita'),"
+                + "('Cioccolata Calda Fondente', 'Densa, con cacao 70% e un tocco di panna', 'Latte', 3.5, 1, 'Caffetteria', 'Specialita'),"
+                + "('Cantucci alle Mandorle', 'Biscotti toscani croccanti, ideali per il caffe', 'Glutine, Frutta a guscio, Uova', 5.0, 1, 'Biscotti', 'Secchi'),"
+                + "('Baci di Dama', 'Frollini alla nocciola farciti di cioccolato', 'Glutine, Frutta a guscio, Latte', 6.0, 1, 'Biscotti', 'Secchi'),"
+                + "('Crostata alla Marmellata', 'Frolla al burro con confettura di albicocche', 'Glutine, Uova, Latte', 2.8, 1, 'Crostate', 'Classiche'),"
+                + "('Crostata ai Frutti di Bosco', 'Crema pasticcera e frutti di bosco freschi', 'Glutine, Uova, Latte', 3.2, 1, 'Crostate', 'Alla frutta'),"
+                + "('Tisana Zenzero e Limone', 'Infuso caldo digestivo e rinfrescante', 'Nessuno', 2.5, 1, 'Tisane', 'Infusi'),"
+                + "('Tisana ai Frutti Rossi', 'Infuso fruttato senza caffeina', 'Nessuno', 2.5, 1, 'Tisane', 'Infusi')");
     }
 }

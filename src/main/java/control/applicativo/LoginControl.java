@@ -58,6 +58,10 @@ public class LoginControl {
         throw new DatiNonValidiException("Credenziali errate: nessun utente trovato con questa email/password.");
     }
 
+    /**
+     * Registrazione pubblica (Sign Up): crea SEMPRE un profilo CLIENTE, qualunque ruolo sia indicato nel bean.
+     * I profili dipendente possono essere creati solo dal Maestro con {@link #creaProfiloDipendente}.
+     */
     public LoginBean registraUtente(LoginBean registrazioneBean) throws FrostlyException {
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();
         dao.registraNuovoUtente(
@@ -65,10 +69,36 @@ public class LoginControl {
                 registrazioneBean.getCognome(),
                 registrazioneBean.getEmail(),
                 registrazioneBean.getPassword(),
-                registrazioneBean.getRuoloScelto());
+                RUOLO_CLIENTE);
         registrazioneBean.setNomeCompleto(registrazioneBean.getNome() + " " + registrazioneBean.getCognome());
-        registrazioneBean.setRuoloAutenticato(registrazioneBean.getRuoloScelto());
+        registrazioneBean.setRuoloAutenticato(RUOLO_CLIENTE);
         return registrazioneBean;
+    }
+
+    /** Creazione di un profilo dipendente: consentita solo al Maestro Gelataio autenticato. */
+    public LoginBean creaProfiloDipendente(LoginBean dipendenteBean) throws FrostlyException {
+        if (!RUOLO_MAESTRO.equals(SessionManager.getInstance().getRuoloUtenteLoggato())) {
+            throw new DatiNonValidiException("Operazione non consentita: solo il Maestro puo' creare profili dipendente.");
+        }
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        dao.registraNuovoUtente(
+                dipendenteBean.getNome(),
+                dipendenteBean.getCognome(),
+                dipendenteBean.getEmail(),
+                dipendenteBean.getPassword(),
+                RUOLO_DIPENDENTE);
+        dipendenteBean.setNomeCompleto(dipendenteBean.getNome() + " " + dipendenteBean.getCognome());
+        dipendenteBean.setRuoloAutenticato(RUOLO_DIPENDENTE);
+        return dipendenteBean;
+    }
+
+    /** Elenco dei dipendenti registrati, in formato "Nome Cognome | email". */
+    public List<String> elencoDipendenti() {
+        List<String> risultato = new ArrayList<>();
+        for (Dipendente d : DAOFactory.getFrostlyDAO().caricaTuttiDipendenti()) {
+            risultato.add(d.getNome() + " " + d.getCognome() + " | " + d.getEmail());
+        }
+        return risultato;
     }
 
     public List<NotificaBean> recuperaNotificheUtente(String emailUtente) {

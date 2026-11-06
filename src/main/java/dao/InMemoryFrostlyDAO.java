@@ -103,9 +103,25 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
         ricNocciola.aggiungiIngrediente(latte, 2.5);
         ricNocciola.aggiungiIngrediente(nocciola, 0.9);
 
-        gusti.add(new Gusto("Pistacchio di Bronte DOP", "Cremoso al pistacchio siciliano", "Latte, Frutta a guscio", 26.0, ricPistacchio));
+        gusti.add(new Gusto("Pistacchio di Bronte DOP", "Cremoso al pistacchio siciliano tostato", "Latte, Frutta a guscio", 26.0, ricPistacchio));
         gusti.add(new Gusto("Fondente Ecuador 75%", "Cioccolato intenso monorigine", "Latte", 24.0, ricCioccolato));
-        gusti.add(new Gusto("Nocciola Piemonte IGP", "Classico cremoso alle nocciole", "Latte, Frutta a guscio", 25.0, ricNocciola));
+        gusti.add(new Gusto("Nocciola Piemonte IGP", "Classico cremoso alle nocciole trilobate", "Latte, Frutta a guscio", 25.0, ricNocciola));
+        gusti.add(new Gusto("Crema Antica del Maestro", "Tuorli freschi, vaniglia Bourbon e scorza di limone", "Latte, Uova", 22.0, ricNocciola));
+        gusti.add(new Gusto("Stracciatella Artigianale", "Fiordilatte fresco con scaglie di fondente croccante", "Latte", 23.0, ricCioccolato));
+        gusti.add(new Gusto("Sorbetto Mango Alphonso", "Sorbetto 100% frutta fresca senza latte", "Senza Lattosio", 24.0, ricPistacchio));
+        trovaGustoPerNome("Fondente Ecuador 75%").setSottocategoria("Cioccolato");
+        trovaGustoPerNome("Sorbetto Mango Alphonso").setSottocategoria("Frutta");
+
+        aggiungiProdottoEsempio("Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe");
+        aggiungiProdottoEsempio("Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe");
+        aggiungiProdottoEsempio("Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita");
+        aggiungiProdottoEsempio("Cioccolata Calda Fondente", "Densa, con cacao 70% e un tocco di panna", "Latte", 3.5, "Caffetteria", "Specialita");
+        aggiungiProdottoEsempio("Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi");
+        aggiungiProdottoEsempio("Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi");
+        aggiungiProdottoEsempio("Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche");
+        aggiungiProdottoEsempio("Crostata ai Frutti di Bosco", "Crema pasticcera e frutti di bosco freschi", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta");
+        aggiungiProdottoEsempio("Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi");
+        aggiungiProdottoEsempio("Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi");
 
         Emergenza emIniziale = new Emergenza("EMG-01", t3, d1, "Visita medica improvvisa martedi mattina");
         t3.dichiaraEmergenza();
@@ -119,6 +135,15 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
                 "Mario Rossi ha segnalato un'emergenza per il turno TRN-03 (Martedi 08:00-14:00).", "Oggi 09:15"));
         notifiche.add(new Notifica("maestro@frostly.it", "Nuova Richiesta Gusto",
                 "Elena Conti ha richiesto il gusto personalizzato 'Pistacchio Salato Croccante' (1.5 kg).", "Oggi 10:30"));
+    }
+
+    private void aggiungiProdottoEsempio(String nome, String descrizione, String allergeni, double prezzo,
+                                         String categoria, String sottocategoria) {
+        Gusto g = new Gusto(nome, descrizione, allergeni, prezzo,
+                new Ricetta("Preparazione " + nome, "Preparazione del laboratorio"));
+        g.setCategoria(categoria);
+        g.setSottocategoria(sottocategoria);
+        gusti.add(g);
     }
 
     @Override
@@ -146,6 +171,32 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
             dipendenti.add(new Dipendente(nome, cognome, email, password));
         } else if ("CLIENTE".equalsIgnoreCase(ruolo) && trovaClientePerEmail(email) == null) {
             clienti.add(new Cliente(nome, cognome, email, password));
+        }
+    }
+
+    public void sincronizzaGustoDaDb(String nome, String descrizione, String allergeni, double prezzoAlKg, boolean disponibile) {
+        sincronizzaGustoDaDb(nome, descrizione, allergeni, prezzoAlKg, disponibile, "Gelati", "Creme", "");
+    }
+
+    public void sincronizzaGustoDaDb(String nome, String descrizione, String allergeni, double prezzoAlKg,
+                                     boolean disponibile, String categoria, String sottocategoria, String immagineUrl) {
+        Gusto esistente = trovaGustoPerNome(nome);
+        if (esistente != null) {
+            esistente.setDescrizione(descrizione);
+            esistente.setAllergeni(allergeni);
+            esistente.setPrezzoAlKg(prezzoAlKg);
+            esistente.setDisponibileOggi(disponibile);
+            esistente.setCategoria(categoria);
+            esistente.setSottocategoria(sottocategoria);
+            esistente.setImmagineUrl(immagineUrl);
+        } else {
+            Ricetta ricBase = new Ricetta("Ricetta Artigianale " + nome, "Mantecazione tradizionale di laboratorio");
+            Gusto nuovo = new Gusto(nome, descrizione, allergeni, prezzoAlKg, ricBase);
+            nuovo.setDisponibileOggi(disponibile);
+            nuovo.setCategoria(categoria);
+            nuovo.setSottocategoria(sottocategoria);
+            nuovo.setImmagineUrl(immagineUrl);
+            gusti.add(nuovo);
         }
     }
 
@@ -250,6 +301,22 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
             }
         }
         return null;
+    }
+
+    @Override
+    public void salvaGustoMenu(Gusto gusto) throws FrostlyException {
+        for (int i = 0; i < gusti.size(); i++) {
+            if (gusti.get(i).getNome().equalsIgnoreCase(gusto.getNome())) {
+                gusti.set(i, gusto);
+                return;
+            }
+        }
+        gusti.add(gusto);
+    }
+
+    @Override
+    public void rimuoviGustoMenu(String nomeGusto) throws FrostlyException {
+        gusti.removeIf(g -> g.getNome().equalsIgnoreCase(nomeGusto));
     }
 
     @Override

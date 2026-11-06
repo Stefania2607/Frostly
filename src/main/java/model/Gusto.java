@@ -12,6 +12,9 @@ public class Gusto {
     private boolean disponibileOggi;
     private int vaschetteDisponibili;
     private Ricetta ricetta;
+    private String categoria = "Gelati";
+    private String sottocategoria = "Creme";
+    private String immagineUrl = "";
 
     public Gusto(String nome, String descrizione, String allergeni, double prezzoAlKg, Ricetta ricetta) {
         this.nome = nome;
@@ -89,5 +92,29 @@ public class Gusto {
 
     public void setRicetta(Ricetta ricetta) {
         this.ricetta = ricetta;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getSottocategoria() {
+        return sottocategoria;
+    }
+
+    public void setSottocategoria(String sottocategoria) {
+        this.sottocategoria = sottocategoria;
+    }
+
+    public String getImmagineUrl() {
+        return immagineUrl;
+    }
+
+    public void setImmagineUrl(String immagineUrl) {
+        this.immagineUrl = immagineUrl;
     }
 }

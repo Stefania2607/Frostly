@@ -169,6 +169,9 @@ public class GelateriaControlGrafico {
         if (listaMenuGusti != null) {
             listaMenuGusti.getItems().clear();
             for (GustoBean g : new ProduzioneOrdiniControl().visualizzaMenuGusti()) {
+                if (!"Gelati".equalsIgnoreCase(g.getCategoria())) {
+                    continue; // La vaschetta si ordina solo sui gelati
+                }
                 listaMenuGusti.getItems().add(g.getNome() + " (EUR " + g.getPrezzoAlKg() + "/kg) - " + g.getDescrizione());
             }
         }

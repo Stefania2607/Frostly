@@ -46,6 +46,10 @@ public interface FrostlyDAO {
 
     Gusto trovaGustoPerNome(String nome);
 
+    void salvaGustoMenu(Gusto gusto) throws FrostlyException;
+
+    void rimuoviGustoMenu(String nomeGusto) throws FrostlyException;
+
     List<RichiestaGustoPersonalizzato> caricaTutteRichiesteGusto();
 
     void salvaRichiestaGusto(RichiestaGustoPersonalizzato richiesta);
