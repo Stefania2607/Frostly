@@ -476,18 +476,7 @@ public class TurniControlGrafico {
             bean.LoginBean creato = new LoginControl().creaProfiloDipendente(nuovo);
             mostraSuccesso("✅ Profilo dipendente creato per " + creato.getNomeCompleto()
                     + ". Comunicagli email e password: " + creato.getEmail() + " / " + creato.getPassword());
-            campoNomeNuovoDip.clear();
-            campoCognomeNuovoDip.clear();
-            campoEmailNuovoDip.clear();
-            campoPasswordNuovoDip.clear();
-            GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
-            if (comboDipendenteTurno != null) {
-                comboDipendenteTurno.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
-            }
-            if (comboSostituto != null) {
-                comboSostituto.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
-            }
-            aggiornaListe();
+            resetCampiDipendenteEAggiorna();
         } catch (FrostlyException e) {
             mostraErrore("⚠️ " + e.getMessage());
         }
@@ -503,21 +492,25 @@ public class TurniControlGrafico {
             }
             new LoginControl().eliminaProfiloDipendente(email.trim());
             mostraSuccesso("🗑️ Dipendente '" + email.trim() + "' eliminato con successo dallo staff.");
-            campoNomeNuovoDip.clear();
-            campoCognomeNuovoDip.clear();
-            campoEmailNuovoDip.clear();
-            campoPasswordNuovoDip.clear();
-            GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
-            if (comboDipendenteTurno != null) {
-                comboDipendenteTurno.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
-            }
-            if (comboSostituto != null) {
-                comboSostituto.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
-            }
-            aggiornaListe();
+            resetCampiDipendenteEAggiorna();
         } catch (FrostlyException e) {
             mostraErrore("⚠️ " + e.getMessage());
         }
+    }
+
+    private void resetCampiDipendenteEAggiorna() {
+        campoNomeNuovoDip.clear();
+        campoCognomeNuovoDip.clear();
+        campoEmailNuovoDip.clear();
+        campoPasswordNuovoDip.clear();
+        GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+        if (comboDipendenteTurno != null) {
+            comboDipendenteTurno.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
+        }
+        if (comboSostituto != null) {
+            comboSostituto.setItems(FXCollections.observableArrayList(turniCtrl.getEmailTuttiDipendenti()));
+        }
+        aggiornaListe();
     }
 
     private void apriPopupDettaglioEmergenza(EmergenzaBean e) {

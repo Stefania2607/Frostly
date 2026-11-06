@@ -28,36 +28,36 @@ public class IngredienteBean {
         return nome;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
     public double getQuantitaDisponibile() {
         return quantitaDisponibile;
-    }
-
-    public void setQuantitaDisponibile(double quantitaDisponibile) {
-        this.quantitaDisponibile = quantitaDisponibile;
     }
 
     public double getSogliaMinima() {
         return sogliaMinima;
     }
 
-    public void setSogliaMinima(double sogliaMinima) {
-        this.sogliaMinima = sogliaMinima;
-    }
-
     public String getUnitaMisura() {
         return unitaMisura;
     }
 
-    public void setUnitaMisura(String unitaMisura) {
-        this.unitaMisura = unitaMisura;
-    }
-
     public boolean isSottoSoglia() {
         return sottoSoglia;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setQuantitaDisponibile(double quantitaDisponibile) {
+        this.quantitaDisponibile = quantitaDisponibile;
+    }
+
+    public void setSogliaMinima(double sogliaMinima) {
+        this.sogliaMinima = sogliaMinima;
+    }
+
+    public void setUnitaMisura(String unitaMisura) {
+        this.unitaMisura = unitaMisura;
     }
 
     public void setSottoSoglia(boolean sottoSoglia) {

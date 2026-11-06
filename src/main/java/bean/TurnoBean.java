@@ -24,12 +24,32 @@ public class TurnoBean {
         return codiceTurno;
     }
 
-    public void setCodiceTurno(String codiceTurno) {
-        this.codiceTurno = codiceTurno;
-    }
-
     public String getData() {
         return data;
+    }
+
+    public String getOraInizio() {
+        return oraInizio;
+    }
+
+    public String getOraFine() {
+        return oraFine;
+    }
+
+    public String getEmailDipendente() {
+        return emailDipendente;
+    }
+
+    public String getNomeDipendente() {
+        return nomeDipendente;
+    }
+
+    public String getStato() {
+        return stato;
+    }
+
+    public void setCodiceTurno(String codiceTurno) {
+        this.codiceTurno = codiceTurno;
     }
 
     public void setData(String data) throws DatiNonValidiException {
@@ -39,19 +59,11 @@ public class TurnoBean {
         this.data = data.trim();
     }
 
-    public String getOraInizio() {
-        return oraInizio;
-    }
-
     public void setOraInizio(String oraInizio) throws DatiNonValidiException {
         if (oraInizio == null || !oraInizio.matches("\\d{2}:\\d{2}")) {
             throw new DatiNonValidiException("Ora inizio non valida: usare il formato HH:mm (es. 08:00).");
         }
         this.oraInizio = oraInizio;
-    }
-
-    public String getOraFine() {
-        return oraFine;
     }
 
     public void setOraFine(String oraFine) throws DatiNonValidiException {
@@ -64,10 +76,6 @@ public class TurnoBean {
         this.oraFine = oraFine;
     }
 
-    public String getEmailDipendente() {
-        return emailDipendente;
-    }
-
     public void setEmailDipendente(String emailDipendente) throws DatiNonValidiException {
         if (emailDipendente == null || !emailDipendente.contains("@")) {
             throw new DatiNonValidiException("Email dipendente non valida.");
@@ -75,16 +83,8 @@ public class TurnoBean {
         this.emailDipendente = emailDipendente.trim();
     }
 
-    public String getNomeDipendente() {
-        return nomeDipendente;
-    }
-
     public void setNomeDipendente(String nomeDipendente) {
         this.nomeDipendente = nomeDipendente;
-    }
-
-    public String getStato() {
-        return stato;
     }
 
     public void setStato(String stato) {

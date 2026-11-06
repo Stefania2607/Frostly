@@ -33,68 +33,68 @@ public class GustoBean {
         return nome;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
     public String getDescrizione() {
         return descrizione;
-    }
-
-    public void setDescrizione(String descrizione) {
-        this.descrizione = descrizione;
     }
 
     public String getAllergeni() {
         return allergeni;
     }
 
-    public void setAllergeni(String allergeni) {
-        this.allergeni = allergeni;
-    }
-
     public double getPrezzoAlKg() {
         return prezzoAlKg;
-    }
-
-    public void setPrezzoAlKg(double prezzoAlKg) {
-        this.prezzoAlKg = prezzoAlKg;
     }
 
     public boolean isDisponibileOggi() {
         return disponibileOggi;
     }
 
-    public void setDisponibileOggi(boolean disponibileOggi) {
-        this.disponibileOggi = disponibileOggi;
-    }
-
     public int getVaschetteDisponibili() {
         return vaschetteDisponibili;
-    }
-
-    public void setVaschetteDisponibili(int vaschetteDisponibili) {
-        this.vaschetteDisponibili = vaschetteDisponibili;
     }
 
     public String getCategoria() {
         return categoria;
     }
 
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
-    }
-
     public String getSottocategoria() {
         return sottocategoria;
     }
 
-    public void setSottocategoria(String sottocategoria) {
-        this.sottocategoria = sottocategoria;
-    }
-
     public String getImmagineUrl() {
         return immagineUrl;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setDescrizione(String descrizione) {
+        this.descrizione = descrizione;
+    }
+
+    public void setAllergeni(String allergeni) {
+        this.allergeni = allergeni;
+    }
+
+    public void setPrezzoAlKg(double prezzoAlKg) {
+        this.prezzoAlKg = prezzoAlKg;
+    }
+
+    public void setDisponibileOggi(boolean disponibileOggi) {
+        this.disponibileOggi = disponibileOggi;
+    }
+
+    public void setVaschetteDisponibili(int vaschetteDisponibili) {
+        this.vaschetteDisponibili = vaschetteDisponibili;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public void setSottocategoria(String sottocategoria) {
+        this.sottocategoria = sottocategoria;
     }
 
     public void setImmagineUrl(String immagineUrl) {
