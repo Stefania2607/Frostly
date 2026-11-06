@@ -35,6 +35,8 @@ import util.SessionManager;
  */
 public class TurniControlGrafico {
 
+    private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
+
     @FXML
     private TabPane tabPaneMaestro;
     @FXML
@@ -456,10 +458,9 @@ public class TurniControlGrafico {
     @FXML
     public void onClickGeneraPassword() {
         String alfabeto = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 8; i++) {
-            sb.append(alfabeto.charAt(random.nextInt(alfabeto.length())));
+            sb.append(alfabeto.charAt(SECURE_RANDOM.nextInt(alfabeto.length())));
         }
         campoPasswordNuovoDip.setText(sb.toString());
     }
