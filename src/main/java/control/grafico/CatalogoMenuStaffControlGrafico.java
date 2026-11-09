@@ -24,6 +24,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import view.StaffMenuEditorView;
 import view.StaffTurniView;
 import view.VetrinaMenuView;
 
@@ -102,7 +104,7 @@ public class CatalogoMenuStaffControlGrafico {
     public void inizializza() {
         if (comboCategoriaMenu != null) {
             comboCategoriaMenu.setItems(FXCollections.observableArrayList(
-                    "Gelati", "Crepes", "Panna", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane"));
+                    "Gelati", "Crepes", "Panna", "Cioccolate calde", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane"));
             comboCategoriaMenu.setValue("Gelati");
             comboCategoriaMenu.valueProperty().addListener((obs, oldVal, newVal) -> aggiornaSottocategorieMenu(newVal));
             aggiornaSottocategorieMenu("Gelati");
@@ -165,13 +167,21 @@ public class CatalogoMenuStaffControlGrafico {
         if (campoImmagineMenu == null || campoImmagineMenu.getScene() == null) {
             return;
         }
+        String percorso = scegliFotoERitornaPercorso(campoImmagineMenu.getScene().getWindow());
+        if (percorso != null) {
+            campoImmagineMenu.setText(percorso);
+            aggiornaStatoFoto(percorso);
+        }
+    }
+
+    private String scegliFotoERitornaPercorso(Window finestra) {
         FileChooser scelta = new FileChooser();
         scelta.setTitle("Scegli la foto del prodotto");
         scelta.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 "Immagini (png, jpg, jpeg, gif)", "*.png", "*.jpg", "*.jpeg", "*.gif"));
-        File file = scelta.showOpenDialog(campoImmagineMenu.getScene().getWindow());
+        File file = scelta.showOpenDialog(finestra);
         if (file == null) {
-            return;
+            return null;
         }
         try {
             Path cartella = Paths.get("immagini_menu");
@@ -187,11 +197,12 @@ public class CatalogoMenuStaffControlGrafico {
             if (Files.exists(cartellaRes)) {
                 Files.copy(destinazione, cartellaRes.resolve(nomeUnivoco), StandardCopyOption.REPLACE_EXISTING);
             }
-            campoImmagineMenu.setText("immagini_menu/" + nomeUnivoco);
-            aggiornaStatoFoto(file.getName());
-            notificaEsito.accept("🖼 Foto caricata: " + file.getName() + ". Premi 'Salva / Aggiorna' per applicarla.", false);
+            String percorsoRelativo = "immagini_menu/" + nomeUnivoco;
+            notificaEsito.accept("🖼 Foto caricata: " + file.getName(), false);
+            return percorsoRelativo;
         } catch (IOException e) {
             notificaEsito.accept("⚠️ Impossibile salvare la foto: " + e.getMessage(), true);
+            return null;
         }
     }
 
@@ -208,7 +219,11 @@ public class CatalogoMenuStaffControlGrafico {
         if (campoDescGustoMenu != null) campoDescGustoMenu.clear();
         if (campoImmagineMenu != null) campoImmagineMenu.clear();
         aggiornaBadgeReparto();
-        if (campoNomeGustoMenu != null) {
+        Window finestra = ricavaFinestraAttiva();
+        if (finestra != null) {
+            StaffMenuEditorView.apriPopupEditorProdotto(
+                    finestra, null, categoriaCorrenteSelezionata, sottocategoriaCorrenteSelezionata, creaAzioniPopup());
+        } else if (campoNomeGustoMenu != null) {
             campoNomeGustoMenu.requestFocus();
         }
     }
@@ -284,6 +299,7 @@ public class CatalogoMenuStaffControlGrafico {
     private String sottocategoriaPredefinita(String cat) {
         if ("Crepes".equalsIgnoreCase(cat)) return "Farciture";
         if ("Panna".equalsIgnoreCase(cat)) return "Porzioni";
+        if ("Cioccolate calde".equalsIgnoreCase(cat)) return "Classiche";
         if ("Bevande".equalsIgnoreCase(cat)) return "Acqua";
         if ("Caffetteria".equalsIgnoreCase(cat)) return "Caffe";
         if ("Biscotti".equalsIgnoreCase(cat)) return "Secchi";
@@ -304,6 +320,70 @@ public class CatalogoMenuStaffControlGrafico {
             campoImmagineMenu.setText(g.getImmagineUrl());
         }
         aggiornaStatoFoto(g.getImmagineUrl());
+        Window finestra = ricavaFinestraAttiva();
+        if (finestra != null) {
+            StaffMenuEditorView.apriPopupEditorProdotto(
+                    finestra, g, categoriaCorrenteSelezionata, sottocategoriaCorrenteSelezionata, creaAzioniPopup());
+        }
+    }
+
+    private Window ricavaFinestraAttiva() {
+        if (grigliaMenuGestione != null && grigliaMenuGestione.getScene() != null) {
+            return grigliaMenuGestione.getScene().getWindow();
+        }
+        if (campoNomeGustoMenu != null && campoNomeGustoMenu.getScene() != null) {
+            return campoNomeGustoMenu.getScene().getWindow();
+        }
+        return null;
+    }
+
+    private StaffMenuEditorView.AzioniEditorProdotto creaAzioniPopup() {
+        return new StaffMenuEditorView.AzioniEditorProdotto(
+                () -> scegliFotoERitornaPercorso(ricavaFinestraAttiva()),
+                modificato -> {
+                    this.categoriaCorrenteSelezionata = modificato.getCategoria();
+                    this.sottocategoriaCorrenteSelezionata = modificato.getSottocategoria();
+                    if (campoNomeGustoMenu != null) campoNomeGustoMenu.setText(modificato.getNome());
+                    if (campoDescGustoMenu != null) campoDescGustoMenu.setText(modificato.getDescrizione());
+                    if (campoAllergeniGustoMenu != null) campoAllergeniGustoMenu.setText(modificato.getAllergeni());
+                    if (campoPrezzoGustoMenu != null) {
+                        campoPrezzoGustoMenu.setText(modificato.getPrezzoAlKg() < 0 ? "" : String.valueOf(modificato.getPrezzoAlKg()));
+                    }
+                    if (campoImmagineMenu != null) campoImmagineMenu.setText(modificato.getImmagineUrl());
+                    salvaOAggiornaGustoConDisponibilita(modificato.isDisponibileOggi());
+                },
+                nome -> {
+                    if (campoNomeGustoMenu != null) campoNomeGustoMenu.setText(nome);
+                    cambiaDisponibilitaGusto();
+                },
+                nome -> {
+                    if (campoNomeGustoMenu != null) campoNomeGustoMenu.setText(nome);
+                    eliminaGusto();
+                }
+        );
+    }
+
+    private void salvaOAggiornaGustoConDisponibilita(boolean disponibile) {
+        try {
+            String catDaSalvare = (categoriaCorrenteSelezionata != null && !categoriaCorrenteSelezionata.trim().isEmpty())
+                    ? categoriaCorrenteSelezionata : "Gelati";
+            String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
+                    ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
+
+            new ProduzioneOrdiniControl().salvaOAggiornaGustoMenu(
+                    campoNomeGustoMenu.getText(),
+                    campoDescGustoMenu.getText(),
+                    campoAllergeniGustoMenu.getText(),
+                    campoPrezzoGustoMenu.getText(),
+                    disponibile,
+                    catDaSalvare,
+                    sottoDaSalvare,
+                    campoImmagineMenu == null ? "" : campoImmagineMenu.getText());
+            notificaEsito.accept("✅ Menu aggiornato con successo: '" + campoNomeGustoMenu.getText() + "' salvato!", false);
+            onAggiornaGlobale.run();
+        } catch (FrostlyException e) {
+            notificaEsito.accept("⚠️ " + e.getMessage(), true);
+        }
     }
 
     private void aggiornaSottocategorieMenu(String categoria) {
@@ -317,8 +397,10 @@ public class CatalogoMenuStaffControlGrafico {
             opzioni.addAll(Arrays.asList("Farciture", "Topping"));
         } else if ("Panna".equals(categoria)) {
             opzioni.add("Porzioni");
+        } else if ("Cioccolate calde".equals(categoria)) {
+            opzioni.addAll(Arrays.asList("Classiche", "Speziate & Gourmet"));
         } else if ("Bevande".equals(categoria)) {
-            opzioni.addAll(Arrays.asList("Acqua", "Bibite"));
+            opzioni.addAll(Arrays.asList("Acqua", "Bibite", "Succhi Naturali"));
         } else if ("Caffetteria".equals(categoria)) {
             opzioni.addAll(Arrays.asList("Caffe", "Specialita"));
         } else if ("Biscotti".equals(categoria)) {

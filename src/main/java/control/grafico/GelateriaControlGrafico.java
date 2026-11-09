@@ -37,7 +37,7 @@ import view.VetrinaMenuView;
 public class GelateriaControlGrafico {
 
     private static final List<String> ORDINE_CATEGORIE = Arrays.asList(
-            "Gelati", "Crepes", "Panna", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane");
+            "Gelati", "Crepes", "Panna", "Cioccolate calde", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane");
 
     @FXML private Label lblIntestazione;
     @FXML private Label lblEsito;

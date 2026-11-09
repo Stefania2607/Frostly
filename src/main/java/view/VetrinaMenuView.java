@@ -3,8 +3,10 @@ package view;
 import bean.GustoBean;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -15,6 +17,7 @@ import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -38,7 +41,8 @@ import javafx.util.Duration;
 public class VetrinaMenuView {
 
     private static final List<String> ORDINE_CATEGORIE =
-            Arrays.asList("Gelati", "Crepes", "Panna", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane");
+            Arrays.asList("Gelati", "Crepes", "Panna", "Cioccolate calde", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane");
+    private static final Map<String, Image> CACHE_IMMAGINI = new HashMap<>();
 
     private final HBox boxCategorie;
     private final HBox boxSottocategorie;
@@ -70,6 +74,7 @@ public class VetrinaMenuView {
         if ("Gelati".equalsIgnoreCase(categoria)) return "🍨";
         if ("Crepes".equalsIgnoreCase(categoria) || "Dolci".equalsIgnoreCase(categoria)) return "🥞";
         if ("Panna".equalsIgnoreCase(categoria)) return "☁️";
+        if ("Cioccolate calde".equalsIgnoreCase(categoria)) return "🍫";
         if ("Bevande".equalsIgnoreCase(categoria)) return "🥤";
         if ("Caffetteria".equalsIgnoreCase(categoria)) return "☕";
         if ("Biscotti".equalsIgnoreCase(categoria)) return "🍪";
@@ -122,14 +127,20 @@ public class VetrinaMenuView {
         String uriCaricabile = risolviPercorsoImmagine(url);
         if (uriCaricabile != null) {
             try {
-                Image img = new Image(uriCaricabile, larghezza, altezzaFoto, false, true, true);
-                ImageView vista = new ImageView(img);
-                vista.setFitWidth(larghezza);
-                vista.setFitHeight(altezzaFoto);
-                vista.setPreserveRatio(false);
-                vista.setVisible(!img.isError());
-                img.errorProperty().addListener((o, vecchio, errore) -> vista.setVisible(!errore));
-                foto.getChildren().add(vista);
+                double scalaRetina = 3.0;
+                String chiaveCache = uriCaricabile + "#" + (int) (larghezza * scalaRetina);
+                Image img = CACHE_IMMAGINI.computeIfAbsent(
+                        chiaveCache,
+                        k -> new Image(uriCaricabile, larghezza * scalaRetina, 0, true, true, false));
+                if (!img.isError() && img.getWidth() > 0 && img.getHeight() > 0) {
+                    ImageView vista = new ImageView(img);
+                    applicaRitaglioCentrato(vista, img, larghezza, altezzaFoto);
+                    vista.setFitWidth(larghezza);
+                    vista.setFitHeight(altezzaFoto);
+                    vista.setPreserveRatio(false);
+                    vista.setSmooth(true);
+                    foto.getChildren().add(vista);
+                }
             } catch (IllegalArgumentException ignored) {
                 // Resta il segnaposto
             }
@@ -139,6 +150,26 @@ public class VetrinaMenuView {
         ritaglio.setArcHeight(arc);
         foto.setClip(ritaglio);
         return foto;
+    }
+
+    private static void applicaRitaglioCentrato(ImageView vista, Image img, double larghezzaBox, double altezzaBox) {
+        double imgW = img.getWidth();
+        double imgH = img.getHeight();
+        if (imgW <= 0 || imgH <= 0 || larghezzaBox <= 0 || altezzaBox <= 0) {
+            return;
+        }
+        double rapportoBox = larghezzaBox / altezzaBox;
+        double rapportoImg = imgW / imgH;
+        double cropW = imgW;
+        double cropH = imgH;
+        if (rapportoImg > rapportoBox) {
+            cropW = imgH * rapportoBox;
+        } else {
+            cropH = imgW / rapportoBox;
+        }
+        double x = (imgW - cropW) / 2.0;
+        double y = (imgH - cropH) / 2.0;
+        vista.setViewport(new Rectangle2D(x, y, cropW, cropH));
     }
 
     public static void mostraMessaggioEsito(Label lbl, String msg, boolean errore) {
@@ -334,46 +365,46 @@ public class VetrinaMenuView {
                                                double altezzaFoto,
                                                javafx.scene.Node nodoExtra,
                                                boolean selezionata) {
-        StackPane foto = creaBoxFotoProdotto(g.getImmagineUrl(), emojiCategoria(g.getCategoria()), larghezza, altezzaFoto, 24);
-        foto.setStyle("-fx-background-color: #f1e3d3; -fx-background-radius: 12 12 0 0;");
+        StackPane foto = creaBoxFotoProdotto(g.getImmagineUrl(), emojiCategoria(g.getCategoria()), larghezza, altezzaFoto, 22);
+        foto.setStyle("-fx-background-color: #f1e3d3; -fx-background-radius: 11 11 0 0;");
 
         Label nome = new Label(g.getNome());
         nome.setWrapText(true);
-        nome.setPrefWidth(larghezza - 24);
+        nome.setPrefWidth(larghezza - 18);
         nome.setMinHeight(Region.USE_PREF_SIZE);
-        nome.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #3a2618;");
+        nome.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #3a2618;");
 
         Label descrizione = new Label(g.getDescrizione());
         descrizione.setWrapText(true);
-        descrizione.setPrefWidth(larghezza - 24);
-        descrizione.setMinHeight(Region.USE_PREF_SIZE);
-        descrizione.setStyle("-fx-font-size: 11px; -fx-text-fill: #6b4f3a;");
+        descrizione.setPrefWidth(larghezza - 18);
+        descrizione.setMaxHeight(32);
+        descrizione.setStyle("-fx-font-size: 10.5px; -fx-text-fill: #6b4f3a;");
 
         String unita = "Gelati".equalsIgnoreCase(g.getCategoria()) ? "/kg" : "";
         Label prezzo = new Label(String.format("EUR %.2f%s", g.getPrezzoAlKg(), unita));
         prezzo.setMinWidth(Region.USE_PREF_SIZE);
-        prezzo.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #7f5539;");
+        prezzo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #7f5539;");
 
         Label badge = new Label(g.isDisponibileOggi() ? "● Disponibile" : "● Esaurito");
         badge.setMinWidth(Region.USE_PREF_SIZE);
-        badge.setStyle("-fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: "
+        badge.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: "
                 + (g.isDisponibileOggi() ? "#2a9d8f" : "#d62828") + ";");
 
-        HBox riga = new HBox(6, prezzo, new Region(), badge);
+        HBox riga = new HBox(4, prezzo, new Region(), badge);
         HBox.setHgrow(riga.getChildren().get(1), Priority.ALWAYS);
         riga.setAlignment(Pos.CENTER_LEFT);
 
         Label allergeni = new Label("Allergeni: " + g.getAllergeni());
         allergeni.setWrapText(true);
-        allergeni.setPrefWidth(larghezza - 24);
-        allergeni.setMinHeight(Region.USE_PREF_SIZE);
-        allergeni.setStyle("-fx-font-size: 10.5px; -fx-text-fill: #9c6644;");
+        allergeni.setPrefWidth(larghezza - 18);
+        allergeni.setMaxHeight(26);
+        allergeni.setStyle("-fx-font-size: 9.5px; -fx-text-fill: #9c6644;");
 
-        VBox testi = new VBox(5, nome, descrizione, riga, allergeni);
+        VBox testi = new VBox(3, nome, descrizione, riga, allergeni);
         if (nodoExtra != null) {
             testi.getChildren().add(nodoExtra);
         }
-        testi.setStyle("-fx-padding: 10 12 12 12;");
+        testi.setStyle("-fx-padding: 7 9 9 9;");
 
         VBox scheda = new VBox(foto, testi);
         scheda.setPrefWidth(larghezza);
@@ -383,7 +414,7 @@ public class VetrinaMenuView {
                 + (selezionata
                 ? " -fx-border-color: #588157; -fx-border-width: 3; -fx-border-radius: 12;"
                 + " -fx-effect: dropshadow(gaussian, rgba(88,129,87,0.6), 12, 0, 0, 0);"
-                : " -fx-effect: dropshadow(gaussian, rgba(60,40,20,0.25), 8, 0, 0, 2);"));
+                : " -fx-effect: dropshadow(gaussian, rgba(60,40,20,0.22), 7, 0, 0, 2);"));
         if (!g.isDisponibileOggi()) {
             scheda.setOpacity(0.6);
         }
@@ -392,7 +423,19 @@ public class VetrinaMenuView {
 
     private VBox creaSchedaProdotto(GustoBean g) {
         boolean selezionata = g.getNome().equals(prodottoSelezionato);
-        VBox scheda = creaCorpoSchedaProdotto(g, 192, 125, null, selezionata);
+        Button btnModifica = null;
+        if (allaSelezione != null) {
+            btnModifica = new Button("✏️ Modifica");
+            btnModifica.setMaxWidth(Double.MAX_VALUE);
+            btnModifica.setStyle("-fx-background-color: #7f5539; -fx-text-fill: white; -fx-font-weight: bold;"
+                    + " -fx-font-size: 11.5px; -fx-background-radius: 9; -fx-padding: 5 10; -fx-cursor: hand;");
+            btnModifica.setOnAction(e -> {
+                prodottoSelezionato = g.getNome();
+                disegnaProdotti();
+                allaSelezione.accept(g);
+            });
+        }
+        VBox scheda = creaCorpoSchedaProdotto(g, 214, 154, btnModifica, selezionata);
         if (allaSelezione != null) {
             scheda.setStyle(scheda.getStyle() + " -fx-cursor: hand;");
             scheda.setOnMouseClicked(e -> {

@@ -164,11 +164,29 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
         aggiungiProdottoEsempio("Coca Cola 33cl", "Lattina classica fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "coca_cola.png");
         aggiungiProdottoEsempio("Fanta 33cl", "Lattina all'arancia fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "fanta.png");
 
-        // Caffetteria, Biscotti, Crostate, Tisane
+        // Bevande — Sottocategoria Succhi Naturali
+        aggiungiProdottoEsempio("Spremuta d'Arancia", "Spremuta fresca di arance rosse di Sicilia spremute al momento", "Nessuno", 4.0, "Bevande", "Succhi Naturali", "");
+        aggiungiProdottoEsempio("Succo di Mela Biologico", "Succo 100% mela Golden del Trentino, senza zuccheri aggiunti", "Nessuno", 3.5, "Bevande", "Succhi Naturali", "");
+        aggiungiProdottoEsempio("Succo di Pesca", "Nettare denso di pesche gialle mature di Romagna", "Nessuno", 3.5, "Bevande", "Succhi Naturali", "");
+        aggiungiProdottoEsempio("Succo all'Albicocca", "Nettare vellutato di albicocche del Vesuvio", "Nessuno", 3.5, "Bevande", "Succhi Naturali", "");
+        aggiungiProdottoEsempio("Succo ai Frutti di Bosco", "Succo naturale di mirtilli, lamponi e more di montagna", "Nessuno", 3.5, "Bevande", "Succhi Naturali", "");
+        aggiungiProdottoEsempio("Centrifugato Mela, Carota e Zenzero", "Centrifugato fresco preparato al momento con mela, carota e zenzero", "Nessuno", 4.5, "Bevande", "Succhi Naturali", "");
+
+        // Caffetteria, Cioccolate calde, Biscotti, Crostate, Tisane
         aggiungiProdottoEsempio("Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe", "");
         aggiungiProdottoEsempio("Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe", "");
         aggiungiProdottoEsempio("Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita", "");
-        aggiungiProdottoEsempio("Cioccolata Calda Fondente", "Densa, con cacao 70% e un tocco di panna", "Latte", 3.5, "Caffetteria", "Specialita", "");
+
+        // Reparto Cioccolate calde (tutte a 6.50 EUR)
+        aggiungiProdottoEsempio("Cioccolata Calda Fondente", "Cioccolata calda densa al cacao fondente Ecuador 75% servita con ciuffo di panna", "Latte", 6.5, "Cioccolate calde", "Classiche", "");
+        aggiungiProdottoEsempio("Cioccolata Calda Bianca", "Vellutata cioccolata calda al cioccolato bianco belga e bacche di vaniglia Bourbon", "Latte", 6.5, "Cioccolate calde", "Classiche", "");
+        aggiungiProdottoEsempio("Cioccolata Calda al Latte", "Cremosa cioccolata calda al puro cioccolato al latte d'alpeggio", "Latte", 6.5, "Cioccolate calde", "Classiche", "");
+        aggiungiProdottoEsempio("Cioccolata Calda al Gianduia e Nocciole", "Cioccolata calda vellutata al gianduia torinese con granella di Nocciola Piemonte IGP", "Latte, Frutta a guscio", 6.5, "Cioccolate calde", "Classiche", "");
+        aggiungiProdottoEsempio("Cioccolata Calda al Peperoncino", "Cioccolata calda fondente 70% con infusione piccante di peperoncino rosso di Calabria", "Latte", 6.5, "Cioccolate calde", "Speziate & Gourmet", "");
+        aggiungiProdottoEsempio("Cioccolata Calda Arancia e Cannella", "Cioccolata calda profumata alle scorze d'arancia candita di Sicilia e cannella di Ceylon", "Latte", 6.5, "Cioccolate calde", "Speziate & Gourmet", "");
+        aggiungiProdottoEsempio("Cioccolata Calda al Pistacchio di Bronte", "Densa cioccolata calda bianca variegata con crema pura di Pistacchio di Bronte DOP", "Latte, Frutta a guscio", 6.5, "Cioccolate calde", "Speziate & Gourmet", "");
+        aggiungiProdottoEsempio("Cioccolata Calda al Caramello Salato", "Cioccolata calda al latte con colata di caramello al burro salato di Bretagna", "Latte", 6.5, "Cioccolate calde", "Speziate & Gourmet", "");
+
         aggiungiProdottoEsempio("Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi", "");
         aggiungiProdottoEsempio("Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi", "");
         aggiungiProdottoEsempio("Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche", "");

@@ -176,11 +176,14 @@ public final class ClienteMenuView {
         if ("Panna".equalsIgnoreCase(categoria)) {
             return "Panna montata fresca d'alpeggio in porzioni da 100g, 200g e 300g.";
         }
+        if ("Cioccolate calde".equalsIgnoreCase(categoria)) {
+            return "Cioccolate calde dense artigianali: Fondente, Bianca, al Latte, Arancia & Cannella, Peperoncino e Gourmet.";
+        }
         if ("Bevande".equalsIgnoreCase(categoria)) {
-            return "Acqua naturale, acqua frizzante, Coca Cola e Fanta in lattina.";
+            return "Acqua naturale e frizzante, Coca Cola, Fanta e Succhi Naturali freschi.";
         }
         if ("Caffetteria".equalsIgnoreCase(categoria)) {
-            return "Caffè espresso Arabica, Cappuccino, Affogato e Cioccolata calda.";
+            return "Caffè espresso 100% Arabica, Cappuccino e Affogato al Caffè.";
         }
         if ("Biscotti".equalsIgnoreCase(categoria)) {
             return "Cantucci alle Mandorle e Baci di Dama di pasticceria artigianale.";
@@ -198,6 +201,7 @@ public final class ClienteMenuView {
         if ("Gelati".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #f5ebe0, #e3d5ca)";
         if ("Crepes".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #faedcd, #ddb892)";
         if ("Panna".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #fffdfa, #ede0d4)";
+        if ("Cioccolate calde".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #e6ccb2, #b08968)";
         if ("Bevande".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #e0fbfc, #bde0fe)";
         if ("Caffetteria".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #ede0d4, #b08968)";
         if ("Biscotti".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #fefae0, #e9edc9)";
@@ -288,7 +292,7 @@ public final class ClienteMenuView {
             ev.consume();
         });
 
-        VBox scheda = VetrinaMenuView.creaCorpoSchedaProdotto(g, 205, 122, btnAzione, selezionata);
+        VBox scheda = VetrinaMenuView.creaCorpoSchedaProdotto(g, 214, 154, btnAzione, selezionata);
         if (g.isDisponibileOggi()) {
             scheda.setStyle(scheda.getStyle() + " -fx-cursor: hand;");
             scheda.setOnMouseClicked(e -> onClickAzione.run());

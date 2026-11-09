@@ -74,6 +74,8 @@ public class LoginControlGrafico extends Application {
         try {
             Parent root = FXMLLoader.load(LoginControlGrafico.class.getResource(fileFxml));
             finestraPrincipale.setScene(new Scene(root));
+            finestraPrincipale.sizeToScene();
+            finestraPrincipale.centerOnScreen();
         } catch (IOException e) {
             throw new IllegalStateException("Errore caricamento FXML: " + fileFxml, e);
         }
