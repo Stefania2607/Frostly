@@ -405,19 +405,23 @@ public class DbmsFrostlyDAO implements FrostlyDAO {
             try (PreparedStatement stmt = conn.prepareStatement(sql);
                  ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    String codRich = rs.getString("codice_richiesta");
                     cacheDatiBase.sincronizzaRichiestaGustoDaDb(
-                            rs.getString("codice_richiesta"),
+                            codRich,
                             rs.getString("email_cliente"),
                             rs.getString("nome_gusto"),
                             rs.getString("ingrediente_principale"),
                             rs.getDouble("quantita_kg"),
                             rs.getString("data_ritiro"),
-                            rs.getString("note_cliente"),
+                            rs.getString("note_cliente"));
+                    cacheDatiBase.aggiornaStatoRichiestaGustoDaDb(
+                            codRich,
                             rs.getString("stato"),
                             rs.getString("risposta_maestro"));
                 }
             }
         } catch (FrostlyException | SQLException ignored) {
+            // Mantiene cache locale
         }
     }
 
@@ -428,18 +432,20 @@ public class DbmsFrostlyDAO implements FrostlyDAO {
             try (PreparedStatement stmt = conn.prepareStatement(sql);
                  ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    String codOrd = rs.getString("codice_ordine");
                     cacheDatiBase.sincronizzaOrdineDaDb(
-                            rs.getString("codice_ordine"),
+                            codOrd,
                             rs.getString("email_cliente"),
                             rs.getString("gusto_principale"),
                             rs.getDouble("peso_kg"),
                             rs.getString("data_ritiro"),
-                            rs.getString("stato"),
                             rs.getDouble("prezzo_totale"),
                             rs.getString("descrizione_dettagliata"));
+                    cacheDatiBase.aggiornaStatoOrdineDaDb(codOrd, rs.getString("stato"));
                 }
             }
         } catch (FrostlyException | SQLException ignored) {
+            // Mantiene cache locale
         }
     }
 

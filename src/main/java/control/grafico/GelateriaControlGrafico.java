@@ -104,9 +104,11 @@ public class GelateriaControlGrafico {
 
         ClienteMenuView.configuraCelleMieiOrdini(listaMieiOrdini);
 
-        gustoCustomHelper = new RichiestaGustoControlGrafico(
+        gustoCustomHelper = new RichiestaGustoControlGrafico();
+        gustoCustomHelper.legaCampiInput(
                 campoNomeGustoCustom, campoDescrizioneCustom, comboIngredienteCustom,
-                campoIngredienteCustom, campoKgCustom, campoDataCustom,
+                campoIngredienteCustom, campoKgCustom, campoDataCustom);
+        gustoCustomHelper.legaCampiRiepilogo(
                 lblRiepilogoNomeCustom, lblRiepilogoIngredienteCustom,
                 lblRiepilogoDescrizioneCustom, lblRiepilogoKgDataCustom, listaMieRichieste);
         gustoCustomHelper.inizializza();
@@ -322,20 +324,21 @@ public class GelateriaControlGrafico {
                 toppingCrepeScelto,
                 granellaCrepeScelta,
                 mostraPannelloToppingCrepe,
-                this::selezionaCrepePerTopping,
-                () -> {
-                    mostraPannelloToppingCrepe = true;
-                    aggiornaBoxGustiDisponibili();
-                },
-                top -> {
-                    toppingCrepeScelto = top;
-                    aggiornaBoxGustiDisponibili();
-                },
-                gran -> {
-                    granellaCrepeScelta = gran;
-                    aggiornaBoxGustiDisponibili();
-                },
-                () -> confermaCrepeNelCarrello(true));
+                new CrepeConfiguratoreView.AzioniCrepe(
+                        this::selezionaCrepePerTopping,
+                        () -> {
+                            mostraPannelloToppingCrepe = true;
+                            aggiornaBoxGustiDisponibili();
+                        },
+                        top -> {
+                            toppingCrepeScelto = top;
+                            aggiornaBoxGustiDisponibili();
+                        },
+                        gran -> {
+                            granellaCrepeScelta = gran;
+                            aggiornaBoxGustiDisponibili();
+                        },
+                        () -> confermaCrepeNelCarrello(true)));
     }
 
     public void selezionaCrepePerTopping(GustoBean crepe) {

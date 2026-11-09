@@ -128,20 +128,21 @@ public class TurniControlGrafico {
             tendinaUrgenze.setManaged(false);
         }
 
-        catalogoMenuHelper = new CatalogoMenuStaffControlGrafico(
-                lblCategoriaFormMenu, comboCategoriaMenu, comboSottocategoriaMenu,
-                campoNomeGustoMenu, campoDescGustoMenu, campoAllergeniGustoMenu,
-                campoPrezzoGustoMenu, campoImmagineMenu, lblStatoFotoMenu,
-                btnRimuoviFoto, boxCategorieMenu, boxSottocategorieMenu,
-                grigliaMenuGestione, listaMenuGestione,
-                this::mostraEsito, this::aggiornaListe);
+        catalogoMenuHelper = new CatalogoMenuStaffControlGrafico(this::mostraEsito, this::aggiornaListe);
+        catalogoMenuHelper.legaCampiForm(
+                lblCategoriaFormMenu, campoNomeGustoMenu, campoDescGustoMenu,
+                campoAllergeniGustoMenu, campoPrezzoGustoMenu);
+        catalogoMenuHelper.legaCampiFoto(campoImmagineMenu, lblStatoFotoMenu, btnRimuoviFoto);
+        catalogoMenuHelper.legaControlliVetrina(
+                comboCategoriaMenu, comboSottocategoriaMenu, boxCategorieMenu,
+                boxSottocategorieMenu, grigliaMenuGestione, listaMenuGestione);
         catalogoMenuHelper.inizializza();
 
-        magazzinoGustiHelper = new MagazzinoGustiStaffControlGrafico(
+        magazzinoGustiHelper = new MagazzinoGustiStaffControlGrafico(this::mostraEsito, this::aggiornaListe);
+        magazzinoGustiHelper.legaCampiMagazzino(
                 listaMagazzino, lblRiepilogoMagazzino, listaUrgenzeMagazzino,
-                campoNomeIngredienteRifornimento, campoKgRifornimento, campoIngredienteUrgente,
-                listaRichiesteGusto, campoCodRichiesta, campoRispostaGusto,
-                this::mostraEsito, this::aggiornaListe);
+                campoNomeIngredienteRifornimento, campoKgRifornimento, campoIngredienteUrgente);
+        magazzinoGustiHelper.legaCampiRichiesteGusto(listaRichiesteGusto, campoCodRichiesta, campoRispostaGusto);
         magazzinoGustiHelper.inizializza(() -> selezionaTab(3));
 
         ordiniStaffHelper = new OrdiniStaffControlGrafico(

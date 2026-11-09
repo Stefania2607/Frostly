@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -231,91 +233,102 @@ public class ConnectionManager {
 
     /** Prodotti di esempio del catalogo: garantisce che tutte le categorie e foto siano presenti nel DB. */
     private void inserisciProdottiEsempio(Statement stmt) throws SQLException {
-        aggiornaFotoSeVuota(stmt, "Pistacchio di Bronte DOP", "1793962265284_nascita-gelato-pistacchio.jpg");
-        aggiornaFotoSeVuota(stmt, "Fondente Ecuador 75%", "1793962340626_gelato-al-cioccolato-570x380.jpg");
-        aggiornaFotoSeVuota(stmt, "Nocciola Piemonte IGP", "1793962399876_Screenshot_2026-11-06_alle_11.53.13.png");
-        aggiornaFotoSeVuota(stmt, "Crema Antica del Maestro", "1793962432008_Screenshot_2026-11-06_alle_11.53.44.png");
-        aggiornaFotoSeVuota(stmt, "Stracciatella Artigianale", "1793962480783_stracciatella-gelato-recipe-1-1200px.jpg");
-        aggiornaFotoSeVuota(stmt, "Sorbetto Mango Alphonso", "1793962514184_Screenshot_2026-11-06_alle_11.55.07.png");
+        aggiornaFotoSeVuota("Pistacchio di Bronte DOP", "1793962265284_nascita-gelato-pistacchio.jpg");
+        aggiornaFotoSeVuota("Fondente Ecuador 75%", "1793962340626_gelato-al-cioccolato-570x380.jpg");
+        aggiornaFotoSeVuota("Nocciola Piemonte IGP", "1793962399876_Screenshot_2026-11-06_alle_11.53.13.png");
+        aggiornaFotoSeVuota("Crema Antica del Maestro", "1793962432008_Screenshot_2026-11-06_alle_11.53.44.png");
+        aggiornaFotoSeVuota("Stracciatella Artigianale", "1793962480783_stracciatella-gelato-recipe-1-1200px.jpg");
+        aggiornaFotoSeVuota("Sorbetto Mango Alphonso", "1793962514184_Screenshot_2026-11-06_alle_11.55.07.png");
 
-        inserisciSeAssente(stmt, "Fragola", "Sorbetto fresco alle fragole mature di bosco", "Senza Lattosio", 22.0, "Gelati", "Frutta", "fragola.png");
-        inserisciSeAssente(stmt, "Menta", "Gelato rinfrescante alla menta piperita del Piemonte", "Latte", 22.0, "Gelati", "Frutta", "menta.png");
-        inserisciSeAssente(stmt, "Limone", "Sorbetto artigianale ai limoni di Sorrento IGP", "Senza Lattosio", 22.0, "Gelati", "Frutta", "limone.png");
-        inserisciSeAssente(stmt, "Melone Bianco", "Sorbetto delicato e profumato al melone bianco invernale", "Senza Lattosio", 23.0, "Gelati", "Frutta", "melone_bianco.png");
-        inserisciSeAssente(stmt, "Lampone", "Sorbetto vellutato ai lamponi freschi di montagna", "Senza Lattosio", 24.0, "Gelati", "Frutta", "lampone.png");
-        inserisciSeAssente(stmt, "Anguria", "Sorbetto dissetante al cuore di anguria estiva", "Senza Lattosio", 22.0, "Gelati", "Frutta", "anguria.png");
-        inserisciSeAssente(stmt, "Liquirizia", "Gelato intenso alla liquirizia pura di Calabria DOP", "Latte", 24.0, "Gelati", "Frutta", "liquirizia.png");
-        inserisciSeAssente(stmt, "Pesca", "Sorbetto morbido alle pesche gialle di vigna", "Senza Lattosio", 22.0, "Gelati", "Frutta", "pesca.png");
-        inserisciSeAssente(stmt, "Albicocca", "Sorbetto solare alle albicocche del Vesuvio", "Senza Lattosio", 22.0, "Gelati", "Frutta", "albicocca.png");
-        inserisciSeAssente(stmt, "Banana", "Cremoso naturale alla banana matura", "Latte", 22.0, "Gelati", "Frutta", "banana.png");
-        inserisciSeAssente(stmt, "Banana al Cioccolato", "Gelato alla banana con variegatura e scaglie di cioccolato fondente", "Latte", 24.0, "Gelati", "Frutta", "banana_cioccolato.png");
+        inserisciSeAssente("Fragola", "Sorbetto fresco alle fragole mature di bosco", "Senza Lattosio", 22.0, "Gelati", "Frutta", "fragola.png");
+        inserisciSeAssente("Menta", "Gelato rinfrescante alla menta piperita del Piemonte", "Latte", 22.0, "Gelati", "Frutta", "menta.png");
+        inserisciSeAssente("Limone", "Sorbetto artigianale ai limoni di Sorrento IGP", "Senza Lattosio", 22.0, "Gelati", "Frutta", "limone.png");
+        inserisciSeAssente("Melone Bianco", "Sorbetto delicato e profumato al melone bianco invernale", "Senza Lattosio", 23.0, "Gelati", "Frutta", "melone_bianco.png");
+        inserisciSeAssente("Lampone", "Sorbetto vellutato ai lamponi freschi di montagna", "Senza Lattosio", 24.0, "Gelati", "Frutta", "lampone.png");
+        inserisciSeAssente("Anguria", "Sorbetto dissetante al cuore di anguria estiva", "Senza Lattosio", 22.0, "Gelati", "Frutta", "anguria.png");
+        inserisciSeAssente("Liquirizia", "Gelato intenso alla liquirizia pura di Calabria DOP", "Latte", 24.0, "Gelati", "Frutta", "liquirizia.png");
+        inserisciSeAssente("Pesca", "Sorbetto morbido alle pesche gialle di vigna", "Senza Lattosio", 22.0, "Gelati", "Frutta", "pesca.png");
+        inserisciSeAssente("Albicocca", "Sorbetto solare alle albicocche del Vesuvio", "Senza Lattosio", 22.0, "Gelati", "Frutta", "albicocca.png");
+        inserisciSeAssente("Banana", "Cremoso naturale alla banana matura", "Latte", 22.0, "Gelati", "Frutta", "banana.png");
+        inserisciSeAssente("Banana al Cioccolato", "Gelato alla banana con variegatura e scaglie di cioccolato fondente", "Latte", 24.0, "Gelati", "Frutta", "banana_cioccolato.png");
 
-        inserisciSeAssente(stmt, "Snickers", "Cremoso alle arachidi con caramello salato, cioccolato al latte e arachidi tostate", "Latte, Arachidi, Frutta a guscio", 26.0, "Gelati", "Special", "snickers.png");
-        inserisciSeAssente(stmt, "Bounty", "Gelato esotico al cocco fresco con scaglie di cioccolato e cocco rapè", "Latte", 25.0, "Gelati", "Special", "bounty.png");
-        inserisciSeAssente(stmt, "Delizia al Limone", "Pan di Spagna bagnato al limoncello con crema vellutata ai limoni d'Amalfi", "Latte, Uova, Glutine", 26.0, "Gelati", "Special", "delizia_limone.png");
-        inserisciSeAssente(stmt, "Nutella", "Cremoso artigianale con abbondante Nutella pura variegata", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "gelato_nutella.png");
-        inserisciSeAssente(stmt, "Galak", "Gelato al cioccolato bianco Galak con croccanti sfoglie di wafer", "Latte, Glutine", 25.0, "Gelati", "Special", "galak.png");
-        inserisciSeAssente(stmt, "Amarandola", "Mandorla di Sicilia variegato con amarene intere sciroppate", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "amarandola.png");
-        inserisciSeAssente(stmt, "Croccante all'Amarena", "Fiordilatte con croccante di mandorle caramellate e variegatura all'amarena", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "croccante_amarena.png");
-        inserisciSeAssente(stmt, "Pistacchio variegato Cioccolato e Wafer", "Pistacchio tostato variegato con crema al cioccolato e cialde di wafer", "Latte, Frutta a guscio, Glutine", 27.0, "Gelati", "Special", "pistacchio_cioccolato_wafer.png");
-        inserisciSeAssente(stmt, "Cremino Nutella", "Strati vellutati di fiordilatte e nocciola alternati a colate di Nutella", "Latte, Frutta a guscio", 27.0, "Gelati", "Special", "cremino_nutella.png");
-        inserisciSeAssente(stmt, "Mascarpone Amarena e Gentilini", "Crema al mascarpone fresco con amarene brusche e biscotti Osvego Gentilini", "Latte, Uova, Glutine", 27.0, "Gelati", "Special", "mascarpone_amarena_gentilini.png");
-        inserisciSeAssente(stmt, "Caffè", "Gelato cremoso all'espresso 100% Arabica tostato a legna", "Latte", 23.0, "Gelati", "Special", "gelato_caffe.png");
-        inserisciSeAssente(stmt, "Spagnola", "Crema antica e fiordilatte variegati con amarene Fabbri intere", "Latte, Uova", 25.0, "Gelati", "Special", "spagnola.png");
-        inserisciSeAssente(stmt, "Zuppa Inglese", "Crema pasticcera e cacao con pan di Spagna all'Alchermes e savoiardi", "Latte, Uova, Glutine", 26.0, "Gelati", "Special", "zuppa_inglese.png");
+        inserisciSeAssente("Snickers", "Cremoso alle arachidi con caramello salato, cioccolato al latte e arachidi tostate", "Latte, Arachidi, Frutta a guscio", 26.0, "Gelati", "Special", "snickers.png");
+        inserisciSeAssente("Bounty", "Gelato esotico al cocco fresco con scaglie di cioccolato e cocco rapè", "Latte", 25.0, "Gelati", "Special", "bounty.png");
+        inserisciSeAssente("Delizia al Limone", "Pan di Spagna bagnato al limoncello con crema vellutata ai limoni d'Amalfi", "Latte, Uova, Glutine", 26.0, "Gelati", "Special", "delizia_limone.png");
+        inserisciSeAssente("Nutella", "Cremoso artigianale con abbondante Nutella pura variegata", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "gelato_nutella.png");
+        inserisciSeAssente("Galak", "Gelato al cioccolato bianco Galak con croccanti sfoglie di wafer", "Latte, Glutine", 25.0, "Gelati", "Special", "galak.png");
+        inserisciSeAssente("Amarandola", "Mandorla di Sicilia variegato con amarene intere sciroppate", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "amarandola.png");
+        inserisciSeAssente("Croccante all'Amarena", "Fiordilatte con croccante di mandorle caramellate e variegatura all'amarena", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "croccante_amarena.png");
+        inserisciSeAssente("Pistacchio variegato Cioccolato e Wafer", "Pistacchio tostato variegato con crema al cioccolato e cialde di wafer", "Latte, Frutta a guscio, Glutine", 27.0, "Gelati", "Special", "pistacchio_cioccolato_wafer.png");
+        inserisciSeAssente("Cremino Nutella", "Strati vellutati di fiordilatte e nocciola alternati a colate di Nutella", "Latte, Frutta a guscio", 27.0, "Gelati", "Special", "cremino_nutella.png");
+        inserisciSeAssente("Mascarpone Amarena e Gentilini", "Crema al mascarpone fresco con amarene brusche e biscotti Osvego Gentilini", "Latte, Uova, Glutine", 27.0, "Gelati", "Special", "mascarpone_amarena_gentilini.png");
+        inserisciSeAssente("Caffè", "Gelato cremoso all'espresso 100% Arabica tostato a legna", "Latte", 23.0, "Gelati", "Special", "gelato_caffe.png");
+        inserisciSeAssente("Spagnola", "Crema antica e fiordilatte variegati con amarene Fabbri intere", "Latte, Uova", 25.0, "Gelati", "Special", "spagnola.png");
+        inserisciSeAssente("Zuppa Inglese", "Crema pasticcera e cacao con pan di Spagna all'Alchermes e savoiardi", "Latte, Uova, Glutine", 26.0, "Gelati", "Special", "zuppa_inglese.png");
 
-        inserisciSeAssente(stmt, "Panna Fresca 100g", "Coppetta da 100g di panna fresca d'alpeggio montata al momento", "Latte", 2.5, "Panna", "Porzioni", "panna_100g.png");
-        inserisciSeAssente(stmt, "Panna Fresca 200g", "Vaschetta da 200g di panna fresca d'alpeggio montata al momento", "Latte", 4.5, "Panna", "Porzioni", "panna_200g.png");
-        inserisciSeAssente(stmt, "Panna Fresca 300g", "Vaschetta grande da 300g di panna fresca d'alpeggio montata", "Latte", 6.0, "Panna", "Porzioni", "panna_300g.png");
+        inserisciSeAssente("Panna Fresca 100g", "Coppetta da 100g di panna fresca d'alpeggio montata al momento", "Latte", 2.5, "Panna", "Porzioni", "panna_100g.png");
+        inserisciSeAssente("Panna Fresca 200g", "Vaschetta da 200g di panna fresca d'alpeggio montata al momento", "Latte", 4.5, "Panna", "Porzioni", "panna_200g.png");
+        inserisciSeAssente("Panna Fresca 300g", "Vaschetta grande da 300g di panna fresca d'alpeggio montata", "Latte", 6.0, "Panna", "Porzioni", "panna_300g.png");
 
         stmt.executeUpdate("DELETE FROM menu_gusti WHERE categoria = 'Crepes' AND sottocategoria = 'Topping'");
         stmt.executeUpdate("DELETE FROM menu_gusti WHERE nome_gusto IN ('Crepe Marmellata di Visciole', 'Crepe Marmellata di Albicocca')");
 
-        inserisciSeAssente(stmt, "Crepe alla Nutella", "Crepe calda artigianale farcita con abbondante Nutella cremosa", "Glutine, Latte, Frutta a guscio", 5.0, "Crepes", "Farciture", "crepe_nutella.png");
-        inserisciSeAssente(stmt, "Crepe alle Visciole", "Crepe calda farcita con confettura artigianale di visciole brusche", "Glutine, Uova, Latte", 4.5, "Crepes", "Farciture", "crepe_visciole.png");
-        inserisciSeAssente(stmt, "Crepe alla Marmellata", "Crepe calda farcita con confettura vellutata di albicocche", "Glutine, Uova, Latte", 4.5, "Crepes", "Farciture", "crepe_albicocca.png");
-        inserisciSeAssente(stmt, "Crepe Crema Pan di Stelle", "Crepe calda con crema spalmabile Pan di Stelle, panna e stelline croccanti", "Glutine, Latte, Uova, Frutta a guscio", 5.5, "Crepes", "Farciture", "crepe_pandistelle.png");
+        inserisciSeAssente("Crepe alla Nutella", "Crepe calda artigianale farcita con abbondante Nutella cremosa", "Glutine, Latte, Frutta a guscio", 5.0, "Crepes", "Farciture", "crepe_nutella.png");
+        inserisciSeAssente("Crepe alle Visciole", "Crepe calda farcita con confettura artigianale di visciole brusche", "Glutine, Uova, Latte", 4.5, "Crepes", "Farciture", "crepe_visciole.png");
+        inserisciSeAssente("Crepe alla Marmellata", "Crepe calda farcita con confettura vellutata di albicocche", "Glutine, Uova, Latte", 4.5, "Crepes", "Farciture", "crepe_albicocca.png");
+        inserisciSeAssente("Crepe Crema Pan di Stelle", "Crepe calda con crema spalmabile Pan di Stelle, panna e stelline croccanti", "Glutine, Latte, Uova, Frutta a guscio", 5.5, "Crepes", "Farciture", "crepe_pandistelle.png");
 
-        inserisciSeAssente(stmt, "Acqua Naturale 500ml", "Acqua minerale naturale fresca 500ml", "Nessuno", 1.5, "Bevande", "Acqua", "acqua_naturale.png");
-        inserisciSeAssente(stmt, "Acqua Frizzante 500ml", "Acqua minerale frizzante fresca 500ml", "Nessuno", 1.5, "Bevande", "Acqua", "acqua_frizzante.png");
-        inserisciSeAssente(stmt, "Coca Cola 33cl", "Lattina classica fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "coca_cola.png");
-        inserisciSeAssente(stmt, "Fanta 33cl", "Lattina all'arancia fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "fanta.png");
+        inserisciSeAssente("Acqua Naturale 500ml", "Acqua minerale naturale fresca 500ml", "Nessuno", 1.5, "Bevande", "Acqua", "acqua_naturale.png");
+        inserisciSeAssente("Acqua Frizzante 500ml", "Acqua minerale frizzante fresca 500ml", "Nessuno", 1.5, "Bevande", "Acqua", "acqua_frizzante.png");
+        inserisciSeAssente("Coca Cola 33cl", "Lattina classica fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "coca_cola.png");
+        inserisciSeAssente("Fanta 33cl", "Lattina all'arancia fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "fanta.png");
 
-        inserisciSeAssente(stmt, "Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe", "");
-        inserisciSeAssente(stmt, "Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe", "");
-        inserisciSeAssente(stmt, "Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita", "");
-        inserisciSeAssente(stmt, "Cioccolata Calda Fondente", "Densa, con cacao 70% e un tocco di panna", "Latte", 3.5, "Caffetteria", "Specialita", "");
-        inserisciSeAssente(stmt, "Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi", "");
-        inserisciSeAssente(stmt, "Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi", "");
-        inserisciSeAssente(stmt, "Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche", "");
-        inserisciSeAssente(stmt, "Crostata ai Frutti di Bosco", "Crema pasticcera e frutti di bosco freschi", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta", "");
-        inserisciSeAssente(stmt, "Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi", "");
-        inserisciSeAssente(stmt, "Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi", "");
+        inserisciSeAssente("Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe", "");
+        inserisciSeAssente("Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe", "");
+        inserisciSeAssente("Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita", "");
+        inserisciSeAssente("Cioccolata Calda Fondente", "Densa, con cacao 70% e un tocco di panna", "Latte", 3.5, "Caffetteria", "Specialita", "");
+        inserisciSeAssente("Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi", "");
+        inserisciSeAssente("Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi", "");
+        inserisciSeAssente("Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche", "");
+        inserisciSeAssente("Crostata ai Frutti di Bosco", "Crema pasticcera e frutti di bosco freschi", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta", "");
+        inserisciSeAssente("Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi", "");
+        inserisciSeAssente("Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi", "");
     }
 
-    private void aggiornaFotoSeVuota(Statement stmt, String nome, String imgUrl) throws SQLException {
-        String n = nome.replace("'", "''");
-        String img = imgUrl.replace("'", "''");
-        stmt.executeUpdate("UPDATE menu_gusti SET immagine_url = '" + img + "' WHERE nome_gusto = '" + n + "' AND (immagine_url IS NULL OR immagine_url = '')");
+    private void aggiornaFotoSeVuota(String nome, String imgUrl) throws SQLException {
+        String sql = "UPDATE menu_gusti SET immagine_url = ? WHERE nome_gusto = ? AND (immagine_url IS NULL OR immagine_url = '')";
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setString(1, imgUrl);
+            ps.setString(2, nome);
+            ps.executeUpdate();
+        }
     }
 
-    private void inserisciSeAssente(Statement stmt, String nome, String desc, String allergeni,
+    private void inserisciSeAssente(String nome, String desc, String allergeni,
                                     double prezzo, String cat, String sottocat, String imgUrl) throws SQLException {
-        String n = nome.replace("'", "''");
-        try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM menu_gusti WHERE nome_gusto = '" + n + "'")) {
-            if (rs.next() && rs.getInt(1) > 0) {
-                if (imgUrl != null && !imgUrl.isEmpty()) {
-                    aggiornaFotoSeVuota(stmt, nome, imgUrl);
+        String checkSql = "SELECT COUNT(*) FROM menu_gusti WHERE nome_gusto = ?";
+        try (PreparedStatement psCheck = this.connection.prepareStatement(checkSql)) {
+            psCheck.setString(1, nome);
+            try (ResultSet rs = psCheck.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    if (imgUrl != null && !imgUrl.isEmpty()) {
+                        aggiornaFotoSeVuota(nome, imgUrl);
+                    }
+                    return;
                 }
-                return;
             }
         }
-        String sql = String.format(java.util.Locale.US,
-                "INSERT INTO menu_gusti (nome_gusto, descrizione, allergeni, prezzo_al_kg, disponibile, categoria, sottocategoria, immagine_url) "
-                + "VALUES ('%s', '%s', '%s', %.2f, 1, '%s', '%s', '%s')",
-                n, desc.replace("'", "''"), allergeni.replace("'", "''"),
-                prezzo, cat.replace("'", "''"), sottocat.replace("'", "''"),
-                imgUrl == null ? "" : imgUrl.replace("'", "''"));
-        stmt.executeUpdate(sql);
+        String insertSql = "INSERT INTO menu_gusti (nome_gusto, descrizione, allergeni, prezzo_al_kg, disponibile, categoria, sottocategoria, immagine_url) "
+                + "VALUES (?, ?, ?, ?, 1, ?, ?, ?)";
+        try (PreparedStatement psIns = this.connection.prepareStatement(insertSql)) {
+            psIns.setString(1, nome);
+            psIns.setString(2, desc);
+            psIns.setString(3, allergeni);
+            psIns.setDouble(4, prezzo);
+            psIns.setString(5, cat);
+            psIns.setString(6, sottocat);
+            psIns.setString(7, imgUrl == null ? "" : imgUrl);
+            psIns.executeUpdate();
+        }
     }
 }

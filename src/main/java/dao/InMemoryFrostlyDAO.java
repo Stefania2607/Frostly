@@ -302,39 +302,39 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
     }
 
     public void sincronizzaOrdineDaDb(String codiceOrdine, String emailCliente, String nomeGusto,
-                                      double pesoKg, String dataRitiro, String stato,
+                                      double pesoKg, String dataRitiro,
                                       double prezzoTotale, String descrizioneDettagliata) {
         Cliente cli = trovaClientePerEmail(emailCliente);
         if (cli == null) {
             cli = new Cliente("Cliente", emailCliente, emailCliente, "");
         }
         Gusto g = (nomeGusto != null && !nomeGusto.isEmpty()) ? trovaGustoPerNome(nomeGusto) : null;
-        StatoRichiesta st = StatoRichiesta.IN_ATTESA;
-        if (stato != null && !stato.isEmpty()) {
-            try {
-                st = StatoRichiesta.valueOf(stato.toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-                st = StatoRichiesta.IN_ATTESA;
-            }
-        }
         for (OrdineCliente esistente : ordini) {
             if (esistente.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
-                esistente.setStato(st);
                 esistente.setPrezzoTotale(prezzoTotale);
                 esistente.setDescrizioneDettagliata(descrizioneDettagliata);
                 return;
             }
         }
         OrdineCliente nuovo = new OrdineCliente(codiceOrdine, cli, g, pesoKg, dataRitiro);
-        nuovo.setStato(st);
         nuovo.setPrezzoTotale(prezzoTotale);
         nuovo.setDescrizioneDettagliata(descrizioneDettagliata);
         ordini.add(nuovo);
     }
 
+    public void aggiornaStatoOrdineDaDb(String codiceOrdine, String stato) {
+        StatoRichiesta st = parseStatoRichiesta(stato);
+        for (OrdineCliente esistente : ordini) {
+            if (esistente.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
+                esistente.setStato(st);
+                return;
+            }
+        }
+    }
+
     public void sincronizzaRichiestaGustoDaDb(String codiceRich, String emailCliente, String nomeGusto,
                                               String nomeIngr, double quantitaKg, String dataRitiro,
-                                              String noteCliente, String stato, String rispostaMaestro) {
+                                              String noteCliente) {
         Cliente cli = trovaClientePerEmail(emailCliente);
         if (cli == null) {
             cli = new Cliente("Cliente", emailCliente, emailCliente, "");
@@ -343,14 +343,18 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
         if (ing == null) {
             ing = new Ingrediente(nomeIngr != null ? nomeIngr : "Ingrediente Speciale", 10.0, 2.0, "Kg");
         }
-        StatoRichiesta st = StatoRichiesta.IN_ATTESA;
-        if (stato != null && !stato.isEmpty()) {
-            try {
-                st = StatoRichiesta.valueOf(stato.toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-                st = StatoRichiesta.IN_ATTESA;
+        for (RichiestaGustoPersonalizzato r : richiesteGusto) {
+            if (r.getCodiceRichiesta().equalsIgnoreCase(codiceRich)) {
+                return;
             }
         }
+        RichiestaGustoPersonalizzato nuova = new RichiestaGustoPersonalizzato(
+                codiceRich, cli, nomeGusto, ing, quantitaKg, dataRitiro, noteCliente != null ? noteCliente : "");
+        richiesteGusto.add(nuova);
+    }
+
+    public void aggiornaStatoRichiestaGustoDaDb(String codiceRich, String stato, String rispostaMaestro) {
+        StatoRichiesta st = parseStatoRichiesta(stato);
         for (RichiestaGustoPersonalizzato r : richiesteGusto) {
             if (r.getCodiceRichiesta().equalsIgnoreCase(codiceRich)) {
                 r.setStato(st);
@@ -358,11 +362,17 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
                 return;
             }
         }
-        RichiestaGustoPersonalizzato nuova = new RichiestaGustoPersonalizzato(
-                codiceRich, cli, nomeGusto, ing, quantitaKg, dataRitiro, noteCliente != null ? noteCliente : "");
-        nuova.setStato(st);
-        nuova.setRispostaMaestro(rispostaMaestro != null ? rispostaMaestro : "");
-        richiesteGusto.add(nuova);
+    }
+
+    private StatoRichiesta parseStatoRichiesta(String stato) {
+        if (stato != null && !stato.isEmpty()) {
+            try {
+                return StatoRichiesta.valueOf(stato.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                return StatoRichiesta.IN_ATTESA;
+            }
+        }
+        return StatoRichiesta.IN_ATTESA;
     }
 
     public void sincronizzaNotificaDaDb(String emailDest, String titolo, String messaggio, String timestamp) {
