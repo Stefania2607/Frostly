@@ -22,6 +22,9 @@ public class DbmsFrostlyDAO implements FrostlyDAO {
         sincronizzaMenuDaDatabase();
         sincronizzaIngredientiDaDatabase();
         sincronizzaEmergenzeDaDatabase();
+        sincronizzaRichiesteGustoDaDatabase();
+        sincronizzaOrdiniDaDatabase();
+        sincronizzaNotificheDaDatabase();
     }
 
     public static synchronized DbmsFrostlyDAO getInstance() {
@@ -306,31 +309,155 @@ public class DbmsFrostlyDAO implements FrostlyDAO {
 
     @Override
     public List<RichiestaGustoPersonalizzato> caricaTutteRichiesteGusto() {
+        sincronizzaRichiesteGustoDaDatabase();
         return cacheDatiBase.caricaTutteRichiesteGusto();
     }
 
     @Override
     public void salvaRichiestaGusto(RichiestaGustoPersonalizzato richiesta) {
         cacheDatiBase.salvaRichiestaGusto(richiesta);
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            String del = "DELETE FROM richieste_gusto WHERE codice_richiesta = ?";
+            String ins = "INSERT INTO richieste_gusto (codice_richiesta, email_cliente, nome_gusto, ingrediente_principale, quantita_kg, data_ritiro, note_cliente, stato, risposta_maestro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement dStmt = conn.prepareStatement(del);
+                 PreparedStatement iStmt = conn.prepareStatement(ins)) {
+                dStmt.setString(1, richiesta.getCodiceRichiesta());
+                dStmt.executeUpdate();
+
+                iStmt.setString(1, richiesta.getCodiceRichiesta());
+                iStmt.setString(2, richiesta.getCliente() != null ? richiesta.getCliente().getEmail() : "");
+                iStmt.setString(3, richiesta.getNomeGustoProposto());
+                iStmt.setString(4, richiesta.getIngredientePrincipale() != null ? richiesta.getIngredientePrincipale().getNome() : "");
+                iStmt.setDouble(5, richiesta.getQuantitaRichiestaKg());
+                iStmt.setString(6, richiesta.getDataRitiroDesiderata());
+                iStmt.setString(7, richiesta.getNoteCliente() != null ? richiesta.getNoteCliente() : "");
+                iStmt.setString(8, richiesta.getStato() != null ? richiesta.getStato().name() : "IN_ATTESA");
+                iStmt.setString(9, richiesta.getRispostaMaestro() != null ? richiesta.getRispostaMaestro() : "");
+                iStmt.executeUpdate();
+            }
+        } catch (FrostlyException | SQLException ignored) {
+            // Mantiene in memoria se DB non raggiungibile
+        }
     }
 
     @Override
     public List<OrdineCliente> caricaTuttiOrdini() {
+        sincronizzaOrdiniDaDatabase();
         return cacheDatiBase.caricaTuttiOrdini();
     }
 
     @Override
     public void salvaOrdine(OrdineCliente ordine) {
         cacheDatiBase.salvaOrdine(ordine);
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            String del = "DELETE FROM ordini_clienti WHERE codice_ordine = ?";
+            String ins = "INSERT INTO ordini_clienti (codice_ordine, email_cliente, gusto_principale, peso_kg, data_ritiro, stato, prezzo_totale, descrizione_dettagliata) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement dStmt = conn.prepareStatement(del);
+                 PreparedStatement iStmt = conn.prepareStatement(ins)) {
+                dStmt.setString(1, ordine.getCodiceOrdine());
+                dStmt.executeUpdate();
+
+                iStmt.setString(1, ordine.getCodiceOrdine());
+                iStmt.setString(2, ordine.getCliente() != null ? ordine.getCliente().getEmail() : "");
+                iStmt.setString(3, ordine.getGusto() != null ? ordine.getGusto().getNome() : "");
+                iStmt.setDouble(4, ordine.getPesoKg());
+                iStmt.setString(5, ordine.getDataRitiro() != null ? ordine.getDataRitiro() : "");
+                iStmt.setString(6, ordine.getStato() != null ? ordine.getStato().name() : "IN_ATTESA");
+                iStmt.setDouble(7, ordine.getPrezzoTotale());
+                iStmt.setString(8, ordine.getDescrizioneDettagliata() != null ? ordine.getDescrizioneDettagliata() : "");
+                iStmt.executeUpdate();
+            }
+        } catch (FrostlyException | SQLException ignored) {
+            // Mantiene in memoria se DB non raggiungibile
+        }
     }
 
     @Override
     public List<Notifica> caricaNotifichePerUtente(String emailDestinatario) {
+        sincronizzaNotificheDaDatabase();
         return cacheDatiBase.caricaNotifichePerUtente(emailDestinatario);
     }
 
     @Override
     public void inviaNotifica(Notifica notifica) {
         cacheDatiBase.inviaNotifica(notifica);
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            String ins = "INSERT INTO notifiche_utenti (email_destinatario, titolo, messaggio, timestamp_notifica) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement iStmt = conn.prepareStatement(ins)) {
+                iStmt.setString(1, notifica.getEmailDestinatario());
+                iStmt.setString(2, notifica.getTitolo());
+                iStmt.setString(3, notifica.getMessaggio());
+                iStmt.setString(4, notifica.getTimestamp());
+                iStmt.executeUpdate();
+            }
+        } catch (FrostlyException | SQLException ignored) {
+            // Mantiene in memoria se DB non raggiungibile
+        }
+    }
+
+    private void sincronizzaRichiesteGustoDaDatabase() {
+        String sql = "SELECT codice_richiesta, email_cliente, nome_gusto, ingrediente_principale, quantita_kg, data_ritiro, note_cliente, stato, risposta_maestro FROM richieste_gusto";
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    cacheDatiBase.sincronizzaRichiestaGustoDaDb(
+                            rs.getString("codice_richiesta"),
+                            rs.getString("email_cliente"),
+                            rs.getString("nome_gusto"),
+                            rs.getString("ingrediente_principale"),
+                            rs.getDouble("quantita_kg"),
+                            rs.getString("data_ritiro"),
+                            rs.getString("note_cliente"),
+                            rs.getString("stato"),
+                            rs.getString("risposta_maestro"));
+                }
+            }
+        } catch (FrostlyException | SQLException ignored) {
+        }
+    }
+
+    private void sincronizzaOrdiniDaDatabase() {
+        String sql = "SELECT codice_ordine, email_cliente, gusto_principale, peso_kg, data_ritiro, stato, prezzo_totale, descrizione_dettagliata FROM ordini_clienti";
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    cacheDatiBase.sincronizzaOrdineDaDb(
+                            rs.getString("codice_ordine"),
+                            rs.getString("email_cliente"),
+                            rs.getString("gusto_principale"),
+                            rs.getDouble("peso_kg"),
+                            rs.getString("data_ritiro"),
+                            rs.getString("stato"),
+                            rs.getDouble("prezzo_totale"),
+                            rs.getString("descrizione_dettagliata"));
+                }
+            }
+        } catch (FrostlyException | SQLException ignored) {
+        }
+    }
+
+    private void sincronizzaNotificheDaDatabase() {
+        String sql = "SELECT email_destinatario, titolo, messaggio, timestamp_notifica FROM notifiche_utenti";
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    cacheDatiBase.sincronizzaNotificaDaDb(
+                            rs.getString("email_destinatario"),
+                            rs.getString("titolo"),
+                            rs.getString("messaggio"),
+                            rs.getString("timestamp_notifica"));
+                }
+            }
+        } catch (FrostlyException | SQLException ignored) {
+        }
     }
 }

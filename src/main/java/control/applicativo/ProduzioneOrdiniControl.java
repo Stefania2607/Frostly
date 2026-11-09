@@ -3,6 +3,7 @@ package control.applicativo;
 import bean.GustoBean;
 import bean.IngredienteBean;
 import bean.OrdineBean;
+import bean.VaschettaItemBean;
 import dao.DAOFactory;
 import dao.FrostlyDAO;
 import frostly.exception.DatiNonValidiException;
@@ -19,8 +20,10 @@ import model.Ingrediente;
 import model.Notifica;
 import model.OrdineCliente;
 import model.Ricetta;
+import model.StatoRichiesta;
 import model.VaschettaBase;
 import model.VaschettaComponent;
+import model.VaschettaOrdinata;
 
 /**
  * Controller applicativo STATELESS per:
@@ -183,45 +186,196 @@ public class ProduzioneOrdiniControl {
         dao.aggiornaIngrediente(ing);
     }
 
+    private List<Gusto> validaERisolviGusti(FrostlyDAO dao, List<String> nomi) throws FrostlyException {
+        List<Gusto> lista = new ArrayList<>();
+        if (nomi == null || nomi.isEmpty()) {
+            return lista;
+        }
+        for (String ng : nomi) {
+            String nomePulito = ng.trim();
+            if (nomePulito.isEmpty()) continue;
+            Gusto g = dao.trovaGustoPerNome(nomePulito);
+            if (g == null) {
+                throw new DatiNonValidiException("Gusto '" + nomePulito + "' non trovato nel menu.");
+            }
+            if (!g.isDisponibileOggi()) {
+                throw new DatiNonValidiException("Il gusto '" + g.getNome() + "' e' attualmente esaurito.");
+            }
+            lista.add(g);
+        }
+        return lista;
+    }
+
     public OrdineBean effettuaPreOrdine(OrdineBean beanInput) throws FrostlyException {
         FrostlyDAO dao = DAOFactory.getFrostlyDAO();
 
         Cliente cliente = dao.trovaClientePerEmail(beanInput.getEmailCliente());
-        Gusto gusto = dao.trovaGustoPerNome(beanInput.getNomeGusto());
-        if (cliente == null || gusto == null) {
-            throw new DatiNonValidiException("Cliente o Gusto selezionato non valido.");
-        }
-        if (!gusto.isDisponibileOggi()) {
-            throw new DatiNonValidiException("Il gusto '" + gusto.getNome() + "' e' attualmente esaurito.");
+        if (cliente == null) {
+            throw new DatiNonValidiException("Cliente selezionato non valido.");
         }
 
-        VaschettaComponent vaschettaDecorata = new VaschettaBase(gusto, beanInput.getPesoKg());
-        if (beanInput.isConPanna()) {
-            vaschettaDecorata = new ConPannaMontataDecorator(vaschettaDecorata);
+        int maxNum = 0;
+        for (OrdineCliente oc : dao.caricaTuttiOrdini()) {
+            String cod = oc.getCodiceOrdine();
+            if (cod != null && cod.startsWith("ORD-")) {
+                try {
+                    int n = Integer.parseInt(cod.substring(4).trim());
+                    if (n > maxNum) maxNum = n;
+                } catch (NumberFormatException ignored) {
+                }
+            }
         }
-        if (beanInput.isConGranellaBronte()) {
-            vaschettaDecorata = new ConGranellaBronteDecorator(vaschettaDecorata);
+        String codiceOrdine = String.format("ORD-%02d", Math.max(maxNum + 1, dao.caricaTuttiOrdini().size() + 1));
+        OrdineCliente nuovoOrdine;
+
+        if (!beanInput.getVaschette().isEmpty()) {
+            List<VaschettaOrdinata> listaVo = new ArrayList<>();
+            for (VaschettaItemBean vib : beanInput.getVaschette()) {
+                List<Gusto> gustiVaschetta = validaERisolviGusti(dao, vib.ottieniGusti());
+                if (gustiVaschetta.isEmpty() && !vib.haPanna() && (vib.ottieniDescrizione() == null || vib.ottieniDescrizione().isEmpty())) {
+                    throw new DatiNonValidiException("Ciascun articolo deve contenere almeno un gusto, la panna o un prodotto del menu.");
+                }
+                VaschettaOrdinata vo = new VaschettaOrdinata(gustiVaschetta, vib.ottieniPesoKg(),
+                        vib.haPanna(), vib.haGranellaBronte(), vib.ottieniDescrizione(), vib.ottieniPrezzo());
+                listaVo.add(vo);
+            }
+            nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, listaVo, beanInput.getDataRitiro());
+            beanInput.setDescrizioneCompleta(nuovoOrdine.getDescrizioneDettagliata());
+            beanInput.setPrezzoTotale(nuovoOrdine.getPrezzoTotale());
+        } else {
+            String testoGusti = beanInput.getNomeGusto();
+            List<Gusto> listaGusti = new ArrayList<>();
+            if (testoGusti != null && !testoGusti.trim().isEmpty()) {
+                List<String> nomiSingoli = List.of(testoGusti.split(","));
+                listaGusti = validaERisolviGusti(dao, nomiSingoli);
+            }
+            if (listaGusti.isEmpty() && !beanInput.isConPanna()) {
+                throw new DatiNonValidiException("Selezionare almeno un gusto o la panna montata fresca.");
+            }
+
+            VaschettaComponent decorata = new VaschettaBase(listaGusti, beanInput.getPesoKg());
+            if (beanInput.isConPanna() && !listaGusti.isEmpty()) {
+                decorata = new ConPannaMontataDecorator(decorata);
+            }
+            if (beanInput.isConGranellaBronte()) {
+                decorata = new ConGranellaBronteDecorator(decorata);
+            }
+
+            Gusto principale = listaGusti.isEmpty() ? null : listaGusti.get(0);
+            nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, principale,
+                    beanInput.getPesoKg(), beanInput.getDataRitiro());
+            nuovoOrdine.setPrezzoTotale(decorata.calcolaPrezzoFinale());
+            nuovoOrdine.setDescrizioneDettagliata(decorata.getDescrizioneCompleta());
+
+            beanInput.setDescrizioneCompleta(decorata.getDescrizioneCompleta());
+            beanInput.setPrezzoTotale(decorata.calcolaPrezzoFinale());
         }
 
-        String codiceOrdine = String.format("ORD-%02d", dao.caricaTuttiOrdini().size() + 1);
-        OrdineCliente nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, gusto,
-                beanInput.getPesoKg(), beanInput.getDataRitiro());
         dao.salvaOrdine(nuovoOrdine);
-
         beanInput.setCodiceOrdine(codiceOrdine);
-        beanInput.setDescrizioneCompleta(vaschettaDecorata.getDescrizioneCompleta());
-        beanInput.setPrezzoTotale(vaschettaDecorata.calcolaPrezzoFinale());
         beanInput.setStato(nuovoOrdine.getStato().name());
+
+        String testoNotifica = cliente.getNome() + " " + cliente.getCognome() + " ha inviato un ordine: "
+                + beanInput.getDescrizioneCompleta() + " [" + beanInput.getDataRitiro() + "] - Totale: EUR "
+                + beanInput.getPrezzoTotale() + ". Accedi alla sezione Ordini per confermare o disdire.";
 
         dao.inviaNotifica(new Notifica(
                 dao.getMaestroGelataio().getEmail(),
-                "Nuovo Pre-ordine Vaschetta " + codiceOrdine,
-                cliente.getNome() + " " + cliente.getCognome() + " ha prenotato: "
-                        + beanInput.getDescrizioneCompleta() + " per " + beanInput.getDataRitiro()
-                        + " (Totale: EUR " + beanInput.getPrezzoTotale() + ").",
+                "🛵 Nuovo Ordine " + codiceOrdine + " da Confermare",
+                testoNotifica,
                 oraCorrente()));
 
+        for (model.Dipendente d : dao.caricaTuttiDipendenti()) {
+            dao.inviaNotifica(new Notifica(
+                    d.getEmail(),
+                    "🛵 Nuovo Ordine " + codiceOrdine + " da Confermare",
+                    testoNotifica,
+                    oraCorrente()));
+        }
+
         return beanInput;
+    }
+
+    public void confermaOrdine(String codiceOrdine, String operatore) throws FrostlyException {
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        for (OrdineCliente oc : dao.caricaTuttiOrdini()) {
+            if (oc.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
+                oc.setStato(StatoRichiesta.APPROVATA);
+                dao.salvaOrdine(oc);
+                if (oc.getCliente() != null) {
+                    dao.inviaNotifica(new Notifica(
+                            oc.getCliente().getEmail(),
+                            "🛵 Ordine " + codiceOrdine + " CONFERMATO!",
+                            "La gelateria ha confermato il tuo ordine (operatore: " + operatore + "). Preparazione in corso per " + oc.getDataRitiro() + "!",
+                            oraCorrente()));
+                }
+                return;
+            }
+        }
+        throw new DatiNonValidiException("Ordine " + codiceOrdine + " non trovato.");
+    }
+
+    public void disdiciOrdine(String codiceOrdine, String operatore) throws FrostlyException {
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        for (OrdineCliente oc : dao.caricaTuttiOrdini()) {
+            if (oc.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
+                oc.setStato(StatoRichiesta.RIFIUTATA);
+                dao.salvaOrdine(oc);
+                if (oc.getCliente() != null) {
+                    dao.inviaNotifica(new Notifica(
+                            oc.getCliente().getEmail(),
+                            "❌ Ordine " + codiceOrdine + " DISDETTO",
+                            "La gelateria non puo' evadere il tuo ordine per " + oc.getDataRitiro() + " (operatore: " + operatore + "). Ci scusiamo per il disagio.",
+                            oraCorrente()));
+                }
+                return;
+            }
+        }
+        throw new DatiNonValidiException("Ordine " + codiceOrdine + " non trovato.");
+    }
+
+    public List<OrdineBean> visualizzaOrdiniCliente(String emailCliente) {
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        List<OrdineBean> lista = new ArrayList<>();
+        for (OrdineCliente oc : dao.caricaTuttiOrdini()) {
+            if (oc.getCliente() != null && oc.getCliente().getEmail().equalsIgnoreCase(emailCliente)) {
+                lista.add(convertiOrdineInBean(oc));
+            }
+        }
+        return lista;
+    }
+
+    public List<OrdineBean> visualizzaTuttiOrdini() {
+        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+        List<OrdineBean> lista = new ArrayList<>();
+        for (OrdineCliente oc : dao.caricaTuttiOrdini()) {
+            lista.add(convertiOrdineInBean(oc));
+        }
+        return lista;
+    }
+
+    private OrdineBean convertiOrdineInBean(OrdineCliente oc) {
+        OrdineBean b = new OrdineBean();
+        b.setCodiceOrdine(oc.getCodiceOrdine());
+        b.setEmailCliente(oc.getCliente() != null ? oc.getCliente().getEmail() : "");
+        b.setStato(oc.getStato() != null ? oc.getStato().name() : "APPROVATA");
+        b.setPrezzoTotale(oc.getPrezzoTotale());
+        b.setDescrizioneCompleta(oc.getDescrizioneDettagliata());
+        try {
+            b.setDataRitiro(oc.getDataRitiro());
+            b.setPesoKg(oc.getPesoKg());
+        } catch (DatiNonValidiException ignored) {
+            // Dati gia' validati dall'entity
+        }
+        for (VaschettaOrdinata vo : oc.getVaschette()) {
+            List<String> nomi = new ArrayList<>();
+            for (Gusto g : vo.getGusti()) {
+                nomi.add(g.getNome());
+            }
+            b.aggiungiVaschetta(new VaschettaItemBean(vo.getPesoKg(), nomi, vo.isConPanna(),
+                    vo.isConGranellaBronte(), vo.getDescrizione(), vo.getPrezzo()));
+        }
+        return b;
     }
 
     private String oraCorrente() {

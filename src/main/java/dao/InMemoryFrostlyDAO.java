@@ -14,6 +14,7 @@ import model.Notifica;
 import model.OrdineCliente;
 import model.Ricetta;
 import model.RichiestaGustoPersonalizzato;
+import model.StatoRichiesta;
 import model.Turno;
 
 public class InMemoryFrostlyDAO implements FrostlyDAO {
@@ -109,19 +110,71 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
         gusti.add(new Gusto("Crema Antica del Maestro", "Tuorli freschi, vaniglia Bourbon e scorza di limone", "Latte, Uova", 22.0, ricNocciola));
         gusti.add(new Gusto("Stracciatella Artigianale", "Fiordilatte fresco con scaglie di fondente croccante", "Latte", 23.0, ricCioccolato));
         gusti.add(new Gusto("Sorbetto Mango Alphonso", "Sorbetto 100% frutta fresca senza latte", "Senza Lattosio", 24.0, ricPistacchio));
+        trovaGustoPerNome("Pistacchio di Bronte DOP").setImmagineUrl("1793962265284_nascita-gelato-pistacchio.jpg");
         trovaGustoPerNome("Fondente Ecuador 75%").setSottocategoria("Cioccolato");
+        trovaGustoPerNome("Fondente Ecuador 75%").setImmagineUrl("1793962340626_gelato-al-cioccolato-570x380.jpg");
+        trovaGustoPerNome("Nocciola Piemonte IGP").setImmagineUrl("1793962399876_Screenshot_2026-11-06_alle_11.53.13.png");
+        trovaGustoPerNome("Crema Antica del Maestro").setImmagineUrl("1793962432008_Screenshot_2026-11-06_alle_11.53.44.png");
+        trovaGustoPerNome("Stracciatella Artigianale").setImmagineUrl("1793962480783_stracciatella-gelato-recipe-1-1200px.jpg");
         trovaGustoPerNome("Sorbetto Mango Alphonso").setSottocategoria("Frutta");
+        trovaGustoPerNome("Sorbetto Mango Alphonso").setImmagineUrl("1793962514184_Screenshot_2026-11-06_alle_11.55.07.png");
 
-        aggiungiProdottoEsempio("Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe");
-        aggiungiProdottoEsempio("Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe");
-        aggiungiProdottoEsempio("Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita");
-        aggiungiProdottoEsempio("Cioccolata Calda Fondente", "Densa, con cacao 70% e un tocco di panna", "Latte", 3.5, "Caffetteria", "Specialita");
-        aggiungiProdottoEsempio("Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi");
-        aggiungiProdottoEsempio("Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi");
-        aggiungiProdottoEsempio("Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche");
-        aggiungiProdottoEsempio("Crostata ai Frutti di Bosco", "Crema pasticcera e frutti di bosco freschi", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta");
-        aggiungiProdottoEsempio("Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi");
-        aggiungiProdottoEsempio("Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi");
+        // Gusti Gelati — Sottocategoria Frutta
+        aggiungiProdottoEsempio("Fragola", "Sorbetto fresco alle fragole mature di bosco", "Senza Lattosio", 22.0, "Gelati", "Frutta", "fragola.png");
+        aggiungiProdottoEsempio("Menta", "Gelato rinfrescante alla menta piperita del Piemonte", "Latte", 22.0, "Gelati", "Frutta", "menta.png");
+        aggiungiProdottoEsempio("Limone", "Sorbetto artigianale ai limoni di Sorrento IGP", "Senza Lattosio", 22.0, "Gelati", "Frutta", "limone.png");
+        aggiungiProdottoEsempio("Melone Bianco", "Sorbetto delicato e profumato al melone bianco invernale", "Senza Lattosio", 23.0, "Gelati", "Frutta", "melone_bianco.png");
+        aggiungiProdottoEsempio("Lampone", "Sorbetto vellutato ai lamponi freschi di montagna", "Senza Lattosio", 24.0, "Gelati", "Frutta", "lampone.png");
+        aggiungiProdottoEsempio("Anguria", "Sorbetto dissetante al cuore di anguria estiva", "Senza Lattosio", 22.0, "Gelati", "Frutta", "anguria.png");
+        aggiungiProdottoEsempio("Liquirizia", "Gelato intenso alla liquirizia pura di Calabria DOP", "Latte", 24.0, "Gelati", "Frutta", "liquirizia.png");
+        aggiungiProdottoEsempio("Pesca", "Sorbetto morbido alle pesche gialle di vigna", "Senza Lattosio", 22.0, "Gelati", "Frutta", "pesca.png");
+        aggiungiProdottoEsempio("Albicocca", "Sorbetto solare alle albicocche del Vesuvio", "Senza Lattosio", 22.0, "Gelati", "Frutta", "albicocca.png");
+        aggiungiProdottoEsempio("Banana", "Cremoso naturale alla banana matura", "Latte", 22.0, "Gelati", "Frutta", "banana.png");
+        aggiungiProdottoEsempio("Banana al Cioccolato", "Gelato alla banana con variegatura e scaglie di cioccolato fondente", "Latte", 24.0, "Gelati", "Frutta", "banana_cioccolato.png");
+
+        // Gusti Gelati — Sottocategoria Special
+        aggiungiProdottoEsempio("Snickers", "Cremoso alle arachidi con caramello salato, cioccolato al latte e arachidi tostate", "Latte, Arachidi, Frutta a guscio", 26.0, "Gelati", "Special", "snickers.png");
+        aggiungiProdottoEsempio("Bounty", "Gelato esotico al cocco fresco con scaglie di cioccolato e cocco rapè", "Latte", 25.0, "Gelati", "Special", "bounty.png");
+        aggiungiProdottoEsempio("Delizia al Limone", "Pan di Spagna bagnato al limoncello con crema vellutata ai limoni d'Amalfi", "Latte, Uova, Glutine", 26.0, "Gelati", "Special", "delizia_limone.png");
+        aggiungiProdottoEsempio("Nutella", "Cremoso artigianale con abbondante Nutella pura variegata", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "gelato_nutella.png");
+        aggiungiProdottoEsempio("Galak", "Gelato al cioccolato bianco Galak con croccanti sfoglie di wafer", "Latte, Glutine", 25.0, "Gelati", "Special", "galak.png");
+        aggiungiProdottoEsempio("Amarandola", "Mandorla di Sicilia variegato con amarene intere sciroppate", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "amarandola.png");
+        aggiungiProdottoEsempio("Croccante all'Amarena", "Fiordilatte con croccante di mandorle caramellate e variegatura all'amarena", "Latte, Frutta a guscio", 26.0, "Gelati", "Special", "croccante_amarena.png");
+        aggiungiProdottoEsempio("Pistacchio variegato Cioccolato e Wafer", "Pistacchio tostato variegato con crema al cioccolato e cialde di wafer", "Latte, Frutta a guscio, Glutine", 27.0, "Gelati", "Special", "pistacchio_cioccolato_wafer.png");
+        aggiungiProdottoEsempio("Cremino Nutella", "Strati vellutati di fiordilatte e nocciola alternati a colate di Nutella", "Latte, Frutta a guscio", 27.0, "Gelati", "Special", "cremino_nutella.png");
+        aggiungiProdottoEsempio("Mascarpone Amarena e Gentilini", "Crema al mascarpone fresco con amarene brusche e biscotti Osvego Gentilini", "Latte, Uova, Glutine", 27.0, "Gelati", "Special", "mascarpone_amarena_gentilini.png");
+        aggiungiProdottoEsempio("Caffè", "Gelato cremoso all'espresso 100% Arabica tostato a legna", "Latte", 23.0, "Gelati", "Special", "gelato_caffe.png");
+        aggiungiProdottoEsempio("Spagnola", "Crema antica e fiordilatte variegati con amarene Fabbri intere", "Latte, Uova", 25.0, "Gelati", "Special", "spagnola.png");
+        aggiungiProdottoEsempio("Zuppa Inglese", "Crema pasticcera e cacao con pan di Spagna all'Alchermes e savoiardi", "Latte, Uova, Glutine", 26.0, "Gelati", "Special", "zuppa_inglese.png");
+
+        // Panna Fresca d'Alpeggio (100g, 200g, 300g sempre selezionabile con foto)
+        aggiungiProdottoEsempio("Panna Fresca 100g", "Coppetta da 100g di panna fresca d'alpeggio montata al momento", "Latte", 2.5, "Panna", "Porzioni", "panna_100g.png");
+        aggiungiProdottoEsempio("Panna Fresca 200g", "Vaschetta da 200g di panna fresca d'alpeggio montata al momento", "Latte", 4.5, "Panna", "Porzioni", "panna_200g.png");
+        aggiungiProdottoEsempio("Panna Fresca 300g", "Vaschetta grande da 300g di panna fresca d'alpeggio montata", "Latte", 6.0, "Panna", "Porzioni", "panna_300g.png");
+
+        // Crepes Artigianali (le 4 varianti con foto: Nutella, Visciole, Marmellata, Crema Pan di Stelle)
+        aggiungiProdottoEsempio("Crepe alla Nutella", "Crepe calda artigianale farcita con abbondante Nutella cremosa", "Glutine, Latte, Frutta a guscio", 5.0, "Crepes", "Farciture", "crepe_nutella.png");
+        aggiungiProdottoEsempio("Crepe alle Visciole", "Crepe calda farcita con confettura artigianale di visciole brusche", "Glutine, Uova, Latte", 4.5, "Crepes", "Farciture", "crepe_visciole.png");
+        aggiungiProdottoEsempio("Crepe alla Marmellata", "Crepe calda farcita con confettura vellutata di albicocche", "Glutine, Uova, Latte", 4.5, "Crepes", "Farciture", "crepe_albicocca.png");
+        aggiungiProdottoEsempio("Crepe Crema Pan di Stelle", "Crepe calda con crema spalmabile Pan di Stelle, panna e stelline croccanti", "Glutine, Latte, Uova, Frutta a guscio", 5.5, "Crepes", "Farciture", "crepe_pandistelle.png");
+
+        // Bevande
+        aggiungiProdottoEsempio("Acqua Naturale 500ml", "Acqua minerale naturale fresca 500ml", "Nessuno", 1.5, "Bevande", "Acqua", "acqua_naturale.png");
+        aggiungiProdottoEsempio("Acqua Frizzante 500ml", "Acqua minerale frizzante fresca 500ml", "Nessuno", 1.5, "Bevande", "Acqua", "acqua_frizzante.png");
+        aggiungiProdottoEsempio("Coca Cola 33cl", "Lattina classica fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "coca_cola.png");
+        aggiungiProdottoEsempio("Fanta 33cl", "Lattina all'arancia fresca 33cl", "Nessuno", 3.0, "Bevande", "Bibite", "fanta.png");
+
+        // Caffetteria, Biscotti, Crostate, Tisane
+        aggiungiProdottoEsempio("Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe", "");
+        aggiungiProdottoEsempio("Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe", "");
+        aggiungiProdottoEsempio("Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita", "");
+        aggiungiProdottoEsempio("Cioccolata Calda Fondente", "Densa, con cacao 70% e un tocco di panna", "Latte", 3.5, "Caffetteria", "Specialita", "");
+        aggiungiProdottoEsempio("Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi", "");
+        aggiungiProdottoEsempio("Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi", "");
+        aggiungiProdottoEsempio("Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche", "");
+        aggiungiProdottoEsempio("Crostata ai Frutti di Bosco", "Crema pasticcera e frutti di bosco freschi", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta", "");
+        aggiungiProdottoEsempio("Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi", "");
+        aggiungiProdottoEsempio("Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi", "");
 
         Emergenza emIniziale = new Emergenza("EMG-01", t3, d1, "Visita medica improvvisa martedi mattina");
         t3.dichiaraEmergenza();
@@ -138,11 +191,14 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
     }
 
     private void aggiungiProdottoEsempio(String nome, String descrizione, String allergeni, double prezzo,
-                                         String categoria, String sottocategoria) {
+                                         String categoria, String sottocategoria, String imgUrl) {
         Gusto g = new Gusto(nome, descrizione, allergeni, prezzo,
                 new Ricetta("Preparazione " + nome, "Preparazione del laboratorio"));
         g.setCategoria(categoria);
         g.setSottocategoria(sottocategoria);
+        if (imgUrl != null && !imgUrl.isEmpty()) {
+            g.setImmagineUrl(imgUrl);
+        }
         gusti.add(g);
     }
 
@@ -243,6 +299,82 @@ public class InMemoryFrostlyDAO implements FrostlyDAO {
             nuovo.setImmagineUrl(immagineUrl);
             gusti.add(nuovo);
         }
+    }
+
+    public void sincronizzaOrdineDaDb(String codiceOrdine, String emailCliente, String nomeGusto,
+                                      double pesoKg, String dataRitiro, String stato,
+                                      double prezzoTotale, String descrizioneDettagliata) {
+        Cliente cli = trovaClientePerEmail(emailCliente);
+        if (cli == null) {
+            cli = new Cliente("Cliente", emailCliente, emailCliente, "");
+        }
+        Gusto g = (nomeGusto != null && !nomeGusto.isEmpty()) ? trovaGustoPerNome(nomeGusto) : null;
+        StatoRichiesta st = StatoRichiesta.IN_ATTESA;
+        if (stato != null && !stato.isEmpty()) {
+            try {
+                st = StatoRichiesta.valueOf(stato.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                st = StatoRichiesta.IN_ATTESA;
+            }
+        }
+        for (OrdineCliente esistente : ordini) {
+            if (esistente.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
+                esistente.setStato(st);
+                esistente.setPrezzoTotale(prezzoTotale);
+                esistente.setDescrizioneDettagliata(descrizioneDettagliata);
+                return;
+            }
+        }
+        OrdineCliente nuovo = new OrdineCliente(codiceOrdine, cli, g, pesoKg, dataRitiro);
+        nuovo.setStato(st);
+        nuovo.setPrezzoTotale(prezzoTotale);
+        nuovo.setDescrizioneDettagliata(descrizioneDettagliata);
+        ordini.add(nuovo);
+    }
+
+    public void sincronizzaRichiestaGustoDaDb(String codiceRich, String emailCliente, String nomeGusto,
+                                              String nomeIngr, double quantitaKg, String dataRitiro,
+                                              String noteCliente, String stato, String rispostaMaestro) {
+        Cliente cli = trovaClientePerEmail(emailCliente);
+        if (cli == null) {
+            cli = new Cliente("Cliente", emailCliente, emailCliente, "");
+        }
+        Ingrediente ing = trovaIngredientePerNome(nomeIngr);
+        if (ing == null) {
+            ing = new Ingrediente(nomeIngr != null ? nomeIngr : "Ingrediente Speciale", 10.0, 2.0, "Kg");
+        }
+        StatoRichiesta st = StatoRichiesta.IN_ATTESA;
+        if (stato != null && !stato.isEmpty()) {
+            try {
+                st = StatoRichiesta.valueOf(stato.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                st = StatoRichiesta.IN_ATTESA;
+            }
+        }
+        for (RichiestaGustoPersonalizzato r : richiesteGusto) {
+            if (r.getCodiceRichiesta().equalsIgnoreCase(codiceRich)) {
+                r.setStato(st);
+                r.setRispostaMaestro(rispostaMaestro != null ? rispostaMaestro : "");
+                return;
+            }
+        }
+        RichiestaGustoPersonalizzato nuova = new RichiestaGustoPersonalizzato(
+                codiceRich, cli, nomeGusto, ing, quantitaKg, dataRitiro, noteCliente != null ? noteCliente : "");
+        nuova.setStato(st);
+        nuova.setRispostaMaestro(rispostaMaestro != null ? rispostaMaestro : "");
+        richiesteGusto.add(nuova);
+    }
+
+    public void sincronizzaNotificaDaDb(String emailDest, String titolo, String messaggio, String timestamp) {
+        for (Notifica n : notifiche) {
+            if (n.getEmailDestinatario().equalsIgnoreCase(emailDest)
+                    && n.getTitolo().equals(titolo)
+                    && n.getMessaggio().equals(messaggio)
+                    && n.getTimestamp().equals(timestamp)) {
+                return;
+            }
+        }
+        notifiche.add(new Notifica(emailDest, titolo, messaggio, timestamp));
     }
 
     @Override

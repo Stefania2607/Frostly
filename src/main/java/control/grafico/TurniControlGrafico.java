@@ -4,6 +4,7 @@ import bean.EmergenzaBean;
 import bean.GustoBean;
 import bean.IngredienteBean;
 import bean.NotificaBean;
+import bean.OrdineBean;
 import bean.RichiestaGustoBean;
 import bean.TurnoBean;
 import control.applicativo.GestioneTurniEmergenzeControl;
@@ -11,27 +12,28 @@ import control.applicativo.LoginControl;
 import control.applicativo.ProduzioneOrdiniControl;
 import control.applicativo.RichiestaGustoControl;
 import frostly.exception.FrostlyException;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import java.util.List;
-import javafx.scene.control.Button;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
+import javafx.stage.Window;
 import util.SessionManager;
+import view.StaffTurniView;
+import view.VetrinaMenuView;
 
 /**
  * Controller Grafico JavaFX collegato a 'maestro.fxml', 'dipendente.fxml',
  * 'maestro_gui2.fxml' e 'dipendente_gui2.fxml'.
  * Gestisce turni, emergenze, richieste gusto e l'aggiornamento in tempo reale del Menu Vetrina su DB.
+ * Decomposizione rigorosa BCE: nessuna estetica nel controller grafico; il rendering è delegato a StaffTurniView e VetrinaMenuView.
  */
 public class TurniControlGrafico {
 
@@ -57,6 +59,13 @@ public class TurniControlGrafico {
     private Label lblIntestazione;
     @FXML
     private Label lblEsito;
+    @FXML
+    private Label lblConteggioTurni;
+    @FXML
+    private Label lblRiepilogoTurniDipendente;
+    @FXML
+    private Label lblTurnoSelezionatoEmergenza;
+    private String filtroGiornoCorrente = "TUTTI";
     @FXML
     private ListView<String> listaTurniDipendente;
     @FXML
@@ -94,10 +103,17 @@ public class TurniControlGrafico {
     @FXML
     private HBox boxSottocategorieMenu;
     @FXML
-    private javafx.scene.layout.FlowPane grigliaMenuGestione;
-    private LoginControlGrafico.VetrinaMenu vetrinaGestione;
+    private FlowPane grigliaMenuGestione;
+    private VetrinaMenuView vetrinaGestione;
     private final java.util.Map<String, GustoBean> menuCorrente = new java.util.LinkedHashMap<>();
     private final java.util.Map<String, EmergenzaBean> mappaEmergenzeAttive = new java.util.LinkedHashMap<>();
+
+    @FXML
+    private ListView<OrdineBean> listaOrdiniStaff;
+    @FXML
+    private Label lblConteggioOrdiniStaff;
+    @FXML
+    private ListView<String> listaOrdiniUrgentiTendina;
 
     @FXML
     private ListView<IngredienteBean> listaMagazzino;
@@ -150,6 +166,8 @@ public class TurniControlGrafico {
     @FXML
     private TextField campoPrezzoGustoMenu;
 
+    private int conteggioOrdiniInAttesaPrecedente = 0;
+
     @FXML
     public void initialize() {
         if (lblIntestazione != null) {
@@ -163,6 +181,37 @@ public class TurniControlGrafico {
         configuraTendineESelezioneClick();
         aggiornaBadgeReparto();
         aggiornaListe();
+        avviaMonitoraggioOrdiniRealTime();
+    }
+
+    private void avviaMonitoraggioOrdiniRealTime() {
+        javafx.animation.Timeline timeline = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3), e -> {
+                    try {
+                        int attuali = 0;
+                        for (OrdineBean ob : new ProduzioneOrdiniControl().visualizzaTuttiOrdini()) {
+                            if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
+                                attuali++;
+                            }
+                        }
+                        if (attuali > conteggioOrdiniInAttesaPrecedente) {
+                            conteggioOrdiniInAttesaPrecedente = attuali;
+                            aggiornaListe();
+                            if (tendinaUrgenze != null) {
+                                tendinaUrgenze.setVisible(true);
+                                tendinaUrgenze.setManaged(true);
+                            }
+                            mostraSuccesso("🚨 NUOVO ORDINE DELIVEROO RICEVUTO! (" + attuali + " in attesa)");
+                        } else {
+                            conteggioOrdiniInAttesaPrecedente = attuali;
+                        }
+                    } catch (Exception ignored) {
+                        // Monitoraggio silenzioso
+                    }
+                })
+        );
+        timeline.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        timeline.play();
     }
 
     private void configuraTendineESelezioneClick() {
@@ -209,10 +258,39 @@ public class TurniControlGrafico {
             });
         }
 
+        StaffTurniView.configuraCelleTurni(listaTuttiTurni, true);
+        StaffTurniView.configuraCelleTurni(listaTurniDipendente, false);
+        StaffTurniView.configuraCelleOrdiniStaff(listaOrdiniStaff, this::eseguiConfermaOrdine, this::eseguiDisdettaOrdine);
+        StaffTurniView.configuraCelleMagazzino(listaMagazzino);
+
+        if (listaTuttiTurni != null) {
+            listaTuttiTurni.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && newVal.contains("|")) {
+                    String[] parti = newVal.split("\\|");
+                    if (parti.length >= 4) {
+                        String giorno = parti[1].trim();
+                        if (comboGiornoTurno != null) comboGiornoTurno.setValue(giorno);
+                        if (campoGiorno != null) campoGiorno.setText(giorno);
+                        String orari = parti[2].trim();
+                        if (orari.contains("-")) {
+                            String[] o = orari.split("-");
+                            if (campoOraInizio != null) campoOraInizio.setText(o[0].trim());
+                            if (campoOraFine != null) campoOraFine.setText(o[1].trim());
+                        }
+                    }
+                }
+            });
+        }
+
         if (listaTurniDipendente != null) {
             listaTurniDipendente.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null && newVal.contains("|") && campoCodiceTurno != null) {
-                    campoCodiceTurno.setText(newVal.split("\\|")[0].trim());
+                    String[] parti = newVal.split("\\|");
+                    String cod = parti[0].trim();
+                    campoCodiceTurno.setText(cod);
+                    if (lblTurnoSelezionatoEmergenza != null && parti.length >= 3) {
+                        lblTurnoSelezionatoEmergenza.setText("Turno: " + cod + " • " + parti[1].trim() + " (" + parti[2].trim() + ")");
+                    }
                 }
             });
         }
@@ -232,7 +310,7 @@ public class TurniControlGrafico {
             listaUrgenzeMagazzino.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null && newVal.contains("|")) {
                     String nome = newVal.split("\\|")[0].replace("⚠️", "").trim();
-                    selezionaTab(3); // Porta direttamente al Magazzino
+                    selezionaTab(3);
                     if (campoNomeIngredienteRifornimento != null) {
                         campoNomeIngredienteRifornimento.setText(nome);
                     }
@@ -276,57 +354,16 @@ public class TurniControlGrafico {
             });
         }
 
-        if (listaMagazzino != null) {
-            listaMagazzino.setCellFactory(lv -> new ListCell<IngredienteBean>() {
-                @Override
-                protected void updateItem(IngredienteBean ing, boolean empty) {
-                    super.updateItem(ing, empty);
-                    if (empty || ing == null) {
-                        setGraphic(null);
-                        setText(null);
-                        setStyle("-fx-background-color: transparent;");
-                        return;
-                    }
-                    boolean basso = ing.isSottoSoglia();
-                    Label nome = new Label(ing.getNome());
-                    nome.setPrefWidth(230);
-                    nome.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #3a2618;");
-
-                    double riferimento = Math.max(ing.getSogliaMinima() * 2, 0.0001);
-                    ProgressBar barra = new ProgressBar(Math.min(1.0, ing.getQuantitaDisponibile() / riferimento));
-                    barra.setPrefWidth(220);
-                    barra.setStyle("-fx-accent: " + (basso ? "#d62828" : "#2a9d8f") + ";");
-
-                    Label qta = new Label(ing.getQuantitaDisponibile() + " " + ing.getUnitaMisura()
-                            + "  (min. " + ing.getSogliaMinima() + ")");
-                    qta.setPrefWidth(190);
-                    qta.setStyle("-fx-text-fill: #5c3a21; -fx-font-size: 12.5px;");
-
-                    Label badge = new Label(basso ? "⚠ DA RIORDINARE" : "✔ OK");
-                    badge.setStyle("-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: white;"
-                            + " -fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: "
-                            + (basso ? "#d62828" : "#2a9d8f") + ";");
-
-                    HBox riga = new HBox(14, nome, barra, qta, badge);
-                    riga.setAlignment(Pos.CENTER_LEFT);
-                    setText(null);
-                    setGraphic(riga);
-                    setStyle("-fx-background-color: " + (basso ? "rgba(255,225,225,0.95)" : "rgba(255,253,250,0.95)")
-                            + "; -fx-padding: 8 12; -fx-border-color: transparent transparent #e6d5c3 transparent;");
-                }
-            });
-        }
-
         if (comboCategoriaMenu != null) {
             comboCategoriaMenu.setItems(FXCollections.observableArrayList(
-                    "Gelati", "Caffetteria", "Biscotti", "Crostate", "Tisane"));
+                    "Gelati", "Crepes", "Panna", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane"));
             comboCategoriaMenu.setValue("Gelati");
             comboCategoriaMenu.valueProperty().addListener((obs, oldVal, newVal) -> aggiornaSottocategorieMenu(newVal));
             aggiornaSottocategorieMenu("Gelati");
         }
 
         if (grigliaMenuGestione != null) {
-            vetrinaGestione = new LoginControlGrafico.VetrinaMenu(
+            vetrinaGestione = new VetrinaMenuView(
                     boxCategorieMenu, boxSottocategorieMenu, grigliaMenuGestione,
                     this::riempiFormGusto, this::alCambioFiltroVetrina);
         }
@@ -345,28 +382,7 @@ public class TurniControlGrafico {
     }
 
     private void aggiornaStatoFoto(String nomeFile) {
-        if (lblStatoFotoMenu == null) return;
-        if (nomeFile == null || nomeFile.trim().isEmpty()) {
-            lblStatoFotoMenu.setText("Nessuna foto selezionata");
-            lblStatoFotoMenu.setStyle("-fx-font-size: 12px; -fx-text-fill: #9c6644; -fx-font-style: italic;");
-            if (btnRimuoviFoto != null) {
-                btnRimuoviFoto.setVisible(false);
-                btnRimuoviFoto.setManaged(false);
-            }
-        } else {
-            String pulito = nomeFile;
-            int idx = Math.max(nomeFile.lastIndexOf('/'), nomeFile.lastIndexOf('\\'));
-            if (idx >= 0) pulito = nomeFile.substring(idx + 1);
-            if (pulito.contains("_") && pulito.substring(0, pulito.indexOf('_')).matches("^\\d{10,}$")) {
-                pulito = pulito.substring(pulito.indexOf('_') + 1);
-            }
-            lblStatoFotoMenu.setText("🖼️ Foto: " + pulito);
-            lblStatoFotoMenu.setStyle("-fx-font-size: 12px; -fx-text-fill: #2a9d8f; -fx-font-weight: bold;");
-            if (btnRimuoviFoto != null) {
-                btnRimuoviFoto.setVisible(true);
-                btnRimuoviFoto.setManaged(true);
-            }
-        }
+        StaffTurniView.aggiornaStatoFotoLabel(lblStatoFotoMenu, btnRimuoviFoto, nomeFile);
     }
 
     @FXML
@@ -374,7 +390,6 @@ public class TurniControlGrafico {
         if (campoImmagineMenu != null) {
             campoImmagineMenu.clear();
         }
-        aggiornaStatoFoto(null);
         aggiornaStatoFoto(null);
     }
 
@@ -386,7 +401,7 @@ public class TurniControlGrafico {
 
     private void aggiornaBadgeReparto() {
         if (lblCategoriaFormMenu != null) {
-            String testo = "📂 Reparto: " + LoginControlGrafico.emojiCategoria(categoriaCorrenteSelezionata) + " " + categoriaCorrenteSelezionata;
+            String testo = "📂 Reparto: " + VetrinaMenuView.emojiCategoria(categoriaCorrenteSelezionata) + " " + categoriaCorrenteSelezionata;
             if (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty()) {
                 testo += " › " + sottocategoriaCorrenteSelezionata;
             }
@@ -399,6 +414,9 @@ public class TurniControlGrafico {
     }
 
     private String sottocategoriaPredefinita(String cat) {
+        if ("Crepes".equalsIgnoreCase(cat)) return "Farciture";
+        if ("Panna".equalsIgnoreCase(cat)) return "Porzioni";
+        if ("Bevande".equalsIgnoreCase(cat)) return "Acqua";
         if ("Caffetteria".equalsIgnoreCase(cat)) return "Caffe";
         if ("Biscotti".equalsIgnoreCase(cat)) return "Secchi";
         if ("Crostate".equalsIgnoreCase(cat)) return "Classiche";
@@ -426,7 +444,13 @@ public class TurniControlGrafico {
         }
         java.util.List<String> opzioni = new java.util.ArrayList<>();
         if ("Gelati".equals(categoria)) {
-            opzioni.addAll(java.util.Arrays.asList("Creme", "Frutta", "Cioccolato"));
+            opzioni.addAll(java.util.Arrays.asList("Creme", "Frutta", "Cioccolato", "Special"));
+        } else if ("Crepes".equals(categoria)) {
+            opzioni.addAll(java.util.Arrays.asList("Farciture", "Topping"));
+        } else if ("Panna".equals(categoria)) {
+            opzioni.add("Porzioni");
+        } else if ("Bevande".equals(categoria)) {
+            opzioni.addAll(java.util.Arrays.asList("Acqua", "Bibite"));
         } else if ("Caffetteria".equals(categoria)) {
             opzioni.addAll(java.util.Arrays.asList("Caffe", "Specialita"));
         } else if ("Biscotti".equals(categoria)) {
@@ -445,14 +469,6 @@ public class TurniControlGrafico {
         if (!opzioni.isEmpty()) {
             comboSottocategoriaMenu.setValue(opzioni.get(0));
         }
-    }
-
-    private static String testoCombo(ComboBox<String> combo, String predefinito) {
-        if (combo == null) {
-            return predefinito;
-        }
-        String t = combo.isEditable() && combo.getEditor() != null ? combo.getEditor().getText() : combo.getValue();
-        return (t == null || t.trim().isEmpty()) ? predefinito : t.trim();
     }
 
     @FXML
@@ -514,110 +530,37 @@ public class TurniControlGrafico {
     }
 
     private void apriPopupDettaglioEmergenza(EmergenzaBean e) {
-        javafx.stage.Stage popup = new javafx.stage.Stage();
-        popup.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-        popup.setTitle("Frostly — Gestione Emergenza " + e.getCodiceEmergenza());
-        if (tendinaUrgenze != null && tendinaUrgenze.getScene() != null) {
-            popup.initOwner(tendinaUrgenze.getScene().getWindow());
-        }
+        Window owner = (tendinaUrgenze != null && tendinaUrgenze.getScene() != null)
+                ? tendinaUrgenze.getScene().getWindow() : null;
+        List<String> emailDipendenti = new GestioneTurniEmergenzeControl().getEmailTuttiDipendenti();
 
-        VBox root = new VBox(14);
-        root.setStyle("-fx-padding: 24; -fx-background-color: #fffdfa;");
-        root.setPrefWidth(540);
-
-        Label lblTitolo = new Label("🚨 RICHIESTA DI SOSTITUZIONE URGENTE");
-        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #bc4749;");
-        Label lblSub = new Label("Codice: " + e.getCodiceEmergenza() + " • Turno: " + e.getCodiceTurno());
-        lblSub.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #7f5539;");
-
-        // Scheda info dipendente e turno
-        VBox cardInfo = new VBox(6);
-        cardInfo.setStyle("-fx-padding: 12 16; -fx-background-color: #f7ebe1; -fx-background-radius: 10; -fx-border-color: #e3d5ca; -fx-border-radius: 10;");
-        Label lblDip = new Label("👤 Dipendente: " + e.getNomeRichiedente() + " (" + e.getEmailRichiedente() + ")");
-        lblDip.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #3a2618;");
-        String turnoDettagli = e.getDataTurno() != null ? (e.getDataTurno() + " ore " + e.getOrarioTurno()) : "Turno di lavoro programmato";
-        Label lblTurno = new Label("📅 Turno coinvolto: " + e.getCodiceTurno() + " • " + turnoDettagli);
-        lblTurno.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #5c3a21;");
-        cardInfo.getChildren().addAll(lblDip, lblTurno);
-
-        // Sezione motivazione inserita a mano dal dipendente
-        VBox cardMotivo = new VBox(6);
-        cardMotivo.setStyle("-fx-padding: 12 16; -fx-background-color: #ffffff; -fx-background-radius: 10; -fx-border-color: #d5bdaf; -fx-border-radius: 10;");
-        Label lblMotivoTitolo = new Label("💬 Motivo comunicato dal dipendente:");
-        lblMotivoTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #bc4749;");
-        Label lblMotivoTesto = new Label("\"" + e.getMotivazione() + "\"");
-        lblMotivoTesto.setWrapText(true);
-        lblMotivoTesto.setStyle("-fx-font-size: 13.5px; -fx-font-style: italic; -fx-text-fill: #3a2618; -fx-font-family: 'Georgia';");
-        cardMotivo.getChildren().addAll(lblMotivoTitolo, lblMotivoTesto);
-
-        // Sezione modifica e riassegnazione turno
-        VBox cardAzione = new VBox(8);
-        Label lblSostituto = new Label("🔁 Scegli il dipendente per coprire e modificare il turno:");
-        lblSostituto.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #3a2618;");
-
-        ComboBox<String> comboSostitutoModal = new ComboBox<>();
-        comboSostitutoModal.setMaxWidth(Double.MAX_VALUE);
-        comboSostitutoModal.setPromptText("Seleziona sostituto dallo staff...");
-        for (String dipEmail : new GestioneTurniEmergenzeControl().getEmailTuttiDipendenti()) {
-            if (!dipEmail.equalsIgnoreCase(e.getEmailRichiedente())) {
-                comboSostitutoModal.getItems().add(dipEmail);
-            }
-        }
-        if (!comboSostitutoModal.getItems().isEmpty()) {
-            comboSostitutoModal.setValue(comboSostitutoModal.getItems().get(0));
-        }
-
-        Label lblNota = new Label("✍️ Nota o risposta del Maestro in tempo reale:");
-        lblNota.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #3a2618;");
-        TextField txtNota = new TextField("Sostituzione approvata e turno riassegnato");
-
-        cardAzione.getChildren().addAll(lblSostituto, comboSostitutoModal, lblNota, txtNota);
-
-        // Pulsanti di risposta rapida
-        HBox boxBottoni = new HBox(10);
-        boxBottoni.setAlignment(Pos.CENTER_RIGHT);
-
-        Button btnApprova = new Button("✔ Approva e Modifica Turno");
-        btnApprova.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 8 16; -fx-cursor: hand;");
-        btnApprova.setOnAction(evt -> {
-            try {
-                String sost = comboSostitutoModal.getValue();
-                if (sost == null || sost.trim().isEmpty()) {
-                    mostraErrore("⚠️ Seleziona prima un sostituto per riassegnare il turno.");
-                    return;
-                }
-                new GestioneTurniEmergenzeControl().approvaEmergenzaConSostituto(
-                        e.getCodiceEmergenza(), sost.trim(), txtNota.getText());
-                popup.close();
-                mostraSuccesso("✅ Emergenza approvata: Turno " + e.getCodiceTurno() + " riassegnato a " + sost);
-                aggiornaListe();
-            } catch (FrostlyException ex) {
-                mostraErrore("⚠️ " + ex.getMessage());
-            }
-        });
-
-        Button btnRifiuta = new Button("✖ Rifiuta Richiesta");
-        btnRifiuta.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 8 16; -fx-cursor: hand;");
-        btnRifiuta.setOnAction(evt -> {
-            try {
-                new GestioneTurniEmergenzeControl().rifiutaEmergenza(e.getCodiceEmergenza(), txtNota.getText());
-                popup.close();
-                mostraSuccesso("ℹ️ Emergenza " + e.getCodiceEmergenza() + " rifiutata.");
-                aggiornaListe();
-            } catch (FrostlyException ex) {
-                mostraErrore("⚠️ " + ex.getMessage());
-            }
-        });
-
-        Button btnChiudi = new Button("Chiudi");
-        btnChiudi.setStyle("-fx-background-color: #f5ebe0; -fx-text-fill: #5c3a21; -fx-background-radius: 16; -fx-padding: 8 14; -fx-cursor: hand;");
-        btnChiudi.setOnAction(evt -> popup.close());
-
-        boxBottoni.getChildren().addAll(btnChiudi, btnRifiuta, btnApprova);
-
-        root.getChildren().addAll(lblTitolo, lblSub, cardInfo, cardMotivo, cardAzione, boxBottoni);
-        popup.setScene(new javafx.scene.Scene(root));
-        popup.showAndWait();
+        StaffTurniView.apriPopupDettaglioEmergenza(
+                owner,
+                e,
+                emailDipendenti,
+                (sost, nota) -> {
+                    try {
+                        if (sost == null || sost.trim().isEmpty()) {
+                            mostraErrore("⚠️ Seleziona prima un sostituto per riassegnare il turno.");
+                            return;
+                        }
+                        new GestioneTurniEmergenzeControl().approvaEmergenzaConSostituto(
+                                e.getCodiceEmergenza(), sost.trim(), nota);
+                        mostraSuccesso("✅ Emergenza approvata: Turno " + e.getCodiceTurno() + " riassegnato a " + sost);
+                        aggiornaListe();
+                    } catch (FrostlyException ex) {
+                        mostraErrore("⚠️ " + ex.getMessage());
+                    }
+                },
+                nota -> {
+                    try {
+                        new GestioneTurniEmergenzeControl().rifiutaEmergenza(e.getCodiceEmergenza(), nota);
+                        mostraSuccesso("ℹ️ Emergenza " + e.getCodiceEmergenza() + " rifiutata.");
+                        aggiornaListe();
+                    } catch (FrostlyException ex) {
+                        mostraErrore("⚠️ " + ex.getMessage());
+                    }
+                });
     }
 
     @FXML
@@ -644,7 +587,6 @@ public class TurniControlGrafico {
             if (java.nio.file.Files.exists(cartellaRes)) {
                 java.nio.file.Files.copy(destinazione, cartellaRes.resolve(nomeUnivoco), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
-            // Salviamo il percorso relativo portatile: funziona su qualsiasi computer (Mac, Windows, Linux)
             campoImmagineMenu.setText("immagini_menu/" + nomeUnivoco);
             aggiornaStatoFoto(file.getName());
             mostraSuccesso("🖼 Foto caricata: " + file.getName() + ". Premi 'Salva / Aggiorna' per applicarla.");
@@ -668,7 +610,56 @@ public class TurniControlGrafico {
     @FXML public void onClickApriSezioneGusti() { selezionaTab(4); }
     @FXML public void onClickApriSezioneStaff() { selezionaTab(5); }
     @FXML public void onClickApriSezioneAvvisi() { selezionaTab(6); }
+    @FXML public void onClickApriSezioneOrdini() { selezionaTab(7); }
     @FXML public void onClickTornaDashboard() { selezionaTab(0); }
+
+    @FXML
+    public void onClickAggiornaOrdiniStaff() {
+        aggiornaListe();
+        mostraSuccesso("Elenco ordini aggiornato.");
+    }
+
+    @FXML
+    public void onClickConfermaOrdineStaff() {
+        OrdineBean sel = listaOrdiniStaff != null ? listaOrdiniStaff.getSelectionModel().getSelectedItem() : null;
+        if (sel == null) {
+            mostraErrore("⚠️ Seleziona prima un ordine dalla lista da confermare.");
+            return;
+        }
+        eseguiConfermaOrdine(sel.getCodiceOrdine());
+    }
+
+    @FXML
+    public void onClickDisdiciOrdineStaff() {
+        OrdineBean sel = listaOrdiniStaff != null ? listaOrdiniStaff.getSelectionModel().getSelectedItem() : null;
+        if (sel == null) {
+            mostraErrore("⚠️ Seleziona prima un ordine dalla lista da disdire.");
+            return;
+        }
+        eseguiDisdettaOrdine(sel.getCodiceOrdine());
+    }
+
+    private void eseguiConfermaOrdine(String codiceOrdine) {
+        try {
+            String operatore = SessionManager.getInstance().getNomeUtenteLoggato();
+            new ProduzioneOrdiniControl().confermaOrdine(codiceOrdine, operatore);
+            mostraSuccesso("✔ Ordine " + codiceOrdine + " CONFERMATO! Notifica inviata al cliente.");
+            aggiornaListe();
+        } catch (FrostlyException e) {
+            mostraErrore("⚠️ " + e.getMessage());
+        }
+    }
+
+    private void eseguiDisdettaOrdine(String codiceOrdine) {
+        try {
+            String operatore = SessionManager.getInstance().getNomeUtenteLoggato();
+            new ProduzioneOrdiniControl().disdiciOrdine(codiceOrdine, operatore);
+            mostraSuccesso("✕ Ordine " + codiceOrdine + " DISDETTO. Notifica inviata al cliente.");
+            aggiornaListe();
+        } catch (FrostlyException e) {
+            mostraErrore("⚠️ " + e.getMessage());
+        }
+    }
 
     private void selezionaTab(int indice) {
         if (tabPaneMaestro != null && tabPaneMaestro.getTabs().size() > indice) {
@@ -797,18 +788,56 @@ public class TurniControlGrafico {
     public void onClickPubblicaTurno() {
         try {
             TurnoBean bean = new TurnoBean();
-            bean.setEmailDipendente(campoEmailDip.getText());
-            bean.setData(campoGiorno.getText());
-            bean.setOraInizio(campoOraInizio.getText());
-            bean.setOraFine(campoOraFine.getText());
+            String email = (campoEmailDip != null && !campoEmailDip.getText().trim().isEmpty())
+                    ? campoEmailDip.getText().trim()
+                    : (comboDipendenteTurno != null ? comboDipendenteTurno.getValue() : null);
+            String giorno = (campoGiorno != null && !campoGiorno.getText().trim().isEmpty())
+                    ? campoGiorno.getText().trim()
+                    : (comboGiornoTurno != null ? comboGiornoTurno.getValue() : null);
+
+            if (email == null || email.trim().isEmpty()) {
+                mostraErrore("⚠️ Seleziona prima un dipendente dal menu a tendina.");
+                return;
+            }
+            if (giorno == null || giorno.trim().isEmpty()) {
+                mostraErrore("⚠️ Seleziona il giorno della settimana per il turno.");
+                return;
+            }
+
+            bean.setEmailDipendente(email);
+            bean.setData(giorno);
+            bean.setOraInizio(campoOraInizio != null ? campoOraInizio.getText() : "08:00");
+            bean.setOraFine(campoOraFine != null ? campoOraFine.getText() : "14:00");
 
             TurnoBean creato = new GestioneTurniEmergenzeControl().pubblicaNuovoTurno(bean);
-            mostraSuccesso("✅ Turno pubblicato con successo: " + creato.getCodiceTurno());
+            mostraSuccesso("✅ Turno pubblicato con successo: " + creato.getCodiceTurno() + " (" + giorno + " " + bean.getOraInizio() + "-" + bean.getOraFine() + ")");
             aggiornaListe();
         } catch (FrostlyException e) {
             mostraErrore("⚠️ " + e.getMessage());
         }
     }
+
+    @FXML public void onClickPresetMattina() {
+        if (campoOraInizio != null) campoOraInizio.setText("08:00");
+        if (campoOraFine != null) campoOraFine.setText("14:00");
+    }
+    @FXML public void onClickPresetPomeriggio() {
+        if (campoOraInizio != null) campoOraInizio.setText("14:00");
+        if (campoOraFine != null) campoOraFine.setText("20:00");
+    }
+    @FXML public void onClickPresetChiusura() {
+        if (campoOraInizio != null) campoOraInizio.setText("18:00");
+        if (campoOraFine != null) campoOraFine.setText("00:00");
+    }
+
+    @FXML public void onClickFiltroTuttiTurni() { filtroGiornoCorrente = "TUTTI"; aggiornaListe(); }
+    @FXML public void onClickFiltraLunedi() { filtroGiornoCorrente = "Lunedi"; aggiornaListe(); }
+    @FXML public void onClickFiltraMartedi() { filtroGiornoCorrente = "Martedi"; aggiornaListe(); }
+    @FXML public void onClickFiltraMercoledi() { filtroGiornoCorrente = "Mercoledi"; aggiornaListe(); }
+    @FXML public void onClickFiltraGiovedi() { filtroGiornoCorrente = "Giovedi"; aggiornaListe(); }
+    @FXML public void onClickFiltraVenerdi() { filtroGiornoCorrente = "Venerdi"; aggiornaListe(); }
+    @FXML public void onClickFiltraSabato() { filtroGiornoCorrente = "Sabato"; aggiornaListe(); }
+    @FXML public void onClickFiltraDomenica() { filtroGiornoCorrente = "Domenica"; aggiornaListe(); }
 
     @FXML
     public void onClickSegnalaEmergenza() {
@@ -896,17 +925,11 @@ public class TurniControlGrafico {
     }
 
     private void mostraSuccesso(String msg) {
-        if (lblEsito != null) {
-            lblEsito.setStyle("-fx-text-fill: #2a9d8f; -fx-font-weight: bold; -fx-font-size: 13px;");
-            lblEsito.setText(msg);
-        }
+        VetrinaMenuView.mostraMessaggioEsito(lblEsito, msg, false);
     }
 
     private void mostraErrore(String msg) {
-        if (lblEsito != null) {
-            lblEsito.setStyle("-fx-text-fill: #d62828; -fx-font-weight: bold; -fx-font-size: 13px;");
-            lblEsito.setText(msg);
-        }
+        VetrinaMenuView.mostraMessaggioEsito(lblEsito, msg, true);
     }
 
     private void aggiornaListe() {
@@ -917,17 +940,59 @@ public class TurniControlGrafico {
         try {
             if (listaTurniDipendente != null) {
                 listaTurniDipendente.getItems().clear();
-                for (TurnoBean t : turniCtrl.visualizzaTurniDipendente(emailUtente)) {
+                List<TurnoBean> turniMiei = turniCtrl.visualizzaTurniDipendente(emailUtente);
+                turniMiei.sort((t1, t2) -> {
+                    int g1 = indiceGiorno(t1.getData());
+                    int g2 = indiceGiorno(t2.getData());
+                    if (g1 != g2) return Integer.compare(g1, g2);
+                    return t1.getOraInizio().compareTo(t2.getOraInizio());
+                });
+
+                int oreTotali = 0;
+                for (TurnoBean t : turniMiei) {
                     listaTurniDipendente.getItems().add(t.getCodiceTurno() + " | " + t.getData()
-                            + " (" + t.getOraInizio() + "-" + t.getOraFine() + ") | Stato: " + t.getStato());
+                            + " | " + t.getOraInizio() + " - " + t.getOraFine() + " | "
+                            + t.getNomeDipendente() + " | " + t.getStato());
+                    try {
+                        int hInizio = Integer.parseInt(t.getOraInizio().split(":")[0]);
+                        int hFine = Integer.parseInt(t.getOraFine().split(":")[0]);
+                        oreTotali += Math.max(0, hFine - hInizio);
+                    } catch (Exception ignored) {
+                        // Formato orario non standard
+                    }
+                }
+                if (lblRiepilogoTurniDipendente != null) {
+                    lblRiepilogoTurniDipendente.setText("📅 " + turniMiei.size() + " turni assegnati (" + oreTotali + " ore totali)");
                 }
             }
             if (listaTuttiTurni != null) {
                 listaTuttiTurni.getItems().clear();
-                for (TurnoBean t : turniCtrl.visualizzaTuttiTurni()) {
-                    listaTuttiTurni.getItems().add(t.getCodiceTurno() + " | " + t.getData()
-                            + " (" + t.getOraInizio() + "-" + t.getOraFine() + ") | "
-                            + t.getNomeDipendente() + " [" + t.getStato() + "]");
+                List<TurnoBean> tuttiTurni = turniCtrl.visualizzaTuttiTurni();
+                tuttiTurni.sort((t1, t2) -> {
+                    int g1 = indiceGiorno(t1.getData());
+                    int g2 = indiceGiorno(t2.getData());
+                    if (g1 != g2) return Integer.compare(g1, g2);
+                    return t1.getOraInizio().compareTo(t2.getOraInizio());
+                });
+
+                int conteggioMostrati = 0;
+                int emergenze = 0;
+                for (TurnoBean t : tuttiTurni) {
+                    if ("IN_EMERGENZA".equalsIgnoreCase(t.getStato())) {
+                        emergenze++;
+                    }
+                    if ("TUTTI".equalsIgnoreCase(filtroGiornoCorrente)
+                            || normalizzaGiorno(t.getData()).equalsIgnoreCase(normalizzaGiorno(filtroGiornoCorrente))) {
+                        listaTuttiTurni.getItems().add(t.getCodiceTurno() + " | " + t.getData()
+                                + " | " + t.getOraInizio() + " - " + t.getOraFine() + " | "
+                                + t.getNomeDipendente() + " | " + t.getStato());
+                        conteggioMostrati++;
+                    }
+                }
+                if (lblConteggioTurni != null) {
+                    String infoFiltro = "TUTTI".equalsIgnoreCase(filtroGiornoCorrente) ? "Tutta la settimana" : filtroGiornoCorrente;
+                    lblConteggioTurni.setText("Visualizzati: " + conteggioMostrati + " turni (" + infoFiltro + ")"
+                            + (emergenze > 0 ? " • 🚨 " + emergenze + " emergenze attive" : " • ✅ Nessuna emergenza"));
                 }
             }
         } catch (FrostlyException ignored) {
@@ -939,7 +1004,7 @@ public class TurniControlGrafico {
             mappaEmergenzeAttive.clear();
             for (EmergenzaBean e : turniCtrl.visualizzaTutteEmergenze()) {
                 if (!"IN_ATTESA".equals(e.getStato())) {
-                    continue; // Le richieste approvate/rifiutate spariscono dalla lista
+                    continue;
                 }
                 String orarioInfo = e.getDataTurno() != null ? (" (" + e.getDataTurno() + " " + e.getOrarioTurno() + ")") : "";
                 String sintetica = "🚨 " + e.getNomeRichiedente() + " — Emergenza Turno " + e.getCodiceTurno() + orarioInfo;
@@ -1006,7 +1071,6 @@ public class TurniControlGrafico {
             }
         }
 
-        // Calcolo urgenze per la campanellina laterale del Maestro
         int emergenzeAttive = 0;
         for (EmergenzaBean e : turniCtrl.visualizzaTutteEmergenze()) {
             if ("IN_ATTESA".equals(e.getStato())) {
@@ -1030,16 +1094,44 @@ public class TurniControlGrafico {
             }
         }
 
-        int totaleUrgenze = emergenzeAttive + scorteUrgenti;
-        if (btnTendinaUrgenze != null) {
-            if (totaleUrgenze > 0) {
-                btnTendinaUrgenze.setText("🔔 Urgenze (" + totaleUrgenze + ")");
-                btnTendinaUrgenze.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 7 15; -fx-cursor: hand;");
-            } else {
-                btnTendinaUrgenze.setText("🔔 Notizie (0)");
-                btnTendinaUrgenze.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 7 15; -fx-cursor: hand;");
+        int ordiniInAttesa = 0;
+        if (listaOrdiniStaff != null) {
+            listaOrdiniStaff.getItems().clear();
+            List<OrdineBean> tuttiOrdini = prodCtrl.visualizzaTuttiOrdini();
+            for (OrdineBean ob : tuttiOrdini) {
+                listaOrdiniStaff.getItems().add(ob);
+                if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
+                    ordiniInAttesa++;
+                }
+            }
+            if (lblConteggioOrdiniStaff != null) {
+                lblConteggioOrdiniStaff.setText(ordiniInAttesa > 0
+                        ? "🚨 " + ordiniInAttesa + " ordini in attesa di conferma"
+                        : "✅ Nessun ordine in attesa (" + tuttiOrdini.size() + " totali)");
+            }
+        } else {
+            for (OrdineBean ob : prodCtrl.visualizzaTuttiOrdini()) {
+                if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
+                    ordiniInAttesa++;
+                }
             }
         }
+
+        if (listaOrdiniUrgentiTendina != null) {
+            listaOrdiniUrgentiTendina.getItems().clear();
+            for (OrdineBean ob : prodCtrl.visualizzaTuttiOrdini()) {
+                if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
+                    listaOrdiniUrgentiTendina.getItems().add("🛵 " + ob.getCodiceOrdine() + " • " + ob.getEmailCliente()
+                            + " (" + ob.getDataRitiro() + ") - EUR " + ob.getPrezzoTotale());
+                }
+            }
+            if (listaOrdiniUrgentiTendina.getItems().isEmpty()) {
+                listaOrdiniUrgentiTendina.getItems().add("✅ Nessun ordine in attesa al momento");
+            }
+        }
+
+        int totaleUrgenze = emergenzeAttive + scorteUrgenti + ordiniInAttesa;
+        StaffTurniView.aggiornaBottoneUrgenze(btnTendinaUrgenze, totaleUrgenze);
 
         if (listaNotificheUrgenti != null) {
             listaNotificheUrgenti.getItems().clear();
@@ -1049,5 +1141,23 @@ public class TurniControlGrafico {
                 listaNotificheUrgenti.getItems().add("[" + nb.getTimestamp() + "] " + nb.getTitolo() + ": " + nb.getMessaggio());
             }
         }
+    }
+
+    private static int indiceGiorno(String g) {
+        if (g == null) return 7;
+        String s = g.toLowerCase().replace("ì", "i");
+        if (s.contains("lun")) return 0;
+        if (s.contains("mar")) return 1;
+        if (s.contains("mer")) return 2;
+        if (s.contains("gio")) return 3;
+        if (s.contains("ven")) return 4;
+        if (s.contains("sab")) return 5;
+        if (s.contains("dom")) return 6;
+        return 7;
+    }
+
+    private static String normalizzaGiorno(String g) {
+        if (g == null) return "";
+        return g.toLowerCase().replace("ì", "i").trim();
     }
 }

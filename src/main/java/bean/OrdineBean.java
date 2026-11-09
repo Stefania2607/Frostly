@@ -1,9 +1,12 @@
 package bean;
 
 import frostly.exception.DatiNonValidiException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Bean per il Pre-Ordine vaschetta con validazione sintattica nei setter.
+ * Bean per il Pre-Ordine vaschetta con validazione sintattica nei setter,
+ * che supporta ordini composti da una o molteplici vaschette.
  */
 public class OrdineBean {
 
@@ -17,9 +20,31 @@ public class OrdineBean {
     private String descrizioneCompleta;
     private double prezzoTotale;
     private String stato;
+    private final List<VaschettaItemBean> vaschette = new ArrayList<>();
 
     public OrdineBean() {
         // Costruttore vuoto JavaBean
+    }
+
+    public List<VaschettaItemBean> getVaschette() {
+        return vaschette;
+    }
+
+    public void setVaschette(List<VaschettaItemBean> lista) {
+        this.vaschette.clear();
+        if (lista != null) {
+            this.vaschette.addAll(lista);
+        }
+    }
+
+    public void aggiungiVaschetta(VaschettaItemBean item) {
+        if (item != null) {
+            this.vaschette.add(item);
+        }
+    }
+
+    public int getNumeroVaschette() {
+        return vaschette.isEmpty() ? 1 : vaschette.size();
     }
 
     public String getCodiceOrdine() {
@@ -54,8 +79,8 @@ public class OrdineBean {
     }
 
     public void setPesoKg(double pesoKg) throws DatiNonValidiException {
-        if (pesoKg <= 0 || pesoKg > 5.0) {
-            throw new DatiNonValidiException("Il peso della vaschetta deve essere tra 0.5 kg e 5.0 kg.");
+        if (pesoKg < 0.3 || pesoKg > 5.0) {
+            throw new DatiNonValidiException("Il peso della vaschetta deve essere tra 350g (0.35 kg) e 5.0 kg.");
         }
         this.pesoKg = pesoKg;
     }
