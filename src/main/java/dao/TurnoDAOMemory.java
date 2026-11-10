@@ -1,9 +1,8 @@
 package dao;
 
 import frostly.exception.FrostlyException;
-import model.Turno;
-
 import java.util.List;
+import model.Turno;
 
 /**
  * Implementazione IN-MEMORY di TurnoDAO per la modalita' DEMO.
@@ -13,11 +12,11 @@ public class TurnoDAOMemory implements TurnoDAO {
 
     @Override
     public void salvaTurno(Turno turno) throws FrostlyException {
-        InMemoryFrostlyDAO.getInstance().salvaTurno(turno);
+        ArchivioMemoria.getInstance().salvaTurno(turno);
     }
 
     @Override
     public List<Turno> caricaTuttiTurni() throws FrostlyException {
-        return InMemoryFrostlyDAO.getInstance().caricaTuttiTurni();
+        return ArchivioMemoria.getInstance().getTurni();
     }
 }

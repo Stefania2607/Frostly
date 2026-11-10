@@ -1,8 +1,8 @@
 package control.grafico;
 
 import bean.LoginBean;
+import control.applicativo.GestioneMenuControl;
 import control.applicativo.LoginControl;
-import control.applicativo.ProduzioneOrdiniControl;
 import frostly.exception.FrostlyException;
 import java.io.IOException;
 import javafx.application.Application;
@@ -94,7 +94,7 @@ public class LoginControlGrafico extends Application {
 
     private void caricaMenuPubblico() {
         vetrina = new VetrinaMenuView(boxCategorie, boxSottocategorie, grigliaProdotti, null);
-        vetrina.carica(new ProduzioneOrdiniControl().visualizzaMenuGusti());
+        vetrina.carica(new GestioneMenuControl().visualizzaMenuGusti());
     }
 
     @FXML

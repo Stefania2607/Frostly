@@ -2,7 +2,10 @@ package control.applicativo;
 
 import bean.RichiestaGustoBean;
 import dao.DAOFactory;
-import dao.FrostlyDAO;
+import dao.IngredienteDAO;
+import dao.NotificaDAO;
+import dao.RichiestaGustoDAO;
+import dao.UtenteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import java.time.LocalTime;
@@ -23,12 +26,26 @@ public class RichiestaGustoControl {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
-    public RichiestaGustoBean inviaRichiestaGusto(RichiestaGustoBean beanInput) throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
+    private final RichiestaGustoDAO richiestaGustoDAO;
+    private final IngredienteDAO ingredienteDAO;
+    private final UtenteDAO utenteDAO;
+    private final NotificaDAO notificaDAO;
 
-        List<RichiestaGustoPersonalizzato> esistenti = dao.caricaTutteRichiesteGusto();
-        Cliente cliente = dao.trovaClientePerEmail(beanInput.getEmailCliente());
-        Ingrediente ingrediente = dao.trovaIngredientePerNome(beanInput.getNomeIngredientePrincipale());
+    public RichiestaGustoControl() {
+        this(DAOFactory.getRichiestaGustoDAO(), DAOFactory.getIngredienteDAO(), DAOFactory.getUtenteDAO(), DAOFactory.getNotificaDAO());
+    }
+
+    public RichiestaGustoControl(RichiestaGustoDAO richiestaGustoDAO, IngredienteDAO ingredienteDAO, UtenteDAO utenteDAO, NotificaDAO notificaDAO) {
+        this.richiestaGustoDAO = richiestaGustoDAO;
+        this.ingredienteDAO = ingredienteDAO;
+        this.utenteDAO = utenteDAO;
+        this.notificaDAO = notificaDAO;
+    }
+
+    public RichiestaGustoBean inviaRichiestaGusto(RichiestaGustoBean beanInput) throws FrostlyException {
+        List<RichiestaGustoPersonalizzato> esistenti = richiestaGustoDAO.caricaTutteRichiesteGusto();
+        Cliente cliente = utenteDAO.trovaClientePerEmail(beanInput.getEmailCliente());
+        Ingrediente ingrediente = ingredienteDAO.trovaIngredientePerNome(beanInput.getNomeIngredientePrincipale());
 
         if (cliente == null) {
             throw new DatiNonValidiException("Cliente non trovato: " + beanInput.getEmailCliente());
@@ -47,9 +64,9 @@ public class RichiestaGustoControl {
                 beanInput.getDataRitiroDesiderata(),
                 beanInput.getNoteCliente() != null ? beanInput.getNoteCliente() : "");
 
-        dao.salvaRichiestaGusto(nuovaRichiesta);
-        dao.inviaNotifica(new Notifica(
-                dao.getMaestroGelataio().getEmail(),
+        richiestaGustoDAO.salvaRichiestaGusto(nuovaRichiesta);
+        notificaDAO.inviaNotifica(new Notifica(
+                utenteDAO.getMaestroGelataio().getEmail(),
                 "Nuova Richiesta Gusto Personalizzato",
                 cliente.getNome() + " " + cliente.getCognome() + " ha richiesto '"
                         + nuovaRichiesta.getNomeGustoProposto() + "' (" + nuovaRichiesta.getQuantitaRichiestaKg()
@@ -61,8 +78,7 @@ public class RichiestaGustoControl {
 
     public RichiestaGustoBean approvaRichiestaGusto(String codiceRichiesta, String messaggioPerCliente)
             throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        RichiestaGustoPersonalizzato richiesta = trovaRichiestaEntity(dao, codiceRichiesta);
+        RichiestaGustoPersonalizzato richiesta = trovaRichiestaEntity(codiceRichiesta);
 
         Ingrediente ing = richiesta.getIngredientePrincipale();
         double fabbisogno = Math.round(richiesta.getQuantitaRichiestaKg() * 0.6 * 100.0) / 100.0;
@@ -71,10 +87,10 @@ public class RichiestaGustoControl {
         ing.consuma(fabbisogno);
         richiesta.approva(messaggioPerCliente);
 
-        dao.aggiornaIngrediente(ing);
-        dao.salvaRichiestaGusto(richiesta);
+        ingredienteDAO.aggiornaIngrediente(ing);
+        richiestaGustoDAO.salvaRichiestaGusto(richiesta);
 
-        dao.inviaNotifica(new Notifica(
+        notificaDAO.inviaNotifica(new Notifica(
                 richiesta.getCliente().getEmail(),
                 "Gusto Personalizzato Approvato!",
                 "Il Maestro Gelataio ha approvato il tuo gusto '" + richiesta.getNomeGustoProposto()
@@ -82,8 +98,8 @@ public class RichiestaGustoControl {
                 oraCorrente()));
 
         if (ing.isSottoSoglia()) {
-            dao.inviaNotifica(new Notifica(
-                    dao.getMaestroGelataio().getEmail(),
+            notificaDAO.inviaNotifica(new Notifica(
+                    utenteDAO.getMaestroGelataio().getEmail(),
                     "Allerta Magazzino Sotto Soglia",
                     "L'ingrediente '" + ing.getNome() + "' e' sceso a " + ing.getQuantitaDisponibile()
                             + " " + ing.getUnitaMisura() + " (soglia: " + ing.getSogliaMinima() + ").",
@@ -95,8 +111,7 @@ public class RichiestaGustoControl {
 
     public RichiestaGustoBean approvaConRifornimentoUrgente(String codiceRichiesta, double quantitaRifornimento,
                                                             String nuovaDataStimata) throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        RichiestaGustoPersonalizzato richiesta = trovaRichiestaEntity(dao, codiceRichiesta);
+        RichiestaGustoPersonalizzato richiesta = trovaRichiestaEntity(codiceRichiesta);
 
         Ingrediente ing = richiesta.getIngredientePrincipale();
         ing.rifornisci(quantitaRifornimento);
@@ -106,10 +121,10 @@ public class RichiestaGustoControl {
         String nota = "Approvato dopo rifornimento urgente ingrediente. Pronto per: " + nuovaDataStimata;
         richiesta.approva(nota);
 
-        dao.aggiornaIngrediente(ing);
-        dao.salvaRichiestaGusto(richiesta);
+        ingredienteDAO.aggiornaIngrediente(ing);
+        richiestaGustoDAO.salvaRichiestaGusto(richiesta);
 
-        dao.inviaNotifica(new Notifica(
+        notificaDAO.inviaNotifica(new Notifica(
                 richiesta.getCliente().getEmail(),
                 "Gusto Personalizzato Approvato (Con Rifornimento)",
                 "Il tuo gusto '" + richiesta.getNomeGustoProposto()
@@ -121,13 +136,12 @@ public class RichiestaGustoControl {
 
     public RichiestaGustoBean rifiutaRichiestaGusto(String codiceRichiesta, String motivoRifiuto)
             throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        RichiestaGustoPersonalizzato richiesta = trovaRichiestaEntity(dao, codiceRichiesta);
+        RichiestaGustoPersonalizzato richiesta = trovaRichiestaEntity(codiceRichiesta);
 
         richiesta.rifiuta(motivoRifiuto);
-        dao.salvaRichiestaGusto(richiesta);
+        richiestaGustoDAO.salvaRichiestaGusto(richiesta);
 
-        dao.inviaNotifica(new Notifica(
+        notificaDAO.inviaNotifica(new Notifica(
                 richiesta.getCliente().getEmail(),
                 "Richiesta Gusto Non Approvata",
                 "La richiesta per il gusto '" + richiesta.getNomeGustoProposto()
@@ -138,18 +152,16 @@ public class RichiestaGustoControl {
     }
 
     public List<RichiestaGustoBean> visualizzaTutteRichieste() {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
         List<RichiestaGustoBean> risultato = new ArrayList<>();
-        for (RichiestaGustoPersonalizzato r : dao.caricaTutteRichiesteGusto()) {
+        for (RichiestaGustoPersonalizzato r : richiestaGustoDAO.caricaTutteRichiesteGusto()) {
             risultato.add(convertiInBean(r));
         }
         return risultato;
     }
 
     public List<RichiestaGustoBean> visualizzaRichiesteCliente(String emailCliente) {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
         List<RichiestaGustoBean> risultato = new ArrayList<>();
-        for (RichiestaGustoPersonalizzato r : dao.caricaTutteRichiesteGusto()) {
+        for (RichiestaGustoPersonalizzato r : richiestaGustoDAO.caricaTutteRichiesteGusto()) {
             if (r.getCliente().getEmail().equalsIgnoreCase(emailCliente)) {
                 risultato.add(convertiInBean(r));
             }
@@ -157,9 +169,8 @@ public class RichiestaGustoControl {
         return risultato;
     }
 
-    private RichiestaGustoPersonalizzato trovaRichiestaEntity(FrostlyDAO dao, String codiceRichiesta)
-            throws DatiNonValidiException {
-        for (RichiestaGustoPersonalizzato r : dao.caricaTutteRichiesteGusto()) {
+    private RichiestaGustoPersonalizzato trovaRichiestaEntity(String codiceRichiesta) throws DatiNonValidiException {
+        for (RichiestaGustoPersonalizzato r : richiestaGustoDAO.caricaTutteRichiesteGusto()) {
             if (r.getCodiceRichiesta().equalsIgnoreCase(codiceRichiesta)) {
                 return r;
             }
@@ -181,7 +192,6 @@ public class RichiestaGustoControl {
             b.setStato(r.getStato().name());
             b.setRispostaMaestro(r.getRispostaMaestro());
         } catch (DatiNonValidiException ignored) {
-            // Dati provenienti dal Model gia' validi
         }
         return b;
     }

@@ -446,4 +446,29 @@ public class VetrinaMenuView {
         }
         return scheda;
     }
+
+    public static void aggiornaStatoFotoLabel(Label lblStatoFotoMenu, Button btnRimuoviFoto, String nomeFile) {
+        if (lblStatoFotoMenu == null) return;
+        if (nomeFile == null || nomeFile.trim().isEmpty()) {
+            lblStatoFotoMenu.setText("Nessuna foto selezionata");
+            lblStatoFotoMenu.setStyle("-fx-font-size: 12px; -fx-text-fill: #9c6644; -fx-font-style: italic;");
+            if (btnRimuoviFoto != null) {
+                btnRimuoviFoto.setVisible(false);
+                btnRimuoviFoto.setManaged(false);
+            }
+        } else {
+            String pulito = nomeFile;
+            int idx = Math.max(nomeFile.lastIndexOf('/'), nomeFile.lastIndexOf('\\'));
+            if (idx >= 0) pulito = nomeFile.substring(idx + 1);
+            if (pulito.contains("_") && pulito.substring(0, pulito.indexOf('_')).matches("^\\d{10,}$")) {
+                pulito = pulito.substring(pulito.indexOf('_') + 1);
+            }
+            lblStatoFotoMenu.setText("🖼️ Foto: " + pulito);
+            lblStatoFotoMenu.setStyle("-fx-font-size: 12px; -fx-text-fill: #2a9d8f; -fx-font-weight: bold;");
+            if (btnRimuoviFoto != null) {
+                btnRimuoviFoto.setVisible(true);
+                btnRimuoviFoto.setManaged(true);
+            }
+        }
+    }
 }

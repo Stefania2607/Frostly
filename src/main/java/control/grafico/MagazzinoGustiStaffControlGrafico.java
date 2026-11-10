@@ -2,14 +2,14 @@ package control.grafico;
 
 import bean.IngredienteBean;
 import bean.RichiestaGustoBean;
-import control.applicativo.ProduzioneOrdiniControl;
+import control.applicativo.MagazzinoControl;
 import control.applicativo.RichiestaGustoControl;
 import frostly.exception.FrostlyException;
 import java.util.function.BiConsumer;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import view.StaffTurniView;
+import view.MagazzinoStaffView;
 
 /**
  * Controller Grafico dedicato alla gestione del Magazzino Materie Prime
@@ -61,7 +61,7 @@ public class MagazzinoGustiStaffControlGrafico {
     }
 
     public void inizializza(Runnable onSelezionaTabMagazzino) {
-        StaffTurniView.configuraCelleMagazzino(listaMagazzino);
+        MagazzinoStaffView.configuraCelleMagazzino(listaMagazzino);
 
         if (listaUrgenzeMagazzino != null) {
             listaUrgenzeMagazzino.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -102,7 +102,7 @@ public class MagazzinoGustiStaffControlGrafico {
      * Aggiorna le liste di magazzino e richieste gusto e restituisce il numero di materie prime sotto soglia.
      */
     public int aggiornaMagazzinoERichieste() {
-        ProduzioneOrdiniControl prodCtrl = new ProduzioneOrdiniControl();
+        MagazzinoControl magCtrl = new MagazzinoControl();
 
         if (listaRichiesteGusto != null) {
             listaRichiesteGusto.getItems().clear();
@@ -116,7 +116,7 @@ public class MagazzinoGustiStaffControlGrafico {
         if (listaMagazzino != null) {
             listaMagazzino.getItems().clear();
             int sottoSoglia = 0;
-            for (IngredienteBean ing : prodCtrl.visualizzaMagazzino()) {
+            for (IngredienteBean ing : magCtrl.visualizzaMagazzino()) {
                 listaMagazzino.getItems().add(ing);
                 if (ing.isSottoSoglia()) {
                     sottoSoglia++;
@@ -132,7 +132,7 @@ public class MagazzinoGustiStaffControlGrafico {
         int scorteUrgenti = 0;
         if (listaUrgenzeMagazzino != null) {
             listaUrgenzeMagazzino.getItems().clear();
-            for (IngredienteBean ing : prodCtrl.visualizzaMagazzino()) {
+            for (IngredienteBean ing : magCtrl.visualizzaMagazzino()) {
                 if (ing.isSottoSoglia()) {
                     scorteUrgenti++;
                     listaUrgenzeMagazzino.getItems().add(ing.getNome() + " | Rimanenti: "
@@ -144,7 +144,7 @@ public class MagazzinoGustiStaffControlGrafico {
                 listaUrgenzeMagazzino.getItems().add("✅ Nessuna mancanza: materie prime ottimali");
             }
         } else {
-            for (IngredienteBean ing : prodCtrl.visualizzaMagazzino()) {
+            for (IngredienteBean ing : magCtrl.visualizzaMagazzino()) {
                 if (ing.isSottoSoglia()) {
                     scorteUrgenti++;
                 }
@@ -176,7 +176,7 @@ public class MagazzinoGustiStaffControlGrafico {
                 notificaEsito.accept("⚠️ La quantita' deve essere maggiore di zero.", true);
                 return;
             }
-            new ProduzioneOrdiniControl().rifornisciIngredienteMagazzino(nome.trim(), qta);
+            new MagazzinoControl().rifornisciIngredienteMagazzino(nome.trim(), qta);
             notificaEsito.accept("✅ Rifornimento registrato: aggiunti " + qta + " Kg/L di '" + nome.trim() + "' al magazzino!", false);
             if (campoKgRifornimento != null) {
                 campoKgRifornimento.clear();
@@ -194,7 +194,7 @@ public class MagazzinoGustiStaffControlGrafico {
                 notificaEsito.accept("⚠️ Seleziona prima una materia prima sotto soglia dalla lista.", true);
                 return;
             }
-            new ProduzioneOrdiniControl().rifornisciIngredienteMagazzino(nome.trim(), 5.0);
+            new MagazzinoControl().rifornisciIngredienteMagazzino(nome.trim(), 5.0);
             notificaEsito.accept("⚡ Scorte rifornite con successo (+5 Kg/L) per: " + nome.trim(), false);
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {

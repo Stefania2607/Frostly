@@ -1,7 +1,7 @@
 package control.grafico;
 
 import bean.OrdineBean;
-import control.applicativo.ProduzioneOrdiniControl;
+import control.applicativo.OrdiniControl;
 import frostly.exception.FrostlyException;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -13,7 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.util.Duration;
 import util.SessionManager;
-import view.StaffTurniView;
+import view.OrdiniStaffView;
 
 /**
  * Controller Grafico dedicato alla gestione degli Ordini dei Clienti (Deliveroo / Take Away)
@@ -45,7 +45,7 @@ public class OrdiniStaffControlGrafico {
     }
 
     public void inizializza() {
-        StaffTurniView.configuraCelleOrdiniStaff(
+        OrdiniStaffView.configuraCelleOrdiniStaff(
                 listaOrdiniStaff, this::eseguiConfermaOrdine, this::eseguiDisdettaOrdine);
     }
 
@@ -54,7 +54,7 @@ public class OrdiniStaffControlGrafico {
                 new KeyFrame(Duration.seconds(3), e -> {
                     try {
                         int attuali = 0;
-                        for (OrdineBean ob : new ProduzioneOrdiniControl().visualizzaTuttiOrdini()) {
+                        for (OrdineBean ob : new OrdiniControl().visualizzaTuttiOrdini()) {
                             if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
                                 attuali++;
                             }
@@ -78,8 +78,8 @@ public class OrdiniStaffControlGrafico {
      * Aggiorna la lista ordini staff e la tendina urgenze e restituisce il conteggio ordini in attesa.
      */
     public int aggiornaOrdiniStaff() {
-        ProduzioneOrdiniControl prodCtrl = new ProduzioneOrdiniControl();
-        List<OrdineBean> tuttiOrdini = prodCtrl.visualizzaTuttiOrdini();
+        OrdiniControl ordiniCtrl = new OrdiniControl();
+        List<OrdineBean> tuttiOrdini = ordiniCtrl.visualizzaTuttiOrdini();
 
         int ordiniInAttesa = 0;
         if (listaOrdiniStaff != null) {
@@ -139,7 +139,7 @@ public class OrdiniStaffControlGrafico {
     public void eseguiConfermaOrdine(String codiceOrdine) {
         try {
             String operatore = SessionManager.getInstance().getNomeUtenteLoggato();
-            new ProduzioneOrdiniControl().confermaOrdine(codiceOrdine, operatore);
+            new OrdiniControl().confermaOrdine(codiceOrdine, operatore);
             notificaEsito.accept("✔ Ordine " + codiceOrdine + " CONFERMATO! Notifica inviata al cliente.", false);
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {
@@ -150,7 +150,7 @@ public class OrdiniStaffControlGrafico {
     public void eseguiDisdettaOrdine(String codiceOrdine) {
         try {
             String operatore = SessionManager.getInstance().getNomeUtenteLoggato();
-            new ProduzioneOrdiniControl().disdiciOrdine(codiceOrdine, operatore);
+            new OrdiniControl().disdiciOrdine(codiceOrdine, operatore);
             notificaEsito.accept("✕ Ordine " + codiceOrdine + " DISDETTO. Notifica inviata al cliente.", false);
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {

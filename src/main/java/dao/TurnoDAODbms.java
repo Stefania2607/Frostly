@@ -19,7 +19,7 @@ public class TurnoDAODbms implements TurnoDAO {
 
     @Override
     public void salvaTurno(Turno turno) throws FrostlyException {
-        InMemoryFrostlyDAO.getInstance().salvaTurno(turno);
+        ArchivioMemoria.getInstance().salvaTurno(turno);
         Connection conn = ConnectionManager.getInstance().getConnection();
         String deleteSql = "DELETE FROM turni WHERE codice_turno = ?";
         String insertSql = "INSERT INTO turni (codice_turno, data_turno, ora_inizio, ora_fine, email_dipendente, stato) "
@@ -49,7 +49,7 @@ public class TurnoDAODbms implements TurnoDAO {
         try (PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                Dipendente dip = InMemoryFrostlyDAO.getInstance().trovaDipendentePerEmail(rs.getString("email_dipendente"));
+                Dipendente dip = ArchivioMemoria.getInstance().trovaDipendentePerEmail(rs.getString("email_dipendente"));
                 if (dip != null) {
                     Turno t = new Turno(
                             rs.getString("codice_turno"),
@@ -64,6 +64,6 @@ public class TurnoDAODbms implements TurnoDAO {
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nel caricamento dei turni.", e);
         }
-        return dalDb.isEmpty() ? InMemoryFrostlyDAO.getInstance().caricaTuttiTurni() : dalDb;
+        return dalDb.isEmpty() ? ArchivioMemoria.getInstance().getTurni() : dalDb;
     }
 }

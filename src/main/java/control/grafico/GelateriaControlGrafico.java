@@ -6,14 +6,14 @@ import bean.NotificaBean;
 import bean.OrdineBean;
 import bean.RichiestaGustoBean;
 import bean.VaschettaItemBean;
+import control.applicativo.GestioneMenuControl;
 import control.applicativo.LoginControl;
-import control.applicativo.ProduzioneOrdiniControl;
+import control.applicativo.OrdiniControl;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -32,7 +32,10 @@ import view.CrepeConfiguratoreView;
 import view.VetrinaMenuView;
 
 /**
- * Controller Grafico JavaFX principale per la schermata del Cliente.
+ * Controller Grafico JavaFX principale per la schermata del Cliente ('cliente.fxml', 'cliente_gui2.fxml').
+ * Coordina la navigazione del catalogo prodotti per macro-categorie, delegando:
+ * - la composizione della vaschetta a {@link VaschettaControlGrafico}
+ * - le proposte "Gusto su Misura" a {@link RichiestaGustoControlGrafico}.
  */
 public class GelateriaControlGrafico {
 
@@ -88,18 +91,13 @@ public class GelateriaControlGrafico {
     private String granellaCrepeScelta = CrepeConfiguratoreView.NESSUNA_GRANELLA;
 
     private RichiestaGustoControlGrafico gustoCustomHelper;
+    private VaschettaControlGrafico vaschettaHelper;
 
     @FXML
     public void initialize() {
         if (lblIntestazione != null) {
             lblIntestazione.setText("Cliente: " + SessionManager.getInstance().getNomeUtenteLoggato()
                     + " | Modalita': " + SessionManager.getInstance().getModalita());
-        }
-        if (checkPanna != null) {
-            checkPanna.setOnAction(e -> aggiornaVaschettaGrafica());
-        }
-        if (checkGranella != null) {
-            checkGranella.setOnAction(e -> aggiornaVaschettaGrafica());
         }
 
         ClienteMenuView.configuraCelleMieiOrdini(listaMieiOrdini);
@@ -113,7 +111,12 @@ public class GelateriaControlGrafico {
                 lblRiepilogoDescrizioneCustom, lblRiepilogoKgDataCustom, listaMieRichieste);
         gustoCustomHelper.inizializza();
 
-        selezionaFormato(0.50, 4);
+        vaschettaHelper = new VaschettaControlGrafico(
+                carrello, btnFormato350, btnFormato500, btnFormato750, btnFormato1000,
+                lblCapienzaVaschetta, boxVaschettaGrafica, checkPanna, checkGranella,
+                lblPrezzoVaschettaCorrente, this::mostraEsito, this::aggiornaBoxGustiDisponibili);
+        vaschettaHelper.inizializza();
+
         aggiornaVistaCliente();
         aggiornaStatoCarrello();
     }
@@ -201,100 +204,26 @@ public class GelateriaControlGrafico {
                 this::aggiungiProdottoMenuAlCarrello);
     }
 
-    // ================= GESTIONE VASCHETTA E PRODOTTI MENU =================
+    // ================= GESTIONE VASCHETTA (DELEGA A VaschettaControlGrafico) =================
 
     public void onClickAggiungiGustoAllaVaschetta(GustoBean g) {
-        List<GustoBean> scelti = carrello.getGustiNellaVaschetta();
-        if (scelti.contains(g)) {
-            scelti.remove(g);
-            mostraEsito("ℹ️ Gusto '" + g.getNome() + "' rimosso dalla vaschetta.", false);
-        } else {
-            if (scelti.size() >= carrello.getMaxGustiVaschetta()) {
-                mostraEsito("⚠️ Hai già raggiunto il limite di " + carrello.getMaxGustiVaschetta()
-                        + " gusti per questo formato. Rimuovine uno per fare spazio!", true);
-                return;
-            }
-            scelti.add(g);
-            mostraEsito("🍦 '" + g.getNome() + "' aggiunto alla vaschetta! Quando hai finito clicca su '➕ Metti Vaschetta nel Carrello'.", false);
-        }
-        aggiornaVaschettaGrafica();
-        aggiornaBoxGustiDisponibili();
+        vaschettaHelper.aggiungiORimuoviGusto(g);
     }
 
-    @FXML public void onClickFormato350() { selezionaFormato(0.35, 3); }
-    @FXML public void onClickFormato500() { selezionaFormato(0.50, 4); }
-    @FXML public void onClickFormato750() { selezionaFormato(0.75, 5); }
-    @FXML public void onClickFormato1000() { selezionaFormato(1.00, 6); }
-
-    private void selezionaFormato(double pesoKg, int maxGusti) {
-        carrello.impostaFormatoVaschetta(pesoKg, maxGusti);
-        ClienteMenuView.evidenziaPulsanteFormato(btnFormato350, pesoKg == 0.35);
-        ClienteMenuView.evidenziaPulsanteFormato(btnFormato500, pesoKg == 0.50);
-        ClienteMenuView.evidenziaPulsanteFormato(btnFormato750, pesoKg == 0.75);
-        ClienteMenuView.evidenziaPulsanteFormato(btnFormato1000, pesoKg == 1.00);
-        aggiornaVaschettaGrafica();
-        aggiornaBoxGustiDisponibili();
-    }
-
-    private void aggiornaVaschettaGrafica() {
-        boolean conPanna = checkPanna != null && checkPanna.isSelected();
-        boolean conGranella = checkGranella != null && checkGranella.isSelected();
-        List<GustoBean> scelti = carrello.getGustiNellaVaschetta();
-        int maxGusti = carrello.getMaxGustiVaschetta();
-        double pesoKg = carrello.getPesoVaschettaKg();
-
-        ClienteMenuView.renderVaschettaGrafica(
-                boxVaschettaGrafica,
-                scelti,
-                maxGusti,
-                pesoKg,
-                conPanna,
-                conGranella,
-                g -> {
-                    scelti.remove(g);
-                    aggiornaVaschettaGrafica();
-                    aggiornaBoxGustiDisponibili();
-                });
-
-        if (lblCapienzaVaschetta != null) {
-            int grammi = (int) (pesoKg * 1000);
-            if (scelti.isEmpty() && conPanna) {
-                lblCapienzaVaschetta.setText("Sola Panna (" + grammi + "g)");
-            } else {
-                lblCapienzaVaschetta.setText(scelti.size() + "/" + maxGusti + " gusti (" + grammi + "g)");
-            }
-        }
-
-        if (lblPrezzoVaschettaCorrente != null) {
-            double prezzo = carrello.calcolaPrezzoVaschettaInComposizione(conPanna, conGranella);
-            lblPrezzoVaschettaCorrente.setText(String.format(Locale.US, "EUR %.2f", prezzo));
-        }
-    }
+    @FXML public void onClickFormato350() { vaschettaHelper.selezionaFormato(0.35, 3); }
+    @FXML public void onClickFormato500() { vaschettaHelper.selezionaFormato(0.50, 4); }
+    @FXML public void onClickFormato750() { vaschettaHelper.selezionaFormato(0.75, 5); }
+    @FXML public void onClickFormato1000() { vaschettaHelper.selezionaFormato(1.00, 6); }
 
     @FXML
     public void onClickSvuotaVaschetta() {
-        carrello.svuotaVaschettaInComposizione();
-        aggiornaVaschettaGrafica();
-        aggiornaBoxGustiDisponibili();
-        mostraEsito("Vaschetta svuotata. Scegli i tuoi gusti preferiti dalle schede a sinistra.", false);
+        vaschettaHelper.svuotaVaschetta();
     }
 
     @FXML
     public void onClickAggiungiVaschettaAlCarrello() {
-        boolean conPanna = checkPanna != null && checkPanna.isSelected();
-        boolean conGranella = checkGranella != null && checkGranella.isSelected();
-        try {
-            carrello.aggiungiVaschettaInComposizioneAlCarrello(conPanna, conGranella);
-            if (checkPanna != null) checkPanna.setSelected(false);
-            if (checkGranella != null) checkGranella.setSelected(false);
-
-            aggiornaVaschettaGrafica();
-            aggiornaBoxGustiDisponibili();
-            aggiornaStatoCarrello();
-            mostraEsito("🍦 Vaschetta aggiunta al carrello! Clicca '🛒 Vedi Carrello' in alto a destra per vedere l'ordine o comporne un'altra.", false);
-        } catch (FrostlyException e) {
-            mostraEsito("⚠️ " + e.getMessage(), true);
-        }
+        vaschettaHelper.aggiungiVaschettaAlCarrello();
+        aggiornaStatoCarrello();
     }
 
     public void aggiungiProdottoMenuAlCarrello(GustoBean g) {
@@ -413,15 +342,14 @@ public class GelateriaControlGrafico {
             }
 
             OrdineBean bean = carrello.costruisciOrdineBean(SessionManager.getInstance().getEmailUtenteLoggato());
-            OrdineBean confermato = new ProduzioneOrdiniControl().effettuaPreOrdine(bean);
+            OrdineBean confermato = new OrdiniControl().effettuaPreOrdine(bean);
             mostraEsito("🛵 Ordine " + confermato.getCodiceOrdine() + " inviato alla Gelateria! Riceverai la notifica di conferma da Maestro o Dipendenti (" + carrello.getFasciaOraria() + ").", false);
 
             carrello.svuota();
             carrello.svuotaVaschettaInComposizione();
-            if (checkPanna != null) checkPanna.setSelected(false);
-            if (checkGranella != null) checkGranella.setSelected(false);
+            vaschettaHelper.resetSelettoriExtra();
+            vaschettaHelper.aggiornaVaschettaGrafica();
 
-            aggiornaVaschettaGrafica();
             aggiornaBoxGustiDisponibili();
             aggiornaStatoCarrello();
             aggiornaMieiOrdini();
@@ -436,7 +364,7 @@ public class GelateriaControlGrafico {
         if (listaMieiOrdini == null) return;
         String email = SessionManager.getInstance().getEmailUtenteLoggato();
         listaMieiOrdini.getItems().clear();
-        listaMieiOrdini.getItems().addAll(new ProduzioneOrdiniControl().visualizzaOrdiniCliente(email));
+        listaMieiOrdini.getItems().addAll(new OrdiniControl().visualizzaOrdiniCliente(email));
     }
 
     @FXML
@@ -470,7 +398,7 @@ public class GelateriaControlGrafico {
         String email = SessionManager.getInstance().getEmailUtenteLoggato();
         catalogoGustiGelato.clear();
         tuttiProdottiMenu.clear();
-        for (GustoBean g : new ProduzioneOrdiniControl().visualizzaMenuGusti()) {
+        for (GustoBean g : new GestioneMenuControl().visualizzaMenuGusti()) {
             tuttiProdottiMenu.add(g);
             if ("Gelati".equalsIgnoreCase(g.getCategoria())) {
                 catalogoGustiGelato.add(g);

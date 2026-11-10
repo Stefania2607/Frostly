@@ -2,7 +2,7 @@ package control.grafico;
 
 import bean.IngredienteBean;
 import bean.RichiestaGustoBean;
-import control.applicativo.ProduzioneOrdiniControl;
+import control.applicativo.MagazzinoControl;
 import control.applicativo.RichiestaGustoControl;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class RichiestaGustoControlGrafico {
     public void inizializza() {
         if (comboIngrediente != null) {
             List<String> nomiIng = new ArrayList<>();
-            for (IngredienteBean ib : new ProduzioneOrdiniControl().visualizzaMagazzino()) {
+            for (IngredienteBean ib : new MagazzinoControl().visualizzaMagazzino()) {
                 nomiIng.add(ib.getNome());
             }
             comboIngrediente.setItems(FXCollections.observableArrayList(nomiIng));

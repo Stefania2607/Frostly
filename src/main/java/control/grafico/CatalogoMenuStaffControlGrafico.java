@@ -1,7 +1,7 @@
 package control.grafico;
 
 import bean.GustoBean;
-import control.applicativo.ProduzioneOrdiniControl;
+import control.applicativo.GestioneMenuControl;
 import frostly.exception.FrostlyException;
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,6 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import view.StaffMenuEditorView;
-import view.StaffTurniView;
 import view.VetrinaMenuView;
 
 /**
@@ -139,7 +138,7 @@ public class CatalogoMenuStaffControlGrafico {
             listaMenuGestione.getItems().clear();
         }
         menuCorrente.clear();
-        List<GustoBean> menu = new ProduzioneOrdiniControl().visualizzaMenuGusti();
+        List<GustoBean> menu = new GestioneMenuControl().visualizzaMenuGusti();
         for (GustoBean g : menu) {
             menuCorrente.put(g.getNome(), g);
             if (listaMenuGestione != null) {
@@ -235,7 +234,7 @@ public class CatalogoMenuStaffControlGrafico {
             String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
                     ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
 
-            new ProduzioneOrdiniControl().salvaOAggiornaGustoMenu(
+            new GestioneMenuControl().salvaOAggiornaGustoMenu(
                     campoNomeGustoMenu.getText(),
                     campoDescGustoMenu.getText(),
                     campoAllergeniGustoMenu.getText(),
@@ -253,7 +252,7 @@ public class CatalogoMenuStaffControlGrafico {
 
     public void cambiaDisponibilitaGusto() {
         try {
-            new ProduzioneOrdiniControl().cambiaDisponibilitaGustoMenu(campoNomeGustoMenu.getText());
+            new GestioneMenuControl().cambiaDisponibilitaGustoMenu(campoNomeGustoMenu.getText());
             notificaEsito.accept("✅ Disponibilita' in vetrina aggiornata per: " + campoNomeGustoMenu.getText(), false);
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {
@@ -264,7 +263,7 @@ public class CatalogoMenuStaffControlGrafico {
     public void eliminaGusto() {
         try {
             String nome = campoNomeGustoMenu.getText();
-            new ProduzioneOrdiniControl().eliminaGustoMenu(nome);
+            new GestioneMenuControl().eliminaGustoMenu(nome);
             notificaEsito.accept("🗑️ Gusto '" + nome + "' rimosso dal menu.", false);
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {
@@ -273,7 +272,7 @@ public class CatalogoMenuStaffControlGrafico {
     }
 
     private void aggiornaStatoFoto(String nomeFile) {
-        StaffTurniView.aggiornaStatoFotoLabel(lblStatoFotoMenu, btnRimuoviFoto, nomeFile);
+        VetrinaMenuView.aggiornaStatoFotoLabel(lblStatoFotoMenu, btnRimuoviFoto, nomeFile);
     }
 
     private void alCambioFiltroVetrina(String cat, String sotto) {
@@ -370,7 +369,7 @@ public class CatalogoMenuStaffControlGrafico {
             String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
                     ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
 
-            new ProduzioneOrdiniControl().salvaOAggiornaGustoMenu(
+            new GestioneMenuControl().salvaOAggiornaGustoMenu(
                     campoNomeGustoMenu.getText(),
                     campoDescGustoMenu.getText(),
                     campoAllergeniGustoMenu.getText(),

@@ -1,5 +1,19 @@
 package dao;
 
+import dao.dbms.EmergenzaDAODbms;
+import dao.dbms.GustoDAODbms;
+import dao.dbms.IngredienteDAODbms;
+import dao.dbms.NotificaDAODbms;
+import dao.dbms.OrdineDAODbms;
+import dao.dbms.RichiestaGustoDAODbms;
+import dao.dbms.UtenteDAODbms;
+import dao.memoria.EmergenzaDAOMemory;
+import dao.memoria.GustoDAOMemory;
+import dao.memoria.IngredienteDAOMemory;
+import dao.memoria.NotificaDAOMemory;
+import dao.memoria.OrdineDAOMemory;
+import dao.memoria.RichiestaGustoDAOMemory;
+import dao.memoria.UtenteDAOMemory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -7,9 +21,9 @@ import util.ModalitaEsecuzione;
 import util.SessionManager;
 
 /**
- * Pattern GoF Factory Method per l'istanziazione dei DAO.
- * - In modalita' DEMO restituisce i DAO In-Memory (TurnoDAOMemory / InMemoryFrostlyDAO).
- * - In modalita' FULL restituisce i DAO persistenti (TurnoDAODbms o TurnoDAOFileSystem, e DbmsFrostlyDAO).
+ * Pattern GoF Factory Method per l'istanziazione dei DAO dedicati per entita'.
+ * - In modalita' DEMO restituisce i DAO In-Memory (*DAOMemory).
+ * - In modalita' FULL restituisce i DAO persistenti su DBMS (*DAODbms) o FileSystem (TurnoDAOFileSystem).
  */
 public final class DAOFactory {
 
@@ -36,8 +50,16 @@ public final class DAOFactory {
         usaFileSystemPerTurni = usaFile;
     }
 
+    private static boolean isModalitaDemo() {
+        return SessionManager.getInstance().getModalita() == ModalitaEsecuzione.DEMO;
+    }
+
+    public static UtenteDAO getUtenteDAO() {
+        return isModalitaDemo() ? new UtenteDAOMemory() : new UtenteDAODbms();
+    }
+
     public static TurnoDAO getTurnoDAO() {
-        if (SessionManager.getInstance().getModalita() == ModalitaEsecuzione.DEMO) {
+        if (isModalitaDemo()) {
             return new TurnoDAOMemory();
         }
         if (usaFileSystemPerTurni) {
@@ -46,10 +68,27 @@ public final class DAOFactory {
         return new TurnoDAODbms();
     }
 
-    public static FrostlyDAO getFrostlyDAO() {
-        if (SessionManager.getInstance().getModalita() == ModalitaEsecuzione.DEMO) {
-            return InMemoryFrostlyDAO.getInstance();
-        }
-        return DbmsFrostlyDAO.getInstance();
+    public static EmergenzaDAO getEmergenzaDAO() {
+        return isModalitaDemo() ? new EmergenzaDAOMemory() : new EmergenzaDAODbms();
+    }
+
+    public static IngredienteDAO getIngredienteDAO() {
+        return isModalitaDemo() ? new IngredienteDAOMemory() : new IngredienteDAODbms();
+    }
+
+    public static GustoDAO getGustoDAO() {
+        return isModalitaDemo() ? new GustoDAOMemory() : new GustoDAODbms();
+    }
+
+    public static RichiestaGustoDAO getRichiestaGustoDAO() {
+        return isModalitaDemo() ? new RichiestaGustoDAOMemory() : new RichiestaGustoDAODbms();
+    }
+
+    public static OrdineDAO getOrdineDAO() {
+        return isModalitaDemo() ? new OrdineDAOMemory() : new OrdineDAODbms();
+    }
+
+    public static NotificaDAO getNotificaDAO() {
+        return isModalitaDemo() ? new NotificaDAOMemory() : new NotificaDAODbms();
     }
 }

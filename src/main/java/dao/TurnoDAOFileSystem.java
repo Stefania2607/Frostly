@@ -24,8 +24,8 @@ public class TurnoDAOFileSystem implements TurnoDAO {
 
     @Override
     public void salvaTurno(Turno turno) throws FrostlyException {
-        InMemoryFrostlyDAO.getInstance().salvaTurno(turno);
-        List<Turno> tuttiTurni = InMemoryFrostlyDAO.getInstance().caricaTuttiTurni();
+        ArchivioMemoria.getInstance().salvaTurno(turno);
+        List<Turno> tuttiTurni = ArchivioMemoria.getInstance().getTurni();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(TURNI_CSV_FILE))) {
             for (Turno t : tuttiTurni) {
                 String riga = String.join(SEP,
@@ -47,7 +47,7 @@ public class TurnoDAOFileSystem implements TurnoDAO {
     public List<Turno> caricaTuttiTurni() throws FrostlyException {
         File file = new File(TURNI_CSV_FILE);
         if (!file.exists()) {
-            return InMemoryFrostlyDAO.getInstance().caricaTuttiTurni();
+            return ArchivioMemoria.getInstance().getTurni();
         }
         List<Turno> daFile = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -55,7 +55,7 @@ public class TurnoDAOFileSystem implements TurnoDAO {
             while ((line = reader.readLine()) != null) {
                 String[] campi = line.split(SEP);
                 if (campi.length >= 6) {
-                    Dipendente dip = InMemoryFrostlyDAO.getInstance().trovaDipendentePerEmail(campi[4]);
+                    Dipendente dip = ArchivioMemoria.getInstance().trovaDipendentePerEmail(campi[4]);
                     if (dip != null) {
                         Turno t = new Turno(campi[0], campi[1], campi[2], campi[3], dip);
                         t.setStato(StatoTurno.valueOf(campi[5]));
@@ -66,6 +66,6 @@ public class TurnoDAOFileSystem implements TurnoDAO {
         } catch (IOException e) {
             throw new FrostlyException("Errore lettura file CSV dei turni.", e);
         }
-        return daFile.isEmpty() ? InMemoryFrostlyDAO.getInstance().caricaTuttiTurni() : daFile;
+        return daFile.isEmpty() ? ArchivioMemoria.getInstance().getTurni() : daFile;
     }
 }

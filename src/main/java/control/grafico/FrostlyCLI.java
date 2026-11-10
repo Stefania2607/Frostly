@@ -8,9 +8,11 @@ import bean.NotificaBean;
 import bean.OrdineBean;
 import bean.RichiestaGustoBean;
 import bean.TurnoBean;
+import control.applicativo.GestioneMenuControl;
 import control.applicativo.GestioneTurniEmergenzeControl;
 import control.applicativo.LoginControl;
-import control.applicativo.ProduzioneOrdiniControl;
+import control.applicativo.MagazzinoControl;
+import control.applicativo.OrdiniControl;
 import control.applicativo.RichiestaGustoControl;
 import dao.DAOFactory;
 import frostly.exception.FrostlyException;
@@ -132,7 +134,7 @@ public class FrostlyCLI {
                 } else if ("3".equals(s)) {
                     gestisciRichiesteGustoCLI();
                 } else if ("4".equals(s)) {
-                    for (IngredienteBean i : new ProduzioneOrdiniControl().visualizzaMagazzino()) {
+                    for (IngredienteBean i : new MagazzinoControl().visualizzaMagazzino()) {
                         System.out.println(" - " + i.getNome() + ": " + i.getQuantitaDisponibile() + " " + i.getUnitaMisura());
                     }
                 } else if ("5".equals(s)) {
@@ -238,8 +240,8 @@ public class FrostlyCLI {
             String s = scanner.nextLine().trim();
             try {
                 if ("1".equals(s)) {
-                    ProduzioneOrdiniControl pCtrl = new ProduzioneOrdiniControl();
-                    for (GustoBean g : pCtrl.visualizzaMenuGusti()) {
+                    GestioneMenuControl mCtrl = new GestioneMenuControl();
+                    for (GustoBean g : mCtrl.visualizzaMenuGusti()) {
                         if (!"Gelati".equalsIgnoreCase(g.getCategoria())) {
                             continue;
                         }
@@ -254,7 +256,7 @@ public class FrostlyCLI {
                     System.out.print("Giorno ritiro: ");
                     ob.setDataRitiro(scanner.nextLine().trim());
                     ob.setConPanna(true);
-                    OrdineBean res = pCtrl.effettuaPreOrdine(ob);
+                    OrdineBean res = new OrdiniControl().effettuaPreOrdine(ob);
                     System.out.println("-> Confermato: " + res.getDescrizioneCompleta() + " | EUR " + res.getPrezzoTotale());
                 } else if ("2".equals(s)) {
                     RichiestaGustoBean rb = new RichiestaGustoBean();

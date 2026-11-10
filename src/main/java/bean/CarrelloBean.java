@@ -165,7 +165,7 @@ public class CarrelloBean {
 
     /**
      * Costruisce l'OrdineBean completo a partire dal contenuto del carrello,
-     * pronto per essere inviato al Controller Applicativo (ProduzioneOrdiniControl).
+     * pronto per essere inviato al Controller Applicativo (OrdiniControl).
      */
     public OrdineBean costruisciOrdineBean(String emailCliente) throws DatiNonValidiException {
         if (articoli.isEmpty()) {

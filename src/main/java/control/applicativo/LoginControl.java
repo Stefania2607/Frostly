@@ -3,7 +3,8 @@ package control.applicativo;
 import bean.LoginBean;
 import bean.NotificaBean;
 import dao.DAOFactory;
-import dao.FrostlyDAO;
+import dao.NotificaDAO;
+import dao.UtenteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
@@ -24,12 +25,23 @@ public class LoginControl {
     public static final String RUOLO_DIPENDENTE = "DIPENDENTE";
     public static final String RUOLO_CLIENTE = "CLIENTE";
 
+    private final UtenteDAO utenteDAO;
+    private final NotificaDAO notificaDAO;
+
+    public LoginControl() {
+        this(DAOFactory.getUtenteDAO(), DAOFactory.getNotificaDAO());
+    }
+
+    public LoginControl(UtenteDAO utenteDAO, NotificaDAO notificaDAO) {
+        this.utenteDAO = utenteDAO;
+        this.notificaDAO = notificaDAO;
+    }
+
     public LoginBean autenticaUtente(LoginBean credenzialiBean) throws DatiNonValidiException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
         String email = credenzialiBean.getEmail();
         String password = credenzialiBean.getPassword();
 
-        MaestroGelataio maestro = dao.getMaestroGelataio();
+        MaestroGelataio maestro = utenteDAO.getMaestroGelataio();
         if (maestro.autenticati(email, password)) {
             credenzialiBean.setRuoloAutenticato(RUOLO_MAESTRO);
             credenzialiBean.setNomeCompleto(maestro.getNome() + " " + maestro.getCognome());
@@ -37,7 +49,7 @@ public class LoginControl {
             return credenzialiBean;
         }
 
-        for (Dipendente dip : dao.caricaTuttiDipendenti()) {
+        for (Dipendente dip : utenteDAO.caricaTuttiDipendenti()) {
             if (dip.autenticati(email, password)) {
                 credenzialiBean.setRuoloAutenticato(RUOLO_DIPENDENTE);
                 credenzialiBean.setNomeCompleto(dip.getNome() + " " + dip.getCognome());
@@ -46,7 +58,7 @@ public class LoginControl {
             }
         }
 
-        for (Cliente cli : dao.caricaTuttiClienti()) {
+        for (Cliente cli : utenteDAO.caricaTuttiClienti()) {
             if (cli.autenticati(email, password)) {
                 credenzialiBean.setRuoloAutenticato(RUOLO_CLIENTE);
                 credenzialiBean.setNomeCompleto(cli.getNome() + " " + cli.getCognome());
@@ -63,8 +75,7 @@ public class LoginControl {
      * I profili dipendente possono essere creati solo dal Maestro con {@link #creaProfiloDipendente}.
      */
     public LoginBean registraUtente(LoginBean registrazioneBean) throws FrostlyException {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        dao.registraNuovoUtente(
+        utenteDAO.registraNuovoUtente(
                 registrazioneBean.getNome(),
                 registrazioneBean.getCognome(),
                 registrazioneBean.getEmail(),
@@ -80,8 +91,7 @@ public class LoginControl {
         if (!RUOLO_MAESTRO.equals(SessionManager.getInstance().getRuoloUtenteLoggato())) {
             throw new DatiNonValidiException("Operazione non consentita: solo il Maestro puo' creare profili dipendente.");
         }
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        dao.registraNuovoUtente(
+        utenteDAO.registraNuovoUtente(
                 dipendenteBean.getNome(),
                 dipendenteBean.getCognome(),
                 dipendenteBean.getEmail(),
@@ -100,25 +110,23 @@ public class LoginControl {
         if (emailDipendente == null || emailDipendente.trim().isEmpty()) {
             throw new DatiNonValidiException("Seleziona il dipendente da eliminare.");
         }
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        if (dao.trovaDipendentePerEmail(emailDipendente.trim()) == null) {
+        if (utenteDAO.trovaDipendentePerEmail(emailDipendente.trim()) == null) {
             throw new DatiNonValidiException("Nessun dipendente trovato con l'email: " + emailDipendente.trim());
         }
-        dao.eliminaDipendente(emailDipendente.trim());
+        utenteDAO.eliminaDipendente(emailDipendente.trim());
     }
 
     /** Elenco dei dipendenti registrati, in formato "Nome Cognome | email". */
     public List<String> elencoDipendenti() {
         List<String> risultato = new ArrayList<>();
-        for (Dipendente d : DAOFactory.getFrostlyDAO().caricaTuttiDipendenti()) {
+        for (Dipendente d : utenteDAO.caricaTuttiDipendenti()) {
             risultato.add(d.getNome() + " " + d.getCognome() + " | " + d.getEmail());
         }
         return risultato;
     }
 
     public List<NotificaBean> recuperaNotificheUtente(String emailUtente) {
-        FrostlyDAO dao = DAOFactory.getFrostlyDAO();
-        List<Notifica> notificheEntity = dao.caricaNotifichePerUtente(emailUtente);
+        List<Notifica> notificheEntity = notificaDAO.caricaNotifichePerUtente(emailUtente);
         List<NotificaBean> risultato = new ArrayList<>();
         for (Notifica n : notificheEntity) {
             risultato.add(new NotificaBean(n.getTitolo(), n.getMessaggio(), n.getTimestamp()));
