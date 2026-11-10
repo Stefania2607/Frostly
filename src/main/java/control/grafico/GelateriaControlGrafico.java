@@ -66,7 +66,14 @@ public class GelateriaControlGrafico {
     @FXML private ListView<OrdineBean> listaMieiOrdini;
     @FXML private ListView<String> listaNotificheCliente;
 
-    // Campi Tab "Gusto su Misura" (delegati a RichiestaGustoControlGrafico)
+    // Sezione Recensioni Clienti
+    @FXML private ComboBox<String> comboVotoRecensione;
+    @FXML private TextField campoTitoloRecensione;
+    @FXML private javafx.scene.control.TextArea campoCommentoRecensione;
+    @FXML private VBox boxCardsRecensioniCliente;
+    @FXML private Label lblMediaRecensioniCliente;
+
+    // Campi Tab "Gusto su Misura" (compatibilita')
     @FXML private TextField campoNomeGustoCustom;
     @FXML private TextField campoDescrizioneCustom;
     @FXML private ComboBox<String> comboIngredienteCustom;
@@ -92,6 +99,7 @@ public class GelateriaControlGrafico {
 
     private RichiestaGustoControlGrafico gustoCustomHelper;
     private VaschettaControlGrafico vaschettaHelper;
+    private RecensioniControlGrafico recensioniHelper;
 
     @FXML
     public void initialize() {
@@ -101,6 +109,12 @@ public class GelateriaControlGrafico {
         }
 
         ClienteMenuView.configuraCelleMieiOrdini(listaMieiOrdini);
+
+        recensioniHelper = new RecensioniControlGrafico(this::mostraEsito, null);
+        recensioniHelper.legaCampiCliente(
+                comboVotoRecensione, campoTitoloRecensione, campoCommentoRecensione,
+                boxCardsRecensioniCliente, lblMediaRecensioniCliente);
+        recensioniHelper.aggiornaRecensioniCliente();
 
         gustoCustomHelper = new RichiestaGustoControlGrafico();
         gustoCustomHelper.legaCampiInput(
@@ -374,6 +388,19 @@ public class GelateriaControlGrafico {
     }
 
     @FXML
+    public void onClickPubblicaRecensione() {
+        String email = SessionManager.getInstance().getEmailUtenteLoggato();
+        String nome = SessionManager.getInstance().getNomeUtenteLoggato();
+        recensioniHelper.inviaNuovaRecensione(email, nome);
+    }
+
+    @FXML
+    public void onClickAggiornaRecensioni() {
+        recensioniHelper.aggiornaRecensioniCliente();
+        mostraEsito("Recensioni aggiornate.", false);
+    }
+
+    @FXML
     public void onClickRichiediGusto() {
         try {
             String email = SessionManager.getInstance().getEmailUtenteLoggato();
@@ -407,6 +434,9 @@ public class GelateriaControlGrafico {
         impostaCategoriaCatalogo(categoriaCatalogoSelezionata);
         if (gustoCustomHelper != null) {
             gustoCustomHelper.aggiornaListaRichieste(email);
+        }
+        if (recensioniHelper != null) {
+            recensioniHelper.aggiornaRecensioniCliente();
         }
         if (listaNotificheCliente != null) {
             listaNotificheCliente.getItems().clear();

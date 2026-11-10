@@ -35,6 +35,9 @@ public class Turno {
      * aggiornando i puntatori diretti in memoria.
      */
     public void riassegnaA(Dipendente nuovoDipendente) {
+        if (nuovoDipendente == null) {
+            return;
+        }
         if (this.dipendenteAssegnato != null) {
             this.dipendenteAssegnato.rimuoviTurno(this);
         }
@@ -44,7 +47,9 @@ public class Turno {
     }
 
     public boolean isInConflitto(String inizioAltro, String fineAltro) {
-        return this.oraInizio.compareTo(fineAltro) < 0 && inizioAltro.compareTo(this.oraFine) < 0;
+        String fine1 = ("00:00".equals(this.oraFine) || "24:00".equals(this.oraFine)) ? "24:00" : this.oraFine;
+        String fine2 = ("00:00".equals(fineAltro) || "24:00".equals(fineAltro)) ? "24:00" : fineAltro;
+        return this.oraInizio.compareTo(fine2) < 0 && inizioAltro.compareTo(fine1) < 0;
     }
 
     public String getCodiceTurno() {

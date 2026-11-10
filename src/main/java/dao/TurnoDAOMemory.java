@@ -19,4 +19,9 @@ public class TurnoDAOMemory implements TurnoDAO {
     public List<Turno> caricaTuttiTurni() throws FrostlyException {
         return ArchivioMemoria.getInstance().getTurni();
     }
+
+    @Override
+    public void eliminaTurno(String codiceTurno) throws FrostlyException {
+        ArchivioMemoria.getInstance().eliminaTurno(codiceTurno);
+    }
 }

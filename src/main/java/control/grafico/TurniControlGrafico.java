@@ -36,6 +36,9 @@ public class TurniControlGrafico {
     @FXML private ListView<String> listaNotifiche;
 
     // Turni ed Emergenze
+    @FXML private VBox boxCalendarioTurni;
+    @FXML private javafx.scene.control.DatePicker datePickerSettimana;
+    @FXML private Label lblSettimanaAttiva;
     @FXML private Label lblConteggioTurni;
     @FXML private Label lblRiepilogoTurniDipendente;
     @FXML private Label lblTurnoSelezionatoEmergenza;
@@ -86,6 +89,10 @@ public class TurniControlGrafico {
     @FXML private TextField campoNomeIngredienteRifornimento;
     @FXML private TextField campoKgRifornimento;
     @FXML private TextField campoIngredienteUrgente;
+    @FXML private TextField campoNuovoNomeIngrediente;
+    @FXML private TextField campoNuovaQtaIngrediente;
+    @FXML private TextField campoNuovaSogliaIngrediente;
+    @FXML private ComboBox<String> comboNuovaUnitaIngrediente;
     @FXML private ListView<String> listaRichiesteGusto;
     @FXML private TextField campoCodRichiesta;
     @FXML private TextField campoRispostaGusto;
@@ -95,6 +102,10 @@ public class TurniControlGrafico {
     @FXML private Label lblConteggioOrdiniStaff;
     @FXML private ListView<String> listaOrdiniUrgentiTendina;
 
+    // Campi Sezione Recensioni Staff (Maestro)
+    @FXML private VBox boxCardsRecensioniMaestro;
+    @FXML private Label lblRiepilogoRecensioniMaestro;
+
     // Controller dedicati (SRP)
     private CatalogoMenuStaffControlGrafico catalogoMenuHelper;
     private MagazzinoGustiStaffControlGrafico magazzinoGustiHelper;
@@ -102,6 +113,7 @@ public class TurniControlGrafico {
     private TurniStaffControlGrafico turniStaffHelper;
     private EmergenzeControlGrafico emergenzeHelper;
     private GestioneDipendentiControlGrafico dipendentiHelper;
+    private RecensioniControlGrafico recensioniHelper;
 
     @FXML
     public void initialize() {
@@ -128,6 +140,9 @@ public class TurniControlGrafico {
         magazzinoGustiHelper.legaCampiMagazzino(
                 listaMagazzino, lblRiepilogoMagazzino, listaUrgenzeMagazzino,
                 campoNomeIngredienteRifornimento, campoKgRifornimento, campoIngredienteUrgente);
+        magazzinoGustiHelper.legaCampiNuovoIngrediente(
+                campoNuovoNomeIngrediente, campoNuovaQtaIngrediente, campoNuovaSogliaIngrediente,
+                comboNuovaUnitaIngrediente);
         magazzinoGustiHelper.legaCampiRichiesteGusto(listaRichiesteGusto, campoCodRichiesta, campoRispostaGusto);
         magazzinoGustiHelper.inizializza(() -> selezionaTab(3));
 
@@ -141,6 +156,7 @@ public class TurniControlGrafico {
                 listaTurniDipendente, listaTuttiTurni, comboDipendenteTurno, comboGiornoTurno,
                 campoEmailDip, campoGiorno, campoOraInizio, campoOraFine, campoCodiceTurno,
                 this::mostraEsito, this::aggiornaListe);
+        turniStaffHelper.legaControlliCalendario(boxCalendarioTurni, datePickerSettimana, lblSettimanaAttiva);
         turniStaffHelper.inizializza();
 
         emergenzeHelper = new EmergenzeControlGrafico(
@@ -155,6 +171,10 @@ public class TurniControlGrafico {
                 campoEmailNuovoDip, campoPasswordNuovoDip, comboDipendenteTurno, comboSostituto,
                 this::mostraEsito, this::aggiornaListe);
         dipendentiHelper.inizializza();
+
+        recensioniHelper = new RecensioniControlGrafico(this::mostraEsito, this::aggiornaListe);
+        recensioniHelper.legaCampiMaestro(boxCardsRecensioniMaestro, lblRiepilogoRecensioniMaestro);
+        recensioniHelper.aggiornaRecensioniMaestro();
 
         aggiornaListe();
 
@@ -198,10 +218,22 @@ public class TurniControlGrafico {
     // ================= DELEGA A MAGAZZINO & GUSTI SU MISURA =================
 
     @FXML public void onClickRegistraRifornimentoManuale() { magazzinoGustiHelper.registraRifornimentoManuale(); }
+    @FXML public void onClickRegistraScaricoManuale() { magazzinoGustiHelper.registraScaricoManuale(); }
+    @FXML public void onClickAggiungiNuovoIngrediente() { magazzinoGustiHelper.aggiungiNuovoIngrediente(); }
+    @FXML public void onClickEliminaIngredienteMagazzino() { magazzinoGustiHelper.eliminaIngredienteSelezionato(); }
     @FXML public void onClickRifornisciUrgente() { magazzinoGustiHelper.rifornisciUrgente(); }
     @FXML public void onClickApprovaGusto() { magazzinoGustiHelper.approvaGusto(); }
     @FXML public void onClickRifornisciGusto() { magazzinoGustiHelper.rifornisciEAprovaGusto(); }
     @FXML public void onClickRifiutaGusto() { magazzinoGustiHelper.rifiutaGusto(); }
+
+    // ================= DELEGA A RECENSIONI STAFF (MAESTRO) =================
+
+    @FXML public void onClickAggiornaRecensioniStaff() {
+        if (recensioniHelper != null) {
+            recensioniHelper.aggiornaRecensioniMaestro();
+        }
+        mostraEsito("Recensioni aggiornate.", false);
+    }
 
     // ================= DELEGA A ORDINI CLIENTI STAFF =================
 
@@ -221,6 +253,11 @@ public class TurniControlGrafico {
     @FXML public void onClickEliminaDipendente() { dipendentiHelper.eliminaDipendente(); }
 
     // ================= DELEGA A TURNI ED EMERGENZE =================
+
+    @FXML public void onClickSettimanaPrecedente() { turniStaffHelper.vaiASettimanaPrecedente(); }
+    @FXML public void onClickSettimanaSuccessiva() { turniStaffHelper.vaiASettimanaSuccessiva(); }
+    @FXML public void onClickSettimanaCorrente() { turniStaffHelper.vaiASettimanaCorrente(); }
+    @FXML public void onCambioDataPicker() { turniStaffHelper.onCambioDataPicker(); }
 
     @FXML public void onClickPubblicaTurno() { turniStaffHelper.pubblicaNuovoTurno(); }
     @FXML public void onClickPresetMattina() { turniStaffHelper.presetMattina(); }
@@ -264,6 +301,9 @@ public class TurniControlGrafico {
 
         if (dipendentiHelper != null) {
             dipendentiHelper.aggiornaDipendenti();
+        }
+        if (recensioniHelper != null) {
+            recensioniHelper.aggiornaRecensioniMaestro();
         }
 
         List<NotificaBean> listaN = new LoginControl().recuperaNotificheUtente(emailUtente);

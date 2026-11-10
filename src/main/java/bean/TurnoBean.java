@@ -63,6 +63,13 @@ public class TurnoBean {
         if (oraInizio == null || !oraInizio.matches("\\d{2}:\\d{2}")) {
             throw new DatiNonValidiException("Ora inizio non valida: usare il formato HH:mm (es. 08:00).");
         }
+        if (this.oraFine != null) {
+            String fineNorm = ("00:00".equals(this.oraFine) || "24:00".equals(this.oraFine)) ? "24:00" : this.oraFine;
+            String inizioNorm = ("00:00".equals(oraInizio) || "24:00".equals(oraInizio)) ? "24:00" : oraInizio;
+            if (inizioNorm.compareTo(fineNorm) >= 0) {
+                throw new DatiNonValidiException("L'ora di fine deve essere successiva all'ora di inizio.");
+            }
+        }
         this.oraInizio = oraInizio;
     }
 
@@ -70,7 +77,10 @@ public class TurnoBean {
         if (oraFine == null || !oraFine.matches("\\d{2}:\\d{2}")) {
             throw new DatiNonValidiException("Ora fine non valida: usare il formato HH:mm (es. 14:00).");
         }
-        if (this.oraInizio != null && this.oraInizio.compareTo(oraFine) >= 0) {
+        String fineNorm = ("00:00".equals(oraFine) || "24:00".equals(oraFine)) ? "24:00" : oraFine;
+        String inizioNorm = (this.oraInizio != null && ("00:00".equals(this.oraInizio) || "24:00".equals(this.oraInizio)))
+                ? "24:00" : this.oraInizio;
+        if (this.oraInizio != null && inizioNorm.compareTo(fineNorm) >= 0) {
             throw new DatiNonValidiException("L'ora di fine deve essere successiva all'ora di inizio.");
         }
         this.oraFine = oraFine;

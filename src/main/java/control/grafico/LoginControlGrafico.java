@@ -132,6 +132,20 @@ public class LoginControlGrafico extends Application {
     }
 
     @FXML
+    public void onClickApriRecensioniPubbliche() {
+        if (comboModalita != null && comboModalita.getValue() != null) {
+            SessionManager.getInstance().setModalita(comboModalita.getValue());
+        }
+        javafx.stage.Window owner = (campoEmail != null && campoEmail.getScene() != null)
+                ? campoEmail.getScene().getWindow() : finestraPrincipale;
+        view.RecensioniView.apriPopupRecensioniPubbliche(owner, () -> {
+            if (campoEmail != null) {
+                campoEmail.requestFocus();
+            }
+        });
+    }
+
+    @FXML
     public void onClickVaiARegistrazione() {
         if (comboModalita != null && comboModalita.getValue() != null) {
             SessionManager.getInstance().setModalita(comboModalita.getValue());

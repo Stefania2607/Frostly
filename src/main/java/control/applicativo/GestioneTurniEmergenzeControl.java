@@ -56,7 +56,9 @@ public class GestioneTurniEmergenzeControl {
         List<Turno> turni = turnoDao.caricaTuttiTurni();
         List<TurnoBean> risultato = new ArrayList<>();
         for (Turno t : turni) {
-            if (t.getDipendenteAssegnato().getEmail().equalsIgnoreCase(emailDipendente)) {
+            if (t.getDipendenteAssegnato() != null
+                    && emailDipendente != null
+                    && emailDipendente.equalsIgnoreCase(t.getDipendenteAssegnato().getEmail())) {
                 risultato.add(convertiTurnoInBean(t));
             }
         }
@@ -70,13 +72,15 @@ public class GestioneTurniEmergenzeControl {
             throw new DatiNonValidiException("Dipendente non trovato con email: " + beanInput.getEmailDipendente());
         }
 
-        if (!dipendente.isDisponibile(beanInput.getData(), beanInput.getOraInizio(), beanInput.getOraFine())) {
+        if (!dipendente.isDisponibile(beanInput.getData(), beanInput.getOraInizio(), beanInput.getOraFine())
+                || haConflittoInLista(turniEsistenti, dipendente.getEmail(), beanInput.getData(),
+                beanInput.getOraInizio(), beanInput.getOraFine())) {
             throw new TurnoNonDisponibileException("Il dipendente " + dipendente
                     + " ha gia' un turno in conflitto per " + beanInput.getData()
                     + " nella fascia " + beanInput.getOraInizio() + "-" + beanInput.getOraFine());
         }
 
-        String nuovoCodice = String.format("TRN-%02d", turniEsistenti.size() + 1);
+        String nuovoCodice = generaNuovoCodiceTurno(turniEsistenti);
         Turno nuovoTurno = new Turno(nuovoCodice, beanInput.getData(), beanInput.getOraInizio(),
                 beanInput.getOraFine(), dipendente);
         nuovoTurno.pubblica();
@@ -91,6 +95,13 @@ public class GestioneTurniEmergenzeControl {
                 oraCorrente()));
 
         return convertiTurnoInBean(nuovoTurno);
+    }
+
+    public void eliminaTurno(String codiceTurno) throws FrostlyException {
+        if (codiceTurno == null || codiceTurno.trim().isEmpty()) {
+            throw new DatiNonValidiException("Codice turno non valido.");
+        }
+        turnoDao.eliminaTurno(codiceTurno.trim());
     }
 
     public EmergenzaBean segnalaEmergenzaTurno(EmergenzaBean beanInput) throws FrostlyException {
@@ -110,7 +121,7 @@ public class GestioneTurniEmergenzeControl {
         }
 
         turnoCoinvolto.dichiaraEmergenza();
-        String codiceEmergenza = String.format("EMG-%02d", emergenze.size() + 1);
+        String codiceEmergenza = generaNuovoCodiceEmergenza(emergenze);
         Emergenza nuovaEmergenza = new Emergenza(codiceEmergenza, turnoCoinvolto, richiedente, beanInput.getMotivazione());
 
         turnoDao.salvaTurno(turnoCoinvolto);
@@ -199,6 +210,73 @@ public class GestioneTurniEmergenzeControl {
         return emails;
     }
 
+    public List<String> getDipendentiFormattati() {
+        List<String> risultato = new ArrayList<>();
+        for (Dipendente d : utenteDao.caricaTuttiDipendenti()) {
+            risultato.add(d.getNome() + " " + d.getCognome() + " | " + d.getEmail());
+        }
+        return risultato;
+    }
+
+    public EmergenzaBean trovaEmergenzaAttivaPerTurno(String codiceTurno) {
+        if (codiceTurno == null) return null;
+        for (Emergenza e : emergenzaDao.caricaTutteEmergenze()) {
+            if (e.getTurno() != null
+                    && codiceTurno.equalsIgnoreCase(e.getTurno().getCodiceTurno())
+                    && "IN_ATTESA".equalsIgnoreCase(e.getStato().name())) {
+                return convertiEmergenzaInBean(e);
+            }
+        }
+        return null;
+    }
+
+    private boolean haConflittoInLista(List<Turno> lista, String emailDip, String data, String inizio, String fine) {
+        for (Turno t : lista) {
+            if (t.getDipendenteAssegnato() != null
+                    && t.getDipendenteAssegnato().getEmail().equalsIgnoreCase(emailDip)
+                    && t.getData() != null
+                    && t.getData().equalsIgnoreCase(data)
+                    && t.isInConflitto(inizio, fine)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String generaNuovoCodiceTurno(List<Turno> turniEsistenti) {
+        int max = 0;
+        for (Turno t : turniEsistenti) {
+            if (t.getCodiceTurno() != null && t.getCodiceTurno().startsWith("TRN-")) {
+                try {
+                    int num = Integer.parseInt(t.getCodiceTurno().substring(4).trim());
+                    if (num > max) {
+                        max = num;
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Ignora formati non numerici
+                }
+            }
+        }
+        return String.format("TRN-%02d", max + 1);
+    }
+
+    private String generaNuovoCodiceEmergenza(List<Emergenza> emergenzeEsistenti) {
+        int max = 0;
+        for (Emergenza e : emergenzeEsistenti) {
+            if (e.getCodiceEmergenza() != null && e.getCodiceEmergenza().startsWith("EMG-")) {
+                try {
+                    int num = Integer.parseInt(e.getCodiceEmergenza().substring(4).trim());
+                    if (num > max) {
+                        max = num;
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Ignora formati non numerici
+                }
+            }
+        }
+        return String.format("EMG-%02d", max + 1);
+    }
+
     private Emergenza trovaEmergenzaEntity(String codiceEmergenza) throws DatiNonValidiException {
         for (Emergenza e : emergenzaDao.caricaTutteEmergenze()) {
             if (e.getCodiceEmergenza().equalsIgnoreCase(codiceEmergenza)) {
@@ -215,9 +293,14 @@ public class GestioneTurniEmergenzeControl {
             b.setData(t.getData());
             b.setOraInizio(t.getOraInizio());
             b.setOraFine(t.getOraFine());
-            b.setEmailDipendente(t.getDipendenteAssegnato().getEmail());
-            b.setNomeDipendente(t.getDipendenteAssegnato().toString());
-            b.setStato(t.getStato().name());
+            if (t.getDipendenteAssegnato() != null) {
+                b.setEmailDipendente(t.getDipendenteAssegnato().getEmail());
+                b.setNomeDipendente(t.getDipendenteAssegnato().toString());
+            } else {
+                b.setEmailDipendente("non.assegnato@frostly.it");
+                b.setNomeDipendente("Personale (Non assegnato)");
+            }
+            b.setStato(t.getStato() != null ? t.getStato().name() : "PIANIFICATO");
         } catch (DatiNonValidiException ignored) {
         }
         return b;

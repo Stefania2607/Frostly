@@ -6,6 +6,7 @@ import control.applicativo.MagazzinoControl;
 import control.applicativo.RichiestaGustoControl;
 import frostly.exception.FrostlyException;
 import java.util.function.BiConsumer;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -15,7 +16,8 @@ import view.MagazzinoStaffView;
  * Controller Grafico dedicato alla gestione del Magazzino Materie Prime
  * e delle Richieste di Gusto su Misura da parte dello Staff (Maestro e Dipendenti):
  * - Visualizzazione scorte e segnalazioni sotto soglia
- * - Registrazione rifornimenti manuali e rifornimenti urgenti (+5 Kg/L)
+ * - Registrazione carichi manuali, scarichi manuali e rifornimenti urgenti (+5 Kg/L)
+ * - Aggiunta ed eliminazione di voci a magazzino
  * - Approvazione, approvazione con rifornimento urgente e rifiuto delle proposte "Gusto su Misura".
  */
 public class MagazzinoGustiStaffControlGrafico {
@@ -26,6 +28,10 @@ public class MagazzinoGustiStaffControlGrafico {
     private TextField campoNomeIngredienteRifornimento;
     private TextField campoKgRifornimento;
     private TextField campoIngredienteUrgente;
+    private TextField campoNuovoNomeIngrediente;
+    private TextField campoNuovaQtaIngrediente;
+    private TextField campoNuovaSogliaIngrediente;
+    private ComboBox<String> comboNuovaUnitaIngrediente;
     private ListView<String> listaRichiesteGusto;
     private TextField campoCodRichiesta;
     private TextField campoRispostaGusto;
@@ -50,6 +56,22 @@ public class MagazzinoGustiStaffControlGrafico {
         this.campoNomeIngredienteRifornimento = campoNomeIngredienteRifornimento;
         this.campoKgRifornimento = campoKgRifornimento;
         this.campoIngredienteUrgente = campoIngredienteUrgente;
+    }
+
+    public void legaCampiNuovoIngrediente(TextField campoNuovoNomeIngrediente,
+                                          TextField campoNuovaQtaIngrediente,
+                                          TextField campoNuovaSogliaIngrediente,
+                                          ComboBox<String> comboNuovaUnitaIngrediente) {
+        this.campoNuovoNomeIngrediente = campoNuovoNomeIngrediente;
+        this.campoNuovaQtaIngrediente = campoNuovaQtaIngrediente;
+        this.campoNuovaSogliaIngrediente = campoNuovaSogliaIngrediente;
+        this.comboNuovaUnitaIngrediente = comboNuovaUnitaIngrediente;
+        if (this.comboNuovaUnitaIngrediente != null) {
+            this.comboNuovaUnitaIngrediente.getItems().setAll(
+                    "Kg", "Litri", "Bustine", "Bottiglie", "Porzioni", "Pezzi"
+            );
+            this.comboNuovaUnitaIngrediente.setValue("Kg");
+        }
     }
 
     public void legaCampiRichiesteGusto(ListView<String> listaRichiesteGusto,
@@ -177,10 +199,111 @@ public class MagazzinoGustiStaffControlGrafico {
                 return;
             }
             new MagazzinoControl().rifornisciIngredienteMagazzino(nome.trim(), qta);
-            notificaEsito.accept("✅ Rifornimento registrato: aggiunti " + qta + " Kg/L di '" + nome.trim() + "' al magazzino!", false);
+            notificaEsito.accept("✅ Carico registrato: aggiunti " + qta + " a '" + nome.trim() + "' in magazzino!", false);
             if (campoKgRifornimento != null) {
                 campoKgRifornimento.clear();
             }
+            onAggiornaGlobale.run();
+        } catch (FrostlyException e) {
+            notificaEsito.accept("⚠️ " + e.getMessage(), true);
+        }
+    }
+
+    public void registraScaricoManuale() {
+        try {
+            String nome = campoNomeIngredienteRifornimento != null ? campoNomeIngredienteRifornimento.getText() : null;
+            if (nome == null || nome.trim().isEmpty()) {
+                notificaEsito.accept("⚠️ Seleziona prima una voce dalla lista del magazzino.", true);
+                return;
+            }
+            String qtaTesto = campoKgRifornimento != null ? campoKgRifornimento.getText() : null;
+            if (qtaTesto == null || qtaTesto.trim().isEmpty()) {
+                notificaEsito.accept("⚠️ Inserisci la quantita' da scaricare.", true);
+                return;
+            }
+            double qta;
+            try {
+                qta = Double.parseDouble(qtaTesto.trim().replace(",", "."));
+            } catch (NumberFormatException e) {
+                notificaEsito.accept("⚠️ Inserisci un valore numerico valido (es. 10.0).", true);
+                return;
+            }
+            if (qta <= 0) {
+                notificaEsito.accept("⚠️ La quantita' deve essere maggiore di zero.", true);
+                return;
+            }
+            new MagazzinoControl().scaricaIngredienteMagazzino(nome.trim(), qta);
+            notificaEsito.accept("📤 Scarico registrato: scaricati " + qta + " di '" + nome.trim() + "' dal magazzino!", false);
+            if (campoKgRifornimento != null) {
+                campoKgRifornimento.clear();
+            }
+            onAggiornaGlobale.run();
+        } catch (FrostlyException e) {
+            notificaEsito.accept("⚠️ " + e.getMessage(), true);
+        }
+    }
+
+    public void aggiungiNuovoIngrediente() {
+        try {
+            String nome = campoNuovoNomeIngrediente != null ? campoNuovoNomeIngrediente.getText() : null;
+            if (nome == null || nome.trim().isEmpty()) {
+                notificaEsito.accept("⚠️ Inserisci il nome della nuova voce di magazzino.", true);
+                return;
+            }
+            String qtaStr = campoNuovaQtaIngrediente != null ? campoNuovaQtaIngrediente.getText() : null;
+            String sogliaStr = campoNuovaSogliaIngrediente != null ? campoNuovaSogliaIngrediente.getText() : null;
+            String unita = comboNuovaUnitaIngrediente != null ? comboNuovaUnitaIngrediente.getValue() : null;
+
+            double qta = 0.0;
+            if (qtaStr != null && !qtaStr.trim().isEmpty()) {
+                try {
+                    qta = Double.parseDouble(qtaStr.trim().replace(",", "."));
+                } catch (NumberFormatException e) {
+                    notificaEsito.accept("⚠️ Inserisci una quantita' iniziale valida.", true);
+                    return;
+                }
+            }
+            double soglia = 0.0;
+            if (sogliaStr != null && !sogliaStr.trim().isEmpty()) {
+                try {
+                    soglia = Double.parseDouble(sogliaStr.trim().replace(",", "."));
+                } catch (NumberFormatException e) {
+                    notificaEsito.accept("⚠️ Inserisci una soglia minima valida.", true);
+                    return;
+                }
+            }
+
+            IngredienteBean bean = new IngredienteBean();
+            bean.setNome(nome.trim());
+            bean.setQuantitaDisponibile(qta);
+            bean.setSogliaMinima(soglia);
+            bean.setUnitaMisura(unita);
+
+            new MagazzinoControl().aggiungiNuovoIngrediente(bean);
+
+            notificaEsito.accept("✅ Nuova voce '" + nome.trim() + "' aggiunta con successo al magazzino!", false);
+            if (campoNuovoNomeIngrediente != null) campoNuovoNomeIngrediente.clear();
+            if (campoNuovaQtaIngrediente != null) campoNuovaQtaIngrediente.clear();
+            if (campoNuovaSogliaIngrediente != null) campoNuovaSogliaIngrediente.clear();
+
+            onAggiornaGlobale.run();
+        } catch (FrostlyException e) {
+            notificaEsito.accept("⚠️ " + e.getMessage(), true);
+        }
+    }
+
+    public void eliminaIngredienteSelezionato() {
+        try {
+            String nome = campoNomeIngredienteRifornimento != null ? campoNomeIngredienteRifornimento.getText() : null;
+            if (nome == null || nome.trim().isEmpty()) {
+                notificaEsito.accept("⚠️ Seleziona prima dalla lista la voce da eliminare dal magazzino.", true);
+                return;
+            }
+            new MagazzinoControl().eliminaIngredienteMagazzino(nome.trim());
+            notificaEsito.accept("🗑 Voce '" + nome.trim() + "' eliminata definitivamente dal magazzino!", false);
+            if (campoNomeIngredienteRifornimento != null) campoNomeIngredienteRifornimento.clear();
+            if (campoKgRifornimento != null) campoKgRifornimento.clear();
+
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {
             notificaEsito.accept("⚠️ " + e.getMessage(), true);

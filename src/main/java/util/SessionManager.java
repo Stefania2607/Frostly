@@ -70,4 +70,8 @@ public class SessionManager {
     public String getNomeUtenteLoggato() {
         return nomeUtenteLoggato;
     }
+
+    public boolean isUtenteLoggato() {
+        return emailUtenteLoggato != null && !emailUtenteLoggato.trim().isEmpty();
+    }
 }

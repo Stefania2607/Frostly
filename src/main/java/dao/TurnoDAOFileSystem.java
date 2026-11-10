@@ -55,7 +55,11 @@ public class TurnoDAOFileSystem implements TurnoDAO {
             while ((line = reader.readLine()) != null) {
                 String[] campi = line.split(SEP);
                 if (campi.length >= 6) {
-                    Dipendente dip = ArchivioMemoria.getInstance().trovaDipendentePerEmail(campi[4]);
+                    String emailDip = campi[4];
+                    Dipendente dip = ArchivioMemoria.getInstance().trovaDipendentePerEmail(emailDip);
+                    if (dip == null && emailDip != null) {
+                        dip = new Dipendente("Personale", "(Non in organico)", emailDip, "");
+                    }
                     if (dip != null) {
                         Turno t = new Turno(campi[0], campi[1], campi[2], campi[3], dip);
                         t.setStato(StatoTurno.valueOf(campi[5]));
@@ -67,5 +71,28 @@ public class TurnoDAOFileSystem implements TurnoDAO {
             throw new FrostlyException("Errore lettura file CSV dei turni.", e);
         }
         return daFile.isEmpty() ? ArchivioMemoria.getInstance().getTurni() : daFile;
+    }
+
+    @Override
+    public void eliminaTurno(String codiceTurno) throws FrostlyException {
+        ArchivioMemoria.getInstance().eliminaTurno(codiceTurno);
+        List<Turno> tuttiTurni = ArchivioMemoria.getInstance().getTurni();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(TURNI_CSV_FILE))) {
+            for (Turno t : tuttiTurni) {
+                if (t.getDipendenteAssegnato() != null) {
+                    String riga = String.join(SEP,
+                            t.getCodiceTurno(),
+                            t.getData(),
+                            t.getOraInizio(),
+                            t.getOraFine(),
+                            t.getDipendenteAssegnato().getEmail(),
+                            t.getStato().name());
+                    writer.write(riga);
+                    writer.newLine();
+                }
+            }
+        } catch (IOException e) {
+            throw new FrostlyException("Errore scrittura file CSV dei turni.", e);
+        }
     }
 }

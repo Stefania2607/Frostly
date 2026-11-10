@@ -16,4 +16,8 @@ public interface TurnoDAO {
     void salvaTurno(Turno turno) throws FrostlyException;
 
     List<Turno> caricaTuttiTurni() throws FrostlyException;
+
+    default void eliminaTurno(String codiceTurno) throws FrostlyException {
+        // Default vuoto per retrocompatibilita'
+    }
 }
