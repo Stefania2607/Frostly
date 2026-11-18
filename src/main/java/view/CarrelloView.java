@@ -48,17 +48,25 @@ public final class CarrelloView {
     public static void renderListaArticoliCarrello(VBox boxVaschetteOrdine,
                                                    List<VaschettaItemBean> articoli,
                                                    IntConsumer onRimuoviIndice) {
+        renderListaArticoliCarrello(boxVaschetteOrdine, articoli, null, null, onRimuoviIndice);
+    }
+
+    public static void renderListaArticoliCarrello(VBox boxVaschetteOrdine,
+                                                   List<VaschettaItemBean> articoli,
+                                                   IntConsumer onIncrementaIndice,
+                                                   IntConsumer onDecrementaIndice,
+                                                   IntConsumer onRimuoviIndice) {
         if (boxVaschetteOrdine == null) return;
         boxVaschetteOrdine.getChildren().clear();
 
         if (articoli == null || articoli.isEmpty()) {
             VBox emptyBox = new VBox(3);
             emptyBox.setAlignment(Pos.CENTER);
-            emptyBox.setStyle("-fx-padding: 14; -fx-background-color: rgba(255,255,255,0.6); -fx-background-radius: 8; -fx-border-color: #ede0d4; -fx-border-radius: 8;");
+            emptyBox.setStyle("-fx-padding: 14; -fx-background-color: rgba(28,26,30,0.85); -fx-background-radius: 8; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 8;");
             Label vuoto = new Label("Il tuo carrello è vuoto.");
-            vuoto.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #9c6644;");
+            vuoto.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
             Label hint = new Label("Seleziona i prodotti dal menu per aggiungerli al carrello.");
-            hint.setStyle("-fx-font-size: 11px; -fx-text-fill: #b08968;");
+            hint.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
             emptyBox.getChildren().addAll(vuoto, hint);
             boxVaschetteOrdine.getChildren().add(emptyBox);
         } else {
@@ -68,7 +76,7 @@ public final class CarrelloView {
 
                 VBox card = new VBox(4);
                 card.getStyleClass().add("carrello-item");
-                card.setStyle("-fx-padding: 8 12; -fx-background-color: #ffffff; -fx-border-color: #e6d5c3; -fx-border-radius: 8; -fx-background-radius: 8;");
+                card.setStyle("-fx-padding: 8 12; -fx-background-color: rgba(26,24,28,0.92); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 8; -fx-background-radius: 8;");
 
                 HBox header = new HBox(8);
                 header.setAlignment(Pos.CENTER_LEFT);
@@ -98,23 +106,53 @@ public final class CarrelloView {
                 }
                 Label lblTitolo = new Label(titolo);
                 lblTitolo.setWrapText(true);
-                lblTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #3a2618;");
+                lblTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
                 HBox.setHgrow(lblTitolo, Priority.ALWAYS);
 
-                Label lblP = new Label(String.format(Locale.US, "EUR %.2f", vib.ottieniPrezzo()));
-                lblP.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #2a9d8f;");
+                // Selettore Quantità: tasto [-] e [+] con conteggio centrale
+                HBox boxQta = new HBox(4);
+                boxQta.setAlignment(Pos.CENTER);
+                boxQta.setStyle("-fx-background-color: rgba(35,32,38,0.85); -fx-border-color: rgba(186,164,135,0.30); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 2 6;");
+
+                Button btnMeno = new Button("−");
+                btnMeno.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 1 7; -fx-background-color: rgba(45,42,48,0.85); -fx-text-fill: #baa487; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 6;");
+                btnMeno.setMinWidth(Region.USE_PREF_SIZE);
+                if (onDecrementaIndice != null) {
+                    btnMeno.setOnAction(ev -> onDecrementaIndice.accept(idx));
+                }
+
+                Label lblQta = new Label(String.valueOf(vib.getQuantita()));
+                lblQta.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0; -fx-min-width: 22px; -fx-alignment: center;");
+
+                Button btnPiu = new Button("+");
+                btnPiu.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 1 7; -fx-background-color: #baa487; -fx-text-fill: #141312; -fx-background-radius: 6; -fx-cursor: hand;");
+                btnPiu.setMinWidth(Region.USE_PREF_SIZE);
+                if (onIncrementaIndice != null) {
+                    btnPiu.setOnAction(ev -> onIncrementaIndice.accept(idx));
+                }
+
+                boxQta.getChildren().addAll(btnMeno, lblQta, btnPiu);
+
+                String testoPrezzo;
+                if (vib.getQuantita() > 1) {
+                    testoPrezzo = String.format(Locale.US, "EUR %.2f\n(%.2f cad.)", vib.ottieniPrezzo(), vib.getPrezzoUnitario());
+                } else {
+                    testoPrezzo = String.format(Locale.US, "EUR %.2f", vib.ottieniPrezzo());
+                }
+                Label lblP = new Label(testoPrezzo);
+                lblP.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487; -fx-text-alignment: right;");
                 lblP.setMinWidth(Region.USE_PREF_SIZE);
 
-                Button btnCanc = new Button("✕ Rimuovi");
-                btnCanc.setStyle("-fx-font-size: 10px; -fx-padding: 3 8; -fx-background-color: #fceae8; -fx-text-fill: #bc4749; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+                Button btnCanc = new Button("✕");
+                btnCanc.setStyle("-fx-font-size: 11px; -fx-padding: 4 8; -fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 6;");
                 btnCanc.setMinWidth(Region.USE_PREF_SIZE);
                 btnCanc.setOnAction(ev -> onRimuoviIndice.accept(idx));
 
-                header.getChildren().addAll(lblIcon, lblTitolo, lblP, btnCanc);
+                header.getChildren().addAll(lblIcon, lblTitolo, boxQta, lblP, btnCanc);
 
                 Label lblDet = new Label(vib.ottieniDescrizione());
                 lblDet.setWrapText(true);
-                lblDet.setStyle("-fx-font-size: 11px; -fx-text-fill: #7f5539;");
+                lblDet.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
 
                 card.getChildren().addAll(header, lblDet);
                 boxVaschetteOrdine.getChildren().add(card);
@@ -132,6 +170,24 @@ public final class CarrelloView {
                                          IntConsumer onRimuoviArticolo,
                                          Runnable onSvuotaCarrello,
                                          TriConsumer<String, String, String> onConfermaOrdine) {
+        apriPopupCarrello(
+                owner,
+                carrello,
+                carrello::incrementaArticolo,
+                carrello::decrementaArticolo,
+                onRimuoviArticolo,
+                onSvuotaCarrello,
+                onConfermaOrdine
+        );
+    }
+
+    public static void apriPopupCarrello(Window owner,
+                                         CarrelloBean carrello,
+                                         IntConsumer onIncrementaArticolo,
+                                         IntConsumer onDecrementaArticolo,
+                                         IntConsumer onRimuoviArticolo,
+                                         Runnable onSvuotaCarrello,
+                                         TriConsumer<String, String, String> onConfermaOrdine) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Frostly — Il Tuo Carrello & Checkout");
@@ -140,36 +196,56 @@ public final class CarrelloView {
         }
 
         VBox root = new VBox(12);
-        root.setStyle("-fx-padding: 22 26; -fx-background-color: #fffdfa;");
-        root.setPrefWidth(620);
-        root.setPrefHeight(540);
+        root.setStyle("-fx-padding: 22 26; -fx-background-color: rgba(18, 17, 20, 0.97); -fx-border-color: rgba(186,164,135,0.40); -fx-border-width: 1.2;");
+        root.setPrefWidth(680);
+        root.setPrefHeight(560);
 
         HBox top = new HBox(10);
         top.setAlignment(Pos.CENTER_LEFT);
         Label lblTitolo = new Label("🛒 IL TUO CARRELLO FROSTLY");
-        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #3a2618;");
+        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #f5ebe0;");
         Region spTop = new Region();
         HBox.setHgrow(spTop, Priority.ALWAYS);
         Button btnSvuota = new Button("🗑️ Svuota Carrello");
-        btnSvuota.setStyle("-fx-background-color: #fceae8; -fx-text-fill: #bc4749; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 10; -fx-padding: 5 12; -fx-cursor: hand;");
+        btnSvuota.setStyle("-fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 10; -fx-padding: 5 12; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 10;");
         top.getChildren().addAll(lblTitolo, spTop, btnSvuota);
 
         VBox boxLista = new VBox(8);
         ScrollPane scroll = new ScrollPane(boxLista);
         scroll.setFitToWidth(true);
         VBox.setVgrow(scroll, Priority.ALWAYS);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #e6d5c3; -fx-border-radius: 10;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 10;");
 
         Label lblTotale = new Label();
-        lblTotale.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #2a9d8f;");
+        lblTotale.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #baa487;");
 
         Runnable refreshInterno = new Runnable() {
             @Override
             public void run() {
-                renderListaArticoliCarrello(boxLista, carrello.getArticoli(), idx -> {
-                    onRimuoviArticolo.accept(idx);
-                    this.run();
-                });
+                renderListaArticoliCarrello(
+                        boxLista,
+                        carrello.getArticoli(),
+                        idx -> {
+                            if (onIncrementaArticolo != null) {
+                                onIncrementaArticolo.accept(idx);
+                            } else {
+                                carrello.incrementaArticolo(idx);
+                            }
+                            this.run();
+                        },
+                        idx -> {
+                            if (onDecrementaArticolo != null) {
+                                onDecrementaArticolo.accept(idx);
+                            } else {
+                                carrello.decrementaArticolo(idx);
+                            }
+                            this.run();
+                        },
+                        idx -> {
+                            onRimuoviArticolo.accept(idx);
+                            this.run();
+                        }
+                );
                 lblTotale.setText(String.format(Locale.US, "Totale Ordine: EUR %.2f", carrello.calcolaTotale()));
             }
         };
@@ -181,10 +257,10 @@ public final class CarrelloView {
         });
 
         VBox boxCheckout = new VBox(8);
-        boxCheckout.setStyle("-fx-background-color: #f7ede2; -fx-border-color: #d5bdaf; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 12 14;");
+        boxCheckout.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 12 14;");
 
         Label lblRitiroTit = new Label("🛵 Modalità di Consegna / Ritiro e Orario desiderato:");
-        lblRitiroTit.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #3a2618;");
+        lblRitiroTit.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
 
         HBox rigaCombo = new HBox(10);
         rigaCombo.setAlignment(Pos.CENTER_LEFT);
@@ -212,14 +288,14 @@ public final class CarrelloView {
         footer.setAlignment(Pos.CENTER_LEFT);
 
         Button btnContinua = new Button("⬅ Continua a Scegliere dal Menu");
-        btnContinua.setStyle("-fx-background-color: #ede0d4; -fx-text-fill: #5c3a21; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 14; -fx-padding: 9 16; -fx-cursor: hand;");
+        btnContinua.setStyle("-fx-background-color: rgba(38,35,40,0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 14; -fx-padding: 9 16; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
         btnContinua.setOnAction(e -> popup.close());
 
         Region spF = new Region();
         HBox.setHgrow(spF, Priority.ALWAYS);
 
         Button btnInvia = new Button("🛵 Conferma e Invia Ordine");
-        btnInvia.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 14; -fx-padding: 9 20; -fx-cursor: hand;");
+        btnInvia.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 14; -fx-padding: 9 20; -fx-cursor: hand;");
         btnInvia.setOnAction(e -> {
             popup.close();
             onConfermaOrdine.accept(comboTipo.getValue(), comboOra.getValue(), txtNote.getText());

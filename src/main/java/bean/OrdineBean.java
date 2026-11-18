@@ -122,11 +122,32 @@ public class OrdineBean {
     }
 
     public String getDescrizioneCompleta() {
+        if (descrizioneCompleta != null && descrizioneCompleta.contains("Vaschetta #")) {
+            return pulisciDescrizione(descrizioneCompleta);
+        }
         return descrizioneCompleta;
     }
 
     public void setDescrizioneCompleta(String descrizioneCompleta) {
-        this.descrizioneCompleta = descrizioneCompleta;
+        if (descrizioneCompleta != null && descrizioneCompleta.contains("Vaschetta #")) {
+            this.descrizioneCompleta = pulisciDescrizione(descrizioneCompleta);
+        } else {
+            this.descrizioneCompleta = descrizioneCompleta;
+        }
+    }
+
+    public static String pulisciDescrizione(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return raw;
+        String[] pezzi = raw.split(" \\| ");
+        StringBuilder sb = new StringBuilder();
+        for (String p : pezzi) {
+            String pTrim = p.trim();
+            if (pTrim.isEmpty()) continue;
+            String pClean = pTrim.replaceFirst("^[Vv]aschetta #\\d+:\\s*", "");
+            if (sb.length() > 0) sb.append(" | ");
+            sb.append(pClean);
+        }
+        return sb.toString();
     }
 
     public double getPrezzoTotale() {

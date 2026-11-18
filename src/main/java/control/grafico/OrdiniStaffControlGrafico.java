@@ -81,10 +81,24 @@ public class OrdiniStaffControlGrafico {
         OrdiniControl ordiniCtrl = new OrdiniControl();
         List<OrdineBean> tuttiOrdini = ordiniCtrl.visualizzaTuttiOrdini();
 
+        // Ordinamento ordini:
+        // 1. Ordini nuovi in attesa ("IN_ATTESA") prioritari in cima alla lista
+        // 2. Ordinamento temporale dal più recente al meno recente (es. ORD-05 prima di ORD-01)
+        List<OrdineBean> listaOrdinata = new java.util.ArrayList<>(tuttiOrdini);
+        listaOrdinata.sort((o1, o2) -> {
+            boolean a1 = "IN_ATTESA".equalsIgnoreCase(o1.getStato());
+            boolean a2 = "IN_ATTESA".equalsIgnoreCase(o2.getStato());
+            if (a1 && !a2) return -1;
+            if (!a1 && a2) return 1;
+            String c1 = o1.getCodiceOrdine() != null ? o1.getCodiceOrdine() : "";
+            String c2 = o2.getCodiceOrdine() != null ? o2.getCodiceOrdine() : "";
+            return c2.compareToIgnoreCase(c1);
+        });
+
         int ordiniInAttesa = 0;
         if (listaOrdiniStaff != null) {
             listaOrdiniStaff.getItems().clear();
-            for (OrdineBean ob : tuttiOrdini) {
+            for (OrdineBean ob : listaOrdinata) {
                 listaOrdiniStaff.getItems().add(ob);
                 if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
                     ordiniInAttesa++;
@@ -92,11 +106,11 @@ public class OrdiniStaffControlGrafico {
             }
             if (lblConteggioOrdiniStaff != null) {
                 lblConteggioOrdiniStaff.setText(ordiniInAttesa > 0
-                        ? "🚨 " + ordiniInAttesa + " ordini in attesa di conferma"
-                        : "✅ Nessun ordine in attesa (" + tuttiOrdini.size() + " totali)");
+                        ? "🚨 " + ordiniInAttesa + " nuovi ordini in attesa di conferma"
+                        : "✅ Nessun ordine in attesa (" + listaOrdinata.size() + " totali)");
             }
         } else {
-            for (OrdineBean ob : tuttiOrdini) {
+            for (OrdineBean ob : listaOrdinata) {
                 if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
                     ordiniInAttesa++;
                 }
@@ -105,7 +119,7 @@ public class OrdiniStaffControlGrafico {
 
         if (listaOrdiniUrgentiTendina != null) {
             listaOrdiniUrgentiTendina.getItems().clear();
-            for (OrdineBean ob : tuttiOrdini) {
+            for (OrdineBean ob : listaOrdinata) {
                 if ("IN_ATTESA".equalsIgnoreCase(ob.getStato())) {
                     listaOrdiniUrgentiTendina.getItems().add("🛵 " + ob.getCodiceOrdine() + " • " + ob.getEmailCliente()
                             + " (" + ob.getDataRitiro() + ") - EUR " + ob.getPrezzoTotale());

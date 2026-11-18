@@ -327,6 +327,14 @@ public class GelateriaControlGrafico {
                 owner,
                 carrello,
                 idx -> {
+                    carrello.incrementaArticolo(idx);
+                    aggiornaStatoCarrello();
+                },
+                idx -> {
+                    carrello.decrementaArticolo(idx);
+                    aggiornaStatoCarrello();
+                },
+                idx -> {
                     carrello.rimuoviArticolo(idx);
                     aggiornaStatoCarrello();
                 },

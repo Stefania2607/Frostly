@@ -3,6 +3,7 @@ package control.applicativo;
 import bean.GustoBean;
 import dao.DAOFactory;
 import dao.GustoDAO;
+import dao.IngredienteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
@@ -17,13 +18,19 @@ import model.Ricetta;
 public class GestioneMenuControl {
 
     private final GustoDAO gustoDAO;
+    private final IngredienteDAO ingredienteDAO;
 
     public GestioneMenuControl() {
-        this(DAOFactory.getGustoDAO());
+        this(DAOFactory.getGustoDAO(), DAOFactory.getIngredienteDAO());
     }
 
     public GestioneMenuControl(GustoDAO gustoDAO) {
+        this(gustoDAO, DAOFactory.getIngredienteDAO());
+    }
+
+    public GestioneMenuControl(GustoDAO gustoDAO, IngredienteDAO ingredienteDAO) {
         this.gustoDAO = gustoDAO;
+        this.ingredienteDAO = ingredienteDAO;
     }
 
     public List<GustoBean> visualizzaMenuGusti() {
@@ -100,6 +107,45 @@ public class GestioneMenuControl {
             nuovo.setSottocategoria(sottoPulita);
             nuovo.setImmagineUrl(imgPulita);
             gustoDAO.salvaGustoMenu(nuovo);
+        }
+
+        sincronizzaMagazzinoPerProdottoMenu(nome.trim(), catPulita);
+    }
+
+    private void sincronizzaMagazzinoPerProdottoMenu(String nome, String categoria) {
+        if (ingredienteDAO == null) {
+            return;
+        }
+        // Gelati, Caffetteria e Crepes sono preparati espressi composti da materie prime già gestite a magazzino
+        if ("Gelati".equalsIgnoreCase(categoria) || "Caffetteria".equalsIgnoreCase(categoria)
+                || "Crepes".equalsIgnoreCase(categoria)) {
+            return;
+        }
+        model.Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nome);
+        if (ing == null) {
+            String unita;
+            double qtaIniziale;
+            double sogliaMin;
+            if ("Tisane".equalsIgnoreCase(categoria) || "Cioccolate calde".equalsIgnoreCase(categoria)) {
+                unita = "Bustine";
+                qtaIniziale = 35.0;
+                sogliaMin = 10.0;
+            } else if ("Bevande".equalsIgnoreCase(categoria)) {
+                unita = "Bottiglie";
+                qtaIniziale = 30.0;
+                sogliaMin = 10.0;
+            } else if ("Gelati".equalsIgnoreCase(categoria)) {
+                unita = "Kg";
+                qtaIniziale = 5.0;
+                sogliaMin = 1.5;
+            } else {
+                unita = "Porzioni";
+                qtaIniziale = 20.0;
+                sogliaMin = 5.0;
+            }
+            model.Ingrediente nuovo = new model.Ingrediente(
+                    nome, qtaIniziale, sogliaMin, unita, model.Ingrediente.inferisciCategoria(nome, unita));
+            ingredienteDAO.salvaNuovoIngrediente(nuovo);
         }
     }
 

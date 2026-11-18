@@ -24,8 +24,34 @@ public class CarrelloBean {
     private String indirizzoONote = "";
 
     public void aggiungiArticolo(VaschettaItemBean articolo) {
-        if (articolo != null) {
-            articoli.add(articolo);
+        if (articolo == null) return;
+        // Se un articolo identico dal menu (pesoKg <= 0) è già presente nel carrello, incrementa la quantità
+        if (articolo.ottieniPesoKg() <= 0.0) {
+            for (VaschettaItemBean esistente : articoli) {
+                if (esistente.ottieniPesoKg() <= 0.0
+                        && esistente.ottieniDescrizione().equalsIgnoreCase(articolo.ottieniDescrizione())
+                        && Math.abs(esistente.getPrezzoUnitario() - articolo.getPrezzoUnitario()) < 0.001) {
+                    esistente.incrementaQuantita();
+                    return;
+                }
+            }
+        }
+        articoli.add(articolo);
+    }
+
+    public void incrementaArticolo(int indice) {
+        if (indice >= 0 && indice < articoli.size()) {
+            articoli.get(indice).incrementaQuantita();
+        }
+    }
+
+    public void decrementaArticolo(int indice) {
+        if (indice >= 0 && indice < articoli.size()) {
+            VaschettaItemBean item = articoli.get(indice);
+            item.decrementaQuantita();
+            if (item.getQuantita() <= 0) {
+                articoli.remove(indice);
+            }
         }
     }
 
@@ -44,7 +70,11 @@ public class CarrelloBean {
     }
 
     public int getNumeroArticoli() {
-        return articoli.size();
+        int n = 0;
+        for (VaschettaItemBean item : articoli) {
+            n += item.getQuantita();
+        }
+        return n;
     }
 
     public List<VaschettaItemBean> getArticoli() {
@@ -184,7 +214,9 @@ public class CarrelloBean {
         ordineBean.setEmailCliente(emailCliente);
         ordineBean.setDataRitiro(riepilogoConsegna);
         for (VaschettaItemBean item : articoli) {
-            ordineBean.aggiungiVaschetta(item);
+            for (int q = 0; q < item.getQuantita(); q++) {
+                ordineBean.aggiungiVaschetta(item.creaCopiaSingola());
+            }
         }
         return ordineBean;
     }

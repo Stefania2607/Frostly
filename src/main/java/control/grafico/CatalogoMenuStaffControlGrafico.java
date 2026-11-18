@@ -229,23 +229,12 @@ public class CatalogoMenuStaffControlGrafico {
 
     public void salvaOAggiornaGusto() {
         try {
-            String catDaSalvare = (categoriaCorrenteSelezionata != null && !categoriaCorrenteSelezionata.trim().isEmpty())
-                    ? categoriaCorrenteSelezionata : "Gelati";
-            String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
-                    ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
-
-            new GestioneMenuControl().salvaOAggiornaGustoMenu(
-                    campoNomeGustoMenu.getText(),
-                    campoDescGustoMenu.getText(),
-                    campoAllergeniGustoMenu.getText(),
-                    campoPrezzoGustoMenu.getText(),
-                    true,
-                    catDaSalvare,
-                    sottoDaSalvare,
-                    campoImmagineMenu == null ? "" : campoImmagineMenu.getText());
-            notificaEsito.accept("✅ Menu aggiornato con successo: '" + campoNomeGustoMenu.getText() + "' salvato!", false);
-            onAggiornaGlobale.run();
+            salvaOAggiornaGustoConDisponibilita(true);
         } catch (FrostlyException e) {
+            Window win = ricavaFinestraAttiva();
+            if (win != null) {
+                StaffMenuEditorView.mostraPopupAvviso(win, "Errore Compilazione", e.getMessage());
+            }
             notificaEsito.accept("⚠️ " + e.getMessage(), true);
         }
     }
@@ -303,7 +292,7 @@ public class CatalogoMenuStaffControlGrafico {
         if ("Caffetteria".equalsIgnoreCase(cat)) return "Caffe";
         if ("Biscotti".equalsIgnoreCase(cat)) return "Secchi";
         if ("Crostate".equalsIgnoreCase(cat)) return "Classiche";
-        if ("Tisane".equalsIgnoreCase(cat)) return "Infusi";
+        if ("Tisane".equalsIgnoreCase(cat)) return "Tè Neri";
         return "Creme";
     }
 
@@ -362,27 +351,23 @@ public class CatalogoMenuStaffControlGrafico {
         );
     }
 
-    private void salvaOAggiornaGustoConDisponibilita(boolean disponibile) {
-        try {
-            String catDaSalvare = (categoriaCorrenteSelezionata != null && !categoriaCorrenteSelezionata.trim().isEmpty())
-                    ? categoriaCorrenteSelezionata : "Gelati";
-            String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
-                    ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
+    private void salvaOAggiornaGustoConDisponibilita(boolean disponibile) throws FrostlyException {
+        String catDaSalvare = (categoriaCorrenteSelezionata != null && !categoriaCorrenteSelezionata.trim().isEmpty())
+                ? categoriaCorrenteSelezionata : "Gelati";
+        String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
+                ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
 
-            new GestioneMenuControl().salvaOAggiornaGustoMenu(
-                    campoNomeGustoMenu.getText(),
-                    campoDescGustoMenu.getText(),
-                    campoAllergeniGustoMenu.getText(),
-                    campoPrezzoGustoMenu.getText(),
-                    disponibile,
-                    catDaSalvare,
-                    sottoDaSalvare,
-                    campoImmagineMenu == null ? "" : campoImmagineMenu.getText());
-            notificaEsito.accept("✅ Menu aggiornato con successo: '" + campoNomeGustoMenu.getText() + "' salvato!", false);
-            onAggiornaGlobale.run();
-        } catch (FrostlyException e) {
-            notificaEsito.accept("⚠️ " + e.getMessage(), true);
-        }
+        new GestioneMenuControl().salvaOAggiornaGustoMenu(
+                campoNomeGustoMenu.getText(),
+                campoDescGustoMenu.getText(),
+                campoAllergeniGustoMenu.getText(),
+                campoPrezzoGustoMenu.getText(),
+                disponibile,
+                catDaSalvare,
+                sottoDaSalvare,
+                campoImmagineMenu == null ? "" : campoImmagineMenu.getText());
+        notificaEsito.accept("✅ Menu aggiornato con successo: '" + campoNomeGustoMenu.getText() + "' salvato!", false);
+        onAggiornaGlobale.run();
     }
 
     private void aggiornaSottocategorieMenu(String categoria) {
@@ -405,9 +390,9 @@ public class CatalogoMenuStaffControlGrafico {
         } else if ("Biscotti".equals(categoria)) {
             opzioni.add("Secchi");
         } else if ("Crostate".equals(categoria)) {
-            opzioni.addAll(Arrays.asList("Classiche", "Alla frutta"));
+            opzioni.addAll(Arrays.asList("Classiche", "Alla frutta", "Special"));
         } else if ("Tisane".equals(categoria)) {
-            opzioni.add("Infusi");
+            opzioni.addAll(Arrays.asList("Tè Neri", "Tè Verdi & Bianchi", "Tisane Benessere", "Infusi & Frutta"));
         }
         for (GustoBean g : menuCorrente.values()) {
             if (g.getCategoria().equals(categoria) && !opzioni.contains(g.getSottocategoria())) {

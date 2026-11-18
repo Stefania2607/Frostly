@@ -21,4 +21,9 @@ public class NotificaDAOMemory implements NotificaDAO {
     public void inviaNotifica(Notifica notifica) {
         archivio.inviaNotifica(notifica);
     }
+
+    @Override
+    public void eliminaNotifica(String emailDestinatario, String titolo, String timestamp) {
+        archivio.eliminaNotifica(emailDestinatario, titolo, timestamp);
+    }
 }

@@ -5,6 +5,7 @@ import bean.NotificaBean;
 import bean.OrdineBean;
 import control.applicativo.GestioneTurniEmergenzeControl;
 import control.applicativo.LoginControl;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -16,7 +17,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import util.SessionManager;
+import view.AvvisiStaffView;
 import view.VetrinaMenuView;
 
 /**
@@ -33,7 +36,7 @@ public class TurniControlGrafico {
     @FXML private ListView<String> listaNotificheUrgenti;
     @FXML private Label lblIntestazione;
     @FXML private Label lblEsito;
-    @FXML private ListView<String> listaNotifiche;
+    @FXML private ListView<NotificaBean> listaNotifiche;
 
     // Turni ed Emergenze
     @FXML private VBox boxCalendarioTurni;
@@ -85,6 +88,8 @@ public class TurniControlGrafico {
     // Campi delegati a MagazzinoGustiStaffControlGrafico
     @FXML private ListView<IngredienteBean> listaMagazzino;
     @FXML private Label lblRiepilogoMagazzino;
+    @FXML private ComboBox<String> comboCategoriaMagazzino;
+    @FXML private TextField campoRicercaMagazzino;
     @FXML private ListView<String> listaUrgenzeMagazzino;
     @FXML private TextField campoNomeIngredienteRifornimento;
     @FXML private TextField campoKgRifornimento;
@@ -140,6 +145,7 @@ public class TurniControlGrafico {
         magazzinoGustiHelper.legaCampiMagazzino(
                 listaMagazzino, lblRiepilogoMagazzino, listaUrgenzeMagazzino,
                 campoNomeIngredienteRifornimento, campoKgRifornimento, campoIngredienteUrgente);
+        magazzinoGustiHelper.legaFiltriMagazzino(comboCategoriaMagazzino, campoRicercaMagazzino);
         magazzinoGustiHelper.legaCampiNuovoIngrediente(
                 campoNuovoNomeIngrediente, campoNuovaQtaIngrediente, campoNuovaSogliaIngrediente,
                 comboNuovaUnitaIngrediente);
@@ -176,6 +182,13 @@ public class TurniControlGrafico {
         recensioniHelper.legaCampiMaestro(boxCardsRecensioniMaestro, lblRiepilogoRecensioniMaestro);
         recensioniHelper.aggiornaRecensioniMaestro();
 
+        if (listaNotifiche != null) {
+            AvvisiStaffView.configuraListaAvvisi(listaNotifiche, notifica -> {
+                Window owner = listaNotifiche.getScene() != null ? listaNotifiche.getScene().getWindow() : null;
+                AvvisiStaffView.mostraPopupDettaglioAvviso(owner, notifica, this::selezionaTabPerNome, this::eliminaNotifica);
+            }, this::eliminaNotifica);
+        }
+
         aggiornaListe();
 
         ordiniStaffHelper.avviaMonitoraggioRealTime(attuali -> {
@@ -203,6 +216,17 @@ public class TurniControlGrafico {
     private void selezionaTab(int indice) {
         if (tabPaneMaestro != null && tabPaneMaestro.getTabs().size() > indice) {
             tabPaneMaestro.getSelectionModel().select(indice);
+        }
+    }
+
+    private void selezionaTabPerNome(String nomeTarget) {
+        if (tabPaneMaestro == null || nomeTarget == null) return;
+        String search = nomeTarget.toLowerCase();
+        for (javafx.scene.control.Tab tab : tabPaneMaestro.getTabs()) {
+            if (tab.getText() != null && tab.getText().toLowerCase().contains(search)) {
+                tabPaneMaestro.getSelectionModel().select(tab);
+                break;
+            }
         }
     }
 
@@ -278,6 +302,26 @@ public class TurniControlGrafico {
     @FXML public void onClickRifiutaEmergenza() { emergenzeHelper.rifiutaEmergenza(); }
 
     @FXML
+    public void onClickEliminaAvvisoSelezionato() {
+        if (listaNotifiche != null) {
+            NotificaBean sel = listaNotifiche.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                eliminaNotifica(sel);
+            } else {
+                mostraEsito("Seleziona prima un avviso dalla lista per poterlo eliminare.", true);
+            }
+        }
+    }
+
+    private void eliminaNotifica(NotificaBean notifica) {
+        if (notifica == null) return;
+        String emailUtente = SessionManager.getInstance().getEmailUtenteLoggato();
+        new LoginControl().eliminaNotificaUtente(emailUtente, notifica);
+        aggiornaListe();
+        mostraEsito("✓ Avviso rimosso dal registro cronologico.", false);
+    }
+
+    @FXML
     public void onClickLogout() {
         SessionManager.getInstance().logout();
         LoginControlGrafico.cambiaSchermata("/login.fxml");
@@ -307,16 +351,24 @@ public class TurniControlGrafico {
         }
 
         List<NotificaBean> listaN = new LoginControl().recuperaNotificheUtente(emailUtente);
+        List<NotificaBean> listaNOrdinata = new ArrayList<>(listaN);
+        listaNOrdinata.sort((a, b) -> {
+            boolean aOggi = a.getTimestamp() != null && a.getTimestamp().toLowerCase().contains("oggi");
+            boolean bOggi = b.getTimestamp() != null && b.getTimestamp().toLowerCase().contains("oggi");
+            if (aOggi && !bOggi) return -1;
+            if (!aOggi && bOggi) return 1;
+            String tsA = a.getTimestamp() != null ? a.getTimestamp() : "";
+            String tsB = b.getTimestamp() != null ? b.getTimestamp() : "";
+            return tsB.compareToIgnoreCase(tsA);
+        });
+
         if (listaNotifiche != null) {
-            listaNotifiche.getItems().clear();
-            for (NotificaBean n : listaN) {
-                listaNotifiche.getItems().add("[" + n.getTimestamp() + "] " + n.getTitolo() + ": " + n.getMessaggio());
-            }
+            listaNotifiche.getItems().setAll(listaNOrdinata);
         }
         if (listaNotificheUrgenti != null) {
             listaNotificheUrgenti.getItems().clear();
-            for (int i = 0; i < Math.min(listaN.size(), 8); i++) {
-                NotificaBean nb = listaN.get(i);
+            for (int i = 0; i < Math.min(listaNOrdinata.size(), 8); i++) {
+                NotificaBean nb = listaNOrdinata.get(i);
                 listaNotificheUrgenti.getItems().add("[" + nb.getTimestamp() + "] " + nb.getTitolo() + ": " + nb.getMessaggio());
             }
         }

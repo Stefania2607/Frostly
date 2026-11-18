@@ -92,7 +92,7 @@ public class ArchivioMemoria {
 
         // Popola tutti gli ingredienti e prodotti magazzino dalla sorgente unica CatalogoMagazzino
         for (CatalogoMagazzino.ElementoMagazzino e : CatalogoMagazzino.getElementi()) {
-            ingredienti.add(new Ingrediente(e.nome(), e.quantitaIniziale(), e.sogliaMinima(), e.unitaMisura()));
+            ingredienti.add(new Ingrediente(e.nome(), e.quantitaIniziale(), e.sogliaMinima(), e.unitaMisura(), e.categoria()));
         }
 
         // Popola tutti i prodotti demo dalla sorgente unica CatalogoDemo
@@ -324,11 +324,18 @@ public class ArchivioMemoria {
     }
 
     public void sincronizzaIngredienteDaDb(String nome, double quantita, double sogliaMin, String unita) {
+        sincronizzaIngredienteDaDb(nome, quantita, sogliaMin, unita, null);
+    }
+
+    public void sincronizzaIngredienteDaDb(String nome, double quantita, double sogliaMin, String unita, String categoria) {
         Ingrediente ing = trovaIngredientePerNome(nome);
         if (ing != null) {
             ing.setQuantitaDisponibile(quantita);
+            if (categoria != null && !categoria.trim().isEmpty()) {
+                ing.setCategoria(categoria.trim());
+            }
         } else {
-            ingredienti.add(new Ingrediente(nome, quantita, sogliaMin, unita));
+            ingredienti.add(new Ingrediente(nome, quantita, sogliaMin, unita, categoria));
         }
     }
 
@@ -458,6 +465,7 @@ public class ArchivioMemoria {
     public void sincronizzaOrdineDaDb(String codiceOrdine, String emailCliente, String nomeGusto,
                                       double pesoKg, String dataRitiro,
                                       double prezzoTotale, String descrizioneDettagliata) {
+        String descPulita = bean.OrdineBean.pulisciDescrizione(descrizioneDettagliata);
         Cliente cli = trovaClientePerEmail(emailCliente);
         if (cli == null) {
             cli = new Cliente("Cliente", emailCliente, emailCliente, "");
@@ -466,13 +474,13 @@ public class ArchivioMemoria {
         for (OrdineCliente esistente : ordini) {
             if (esistente.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
                 esistente.setPrezzoTotale(prezzoTotale);
-                esistente.setDescrizioneDettagliata(descrizioneDettagliata);
+                esistente.setDescrizioneDettagliata(descPulita);
                 return;
             }
         }
         OrdineCliente nuovo = new OrdineCliente(codiceOrdine, cli, g, pesoKg, dataRitiro);
         nuovo.setPrezzoTotale(prezzoTotale);
-        nuovo.setDescrizioneDettagliata(descrizioneDettagliata);
+        nuovo.setDescrizioneDettagliata(descPulita);
         ordini.add(nuovo);
     }
 
@@ -499,6 +507,18 @@ public class ArchivioMemoria {
 
     public void inviaNotifica(Notifica notifica) {
         this.notifiche.add(0, notifica);
+    }
+
+    public void eliminaNotifica(String emailDestinatario, String titolo, String timestamp) {
+        for (int i = 0; i < notifiche.size(); i++) {
+            Notifica n = notifiche.get(i);
+            if (n.getEmailDestinatario().equalsIgnoreCase(emailDestinatario)
+                    && n.getTitolo().equals(titolo)
+                    && (timestamp == null || timestamp.isEmpty() || n.getTimestamp().equals(timestamp))) {
+                notifiche.remove(i);
+                break;
+            }
+        }
     }
 
     public void sincronizzaNotificaDaDb(String emailDest, String titolo, String messaggio, String timestamp) {

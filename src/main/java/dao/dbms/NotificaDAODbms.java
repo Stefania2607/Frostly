@@ -41,6 +41,22 @@ public class NotificaDAODbms implements NotificaDAO {
         }
     }
 
+    @Override
+    public void eliminaNotifica(String emailDestinatario, String titolo, String timestamp) {
+        cache.eliminaNotifica(emailDestinatario, titolo, timestamp);
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            String del = "DELETE FROM notifiche_utenti WHERE email_destinatario = ? AND titolo = ? AND timestamp_notifica = ?";
+            try (PreparedStatement dStmt = conn.prepareStatement(del)) {
+                dStmt.setString(1, emailDestinatario);
+                dStmt.setString(2, titolo);
+                dStmt.setString(3, timestamp != null ? timestamp : "");
+                dStmt.executeUpdate();
+            }
+        } catch (FrostlyException | SQLException ignored) {
+        }
+    }
+
     private void sincronizzaNotificheDaDatabase() {
         String sql = "SELECT email_destinatario, titolo, messaggio, timestamp_notifica FROM notifiche_utenti";
         try {

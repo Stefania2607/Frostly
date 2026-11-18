@@ -133,4 +133,9 @@ public class LoginControl {
         }
         return risultato;
     }
+
+    public void eliminaNotificaUtente(String emailUtente, NotificaBean notifica) {
+        if (emailUtente == null || notifica == null) return;
+        notificaDAO.eliminaNotifica(emailUtente, notifica.getTitolo(), notifica.getTimestamp());
+    }
 }

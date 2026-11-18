@@ -35,18 +35,20 @@ public class IngredienteDAODbms implements IngredienteDAO {
         cache.aggiornaIngrediente(ingrediente);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
-            String sql = "UPDATE ingredienti SET quantita_disponibile = ? WHERE nome = ?";
+            String sql = "UPDATE ingredienti SET quantita_disponibile = ?, categoria = ? WHERE nome = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setDouble(1, ingrediente.getQuantitaDisponibile());
-                stmt.setString(2, ingrediente.getNome());
+                stmt.setString(2, ingrediente.getCategoria());
+                stmt.setString(3, ingrediente.getNome());
                 int rows = stmt.executeUpdate();
                 if (rows == 0) {
-                    String ins = "INSERT INTO ingredienti (nome, quantita_disponibile, soglia_minima, unita_misura) VALUES (?, ?, ?, ?)";
+                    String ins = "INSERT INTO ingredienti (nome, quantita_disponibile, soglia_minima, unita_misura, categoria) VALUES (?, ?, ?, ?, ?)";
                     try (PreparedStatement iStmt = conn.prepareStatement(ins)) {
                         iStmt.setString(1, ingrediente.getNome());
                         iStmt.setDouble(2, ingrediente.getQuantitaDisponibile());
                         iStmt.setDouble(3, ingrediente.getSogliaMinima());
                         iStmt.setString(4, ingrediente.getUnitaMisura());
+                        iStmt.setString(5, ingrediente.getCategoria());
                         iStmt.executeUpdate();
                     }
                 }
@@ -75,17 +77,23 @@ public class IngredienteDAODbms implements IngredienteDAO {
     }
 
     private void sincronizzaIngredientiDaDatabase() {
-        String sql = "SELECT nome, quantita_disponibile, soglia_minima, unita_misura FROM ingredienti";
+        String sql = "SELECT * FROM ingredienti";
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             try (PreparedStatement stmt = conn.prepareStatement(sql);
                  ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    String cat = null;
+                    try {
+                        cat = rs.getString("categoria");
+                    } catch (SQLException ignored) {
+                    }
                     cache.sincronizzaIngredienteDaDb(
                             rs.getString("nome"),
                             rs.getDouble("quantita_disponibile"),
                             rs.getDouble("soglia_minima"),
-                            rs.getString("unita_misura"));
+                            rs.getString("unita_misura"),
+                            cat);
                 }
             }
         } catch (FrostlyException | SQLException ignored) {

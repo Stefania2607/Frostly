@@ -276,32 +276,73 @@ public class OrdiniControl {
         }
         if (nomeProdotto == null || nomeProdotto.isEmpty()) return;
 
-        Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeProdotto);
-        if (ing == null) {
-            for (Ingrediente i : ingredienteDAO.caricaTuttiIngredienti()) {
-                if (nomeProdotto.equalsIgnoreCase(i.getNome())
-                        || nomeProdotto.toLowerCase().startsWith(i.getNome().toLowerCase())
-                        || i.getNome().toLowerCase().startsWith(nomeProdotto.toLowerCase())) {
-                    ing = i;
-                    break;
-                }
-            }
-        }
-        if (ing != null) {
-            ing.consuma(1.0);
-            ingredienteDAO.aggiornaIngrediente(ing);
-        }
-
         String lower = nomeProdotto.toLowerCase();
-        if (lower.startsWith("crepe")) {
-            consumaSePresente("Farina per Crepes e Dolci", 0.10);
+        boolean isCaffetteria = lower.startsWith("caffe") || lower.startsWith("caffè")
+                || lower.contains("cappuccino") || lower.contains("latte macchiato")
+                || lower.contains("affogato");
+        boolean isCrepe = lower.startsWith("crepe");
+
+        if (isCaffetteria) {
+            if (lower.contains("ginseng")) {
+                consumaSePresente("Caffe al Ginseng Solubile", 0.015);
+            } else if (lower.contains("orzo")) {
+                consumaSePresente("Orzo Solubile Tostato", 0.015);
+            } else {
+                consumaSePresente("Caffe in Grani 100% Arabica", 0.008);
+            }
+
+            if (lower.contains("cappuccino")) {
+                consumaSePresente("Latte Fresco Alta Qualita", 0.12);
+            } else if (lower.contains("latte macchiato")) {
+                consumaSePresente("Latte Fresco Alta Qualita", 0.18);
+            } else if (lower.contains("macchiato")) {
+                consumaSePresente("Latte Fresco Alta Qualita", 0.03);
+            } else if (lower.contains("affogato")) {
+                consumaSePresente("Latte Fresco Alta Qualita", 0.05);
+            }
+
+            if (lower.contains("marocchino")) {
+                consumaSePresente("Cacao Amaro Monorigine", 0.005);
+            } else if (lower.contains("corretto")) {
+                consumaSePresente("Liquori per Caffe Corretto (Grappa e Sambuca)", 0.02);
+            }
+        } else if (isCrepe) {
+            // Crepes artigianali espresse preparate da materie prime coincidenti del laboratorio
+            consumaSePresente("Farina per Crepes e Dolci", 0.08);
             consumaSePresente("Latte Fresco Alta Qualita", 0.10);
             consumaSePresente("Uova Fresche da Allevamento", 1.0);
-            if (lower.contains("nutella")) {
+            consumaSePresente("Burro Fresco di Latteria", 0.02);
+            consumaSePresente("Zucchero Semolato Italiano", 0.01);
+            if (lower.contains("nutella") || lower.contains("stelle")) {
                 consumaSePresente("Nutella Ferrero", 0.05);
+            } else if (lower.contains("pistacchio")) {
+                consumaSePresente("Pasta Pistacchio di Bronte DOP", 0.04);
+                consumaSePresente("Granella di Pistacchio di Bronte DOP", 0.01);
+            } else if (lower.contains("albicocc") || lower.contains("marmellata")) {
+                consumaSePresente("Confettura Extra di Albicocche", 0.04);
+            } else if (lower.contains("visciol") || lower.contains("frutti di bosco") || lower.contains("fragol")) {
+                consumaSePresente("Confettura di Frutti di Bosco", 0.04);
             }
-        } else if (lower.startsWith("cioccolata calda")) {
-            consumaSePresente("Latte Fresco Alta Qualita", 0.15);
+        } else {
+            Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeProdotto);
+            if (ing == null) {
+                for (Ingrediente i : ingredienteDAO.caricaTuttiIngredienti()) {
+                    if (nomeProdotto.equalsIgnoreCase(i.getNome())
+                            || nomeProdotto.toLowerCase().startsWith(i.getNome().toLowerCase())
+                            || i.getNome().toLowerCase().startsWith(nomeProdotto.toLowerCase())) {
+                        ing = i;
+                        break;
+                    }
+                }
+            }
+            if (ing != null) {
+                ing.consuma(1.0);
+                ingredienteDAO.aggiornaIngrediente(ing);
+            }
+
+            if (lower.startsWith("cioccolata calda")) {
+                consumaSePresente("Latte Fresco Alta Qualita", 0.15);
+            }
         }
     }
 

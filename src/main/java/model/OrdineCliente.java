@@ -45,7 +45,21 @@ public class OrdineCliente {
             sommaPrezzi += v.getPrezzo();
             sommaPeso += v.getPesoKg();
             if (i > 0) sb.append(" | ");
-            sb.append("Vaschetta #").append(i + 1).append(": ").append(v.getDescrizione());
+            String d = v.getDescrizione();
+            if (d == null) d = "";
+            d = d.trim();
+            if (d.matches("^[Vv]aschetta #\\d+:\\s*.*")) {
+                d = d.replaceFirst("^[Vv]aschetta #\\d+:\\s*", "");
+            }
+            if (d.isEmpty()) {
+                if (v.getPesoKg() > 0) {
+                    sb.append("Vaschetta Gelato (").append((int) (v.getPesoKg() * 1000)).append("g)");
+                } else {
+                    sb.append("Articolo #").append(i + 1);
+                }
+            } else {
+                sb.append(d);
+            }
         }
         this.prezzoTotale = Math.round(sommaPrezzi * 100.0) / 100.0;
         this.pesoKg = sommaPeso;

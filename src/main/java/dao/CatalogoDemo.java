@@ -104,6 +104,13 @@ public final class CatalogoDemo {
         lista.add(new ProdottoDemo("Caffe Espresso", "Miscela 100% arabica tostata lentamente", "Nessuno", 1.2, "Caffetteria", "Caffe", ""));
         lista.add(new ProdottoDemo("Cappuccino", "Espresso con latte fresco montato a vapore", "Latte", 1.8, "Caffetteria", "Caffe", ""));
         lista.add(new ProdottoDemo("Affogato al Caffe", "Gelato fior di latte annegato nell'espresso caldo", "Latte", 4.0, "Caffetteria", "Specialita", ""));
+        lista.add(new ProdottoDemo("Caffe Macchiato", "Espresso cremoso con una morbida goccia di latte fresco caldo o freddo", "Latte", 1.3, "Caffetteria", "Caffe", ""));
+        lista.add(new ProdottoDemo("Caffe Marocchino", "Espresso con morbida schiuma di latte e spolverata generosa di cacao amaro", "Latte", 1.8, "Caffetteria", "Caffe", ""));
+        lista.add(new ProdottoDemo("Caffe Corretto", "Espresso 100% Arabica con goccia di grappa barricata o sambuca artigianale", "Nessuno", 2.0, "Caffetteria", "Caffe", ""));
+        lista.add(new ProdottoDemo("Caffe al Ginseng", "Bevanda cremosa ed energizzante all'estratto puro di ginseng naturale", "Latte", 1.8, "Caffetteria", "Specialita", ""));
+        lista.add(new ProdottoDemo("Caffe d'Orzo", "Caffe d'orzo tostato biologico in tazza grande, delicato e naturalmente privo di caffeina", "Glutine", 1.6, "Caffetteria", "Caffe", ""));
+        lista.add(new ProdottoDemo("Caffe Shakerato", "Espresso doppio montato con ghiaccio e sciroppo di canna, servito in coppa fredda", "Nessuno", 3.5, "Caffetteria", "Specialita", ""));
+        lista.add(new ProdottoDemo("Latte Macchiato", "Bicchiere alto di latte fresco intero montato con colata di espresso cremoso", "Latte", 2.2, "Caffetteria", "Specialita", ""));
 
         // Cioccolate Calde
         lista.add(new ProdottoDemo("Cioccolata Calda Fondente", "Cioccolata calda densa al cacao fondente Ecuador 75% servita con ciuffo di panna", "Latte", 6.5, "Cioccolate calde", "Classiche", ""));
@@ -115,13 +122,85 @@ public final class CatalogoDemo {
         lista.add(new ProdottoDemo("Cioccolata Calda al Pistacchio di Bronte", "Densa cioccolata calda bianca variegata con crema pura di Pistacchio di Bronte DOP", "Latte, Frutta a guscio", 6.5, "Cioccolate calde", "Speziate & Gourmet", ""));
         lista.add(new ProdottoDemo("Cioccolata Calda al Caramello Salato", "Cioccolata calda al latte con colata di caramello al burro salato di Bretagna", "Latte", 6.5, "Cioccolate calde", "Speziate & Gourmet", ""));
 
-        // Pasticceria e Tisane
+        // Biscotti
         lista.add(new ProdottoDemo("Cantucci alle Mandorle", "Biscotti toscani croccanti, ideali per il caffe", "Glutine, Frutta a guscio, Uova", 5.0, "Biscotti", "Secchi", ""));
         lista.add(new ProdottoDemo("Baci di Dama", "Frollini alla nocciola farciti di cioccolato", "Glutine, Frutta a guscio, Latte", 6.0, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Canestrelli Liguri", "Frollini friabili al profumo di vaniglia e scorza di limone, spolverati di zucchero a velo", "Glutine, Uova, Latte", 5.5, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Occhi di Bue all'Albicocca", "Due friabili dischi di frolla al burro con cuore vellutato di confettura d'albicocche", "Glutine, Uova, Latte", 4.5, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Frollini con Gocce di Cioccolato", "Classici frollini da inzuppo arricchiti con gocce di cioccolato fondente 60%", "Glutine, Uova, Latte", 4.5, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Amaretti Morbidi di Sassello", "Pasticcini di pasta di mandorle dolci e armelline dall'intenso profumo aromatico", "Frutta a guscio, Uova", 6.0, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Zaletti Veneziani", "Biscotti tradizionali con farina di mais fioretto, uvetta sultanina e sentore di limone", "Glutine, Uova, Latte", 5.0, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Ricciarelli di Siena IGP", "Morbidi dolcetti di pasta reale alle mandorle macinate e zucchero a velo", "Frutta a guscio, Uova", 6.5, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Diamanti alla Vaniglia Bourbon", "Biscottini di sablé fine alla vaniglia Bourbon del Madagascar con bordo croccante di zucchero", "Glutine, Uova, Latte", 5.0, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Biscotti Cacao e Sale di Cervia", "Biscotti intensi al cacao monorigine con cristalli croccanti di sale dolce di Cervia", "Glutine, Uova, Latte", 5.5, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Krumiri Artigianali", "I tradizionali biscotti rigati piemontesi dalla tipica forma curva al profumo di vaniglia", "Glutine, Uova, Latte", 5.5, "Biscotti", "Secchi", ""));
+        lista.add(new ProdottoDemo("Frollini alle Nocciole Piemonte", "Biscotti rustici ricchi di farina di Nocciola Piemonte IGP tostata", "Glutine, Frutta a guscio, Uova, Latte", 6.0, "Biscotti", "Secchi", ""));
+
+        // Crostate — Classiche
         lista.add(new ProdottoDemo("Crostata alla Marmellata", "Frolla al burro con confettura di albicocche", "Glutine, Uova, Latte", 2.8, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Visciole e Ricotta Romana", "Frolla dorata con ricotta fresca di pecora romana DOP e visciole intere brusche", "Glutine, Uova, Latte", 3.5, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata alla Nutella", "Morbida frolla artigianale al burro farcita con un ricco strato di Nutella Ferrero", "Glutine, Latte, Frutta a guscio, Uova", 3.2, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Crema Pasticcera e Pinoli", "Frolla classica con crema pasticcera al limone e pinoli italiani tostati", "Glutine, Uova, Latte, Frutta a guscio", 3.5, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Albicocche di Vignola", "Frolla profumata alla scorza d'arancia con confettura extra di albicocche di Vignola", "Glutine, Uova, Latte", 3.0, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Fichi e Noci", "Frolla rustica ripiena di confettura di fichi bianchi del Cilento e gherigli di noce", "Glutine, Frutta a guscio, Uova, Latte", 3.5, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Tradizionale al Limone", "Frolla friabile con crema vellutata cotta ai limoni di Sorrento IGP", "Glutine, Uova, Latte", 3.2, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Pere e Cioccolato Fondente", "Abbinamento classico tra pere Williams spadellate e ganache al cioccolato fondente 70%", "Glutine, Uova, Latte", 3.5, "Crostate", "Classiche", ""));
+        lista.add(new ProdottoDemo("Crostata Pesche e Amaretti", "Frolla farcita con confettura di pesche nettarine e granella croccante di amaretti", "Glutine, Uova, Latte, Frutta a guscio", 3.2, "Crostate", "Classiche", ""));
+
+        // Crostate — Alla frutta
         lista.add(new ProdottoDemo("Crostata ai Frutti di Bosco", "Crema pasticcera e frutti di bosco freschi", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta", ""));
-        lista.add(new ProdottoDemo("Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi", ""));
-        lista.add(new ProdottoDemo("Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi", ""));
+        lista.add(new ProdottoDemo("Crostata Fragoline di Nemi", "Guscio di frolla con crema chantilly e cascata di profumate fragoline di bosco fresche", "Glutine, Uova, Latte", 4.0, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Esotica Mango e Frutto della Passione", "Frolla friabile con bavarese leggera al mango Alphonso e glassa al maracuja", "Glutine, Uova, Latte", 4.0, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Lamponi e Crema Diplomatica", "Crema diplomatica alla vaniglia Bourbon con abbondanti lamponi freschi dell'Alto Adige", "Glutine, Uova, Latte", 4.0, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Mirtilli Neri Selvatici", "Crema pasticcera profumata al limone ricoperta da mirtilli neri selvatici di montagna", "Glutine, Uova, Latte", 3.8, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Agrumi di Sicilia", "Frolla fine con crema curd all'arancia rossa di Sicilia IGP e mandarino tardivo", "Glutine, Uova, Latte", 3.5, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Morbida Mele e Cannella", "Frolla con fettine sottili di mela Golden caramellata, cannella di Ceylon e uvetta", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata More di Rovo e Ribes", "Frolla con crema leggera e more selvatiche con ribes rosso fresco acidulo", "Glutine, Uova, Latte", 3.8, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Frutti Rossi e Crema Pistacchio", "Crema morbida al pistacchio di Bronte DOP con lamponi, mirtilli e more fresche", "Glutine, Uova, Latte, Frutta a guscio", 4.2, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Kiwi e Crema Pasticcera", "Frolla al burro con crema delicata e fettine fresche di kiwi italiano", "Glutine, Uova, Latte", 3.2, "Crostate", "Alla frutta", ""));
+        lista.add(new ProdottoDemo("Crostata Fichi Freschi e Miele", "Frolla arricchita da fichi neri freschi a fette, gocce di miele millefiori e timo limoncino", "Glutine, Uova, Latte", 3.8, "Crostate", "Alla frutta", ""));
+
+        // Crostate — Special
+        lista.add(new ProdottoDemo("Crostata Fondente Ecuador e Peperoncino", "Guscio sablé al cacao con ganache densa di cioccolato fondente 75% e infusione piccante", "Glutine, Uova, Latte", 4.2, "Crostate", "Special", ""));
+        lista.add(new ProdottoDemo("Crostata Frangipane al Pistacchio di Bronte", "Frolla croccante ripiena di morbida crema frangipane pura al pistacchio di Bronte DOP", "Glutine, Frutta a guscio, Uova, Latte", 4.5, "Crostate", "Special", ""));
+        lista.add(new ProdottoDemo("Crostata Cremino Caramello Salato e Noci Pecan", "Strati di ganache al cioccolato al latte, caramello al burro salato e noci pecan tostate", "Glutine, Frutta a guscio, Uova, Latte", 4.2, "Crostate", "Special", ""));
+        lista.add(new ProdottoDemo("Crostata Zabaione e Cioccolato Ruby", "Frolla dorata con crema soffice allo zabaione al Marsala e scaglie di cioccolato rosa Ruby", "Glutine, Uova, Latte", 4.5, "Crostate", "Special", ""));
+        lista.add(new ProdottoDemo("Crostata Delizia al Limone e Meringa", "Torta moderna con crema curd ai limoni d'Amalfi e soffice cupola di meringa all'italiana fiammeggiata", "Glutine, Uova, Latte", 4.2, "Crostate", "Special", ""));
+        lista.add(new ProdottoDemo("Crostata Cheesecake ai Mirtilli e Rosmarino", "Frolla sablé con crema cotta al formaggio fresco, composta di mirtilli e infusione di rosmarino", "Glutine, Uova, Latte", 4.2, "Crostate", "Special", ""));
+
+        // Tisane e Tè suddivisi per categorie: Tè Neri, Tè Verdi & Bianchi, Tisane Benessere, Infusi & Frutta
+        // Tè Neri
+        lista.add(new ProdottoDemo("Te Nero Earl Grey Bergamotto", "Miscele di tè neri d'alta quota aromatizzati con olio essenziale di bergamotto di Calabria", "Nessuno", 2.8, "Tisane", "Tè Neri", ""));
+        lista.add(new ProdottoDemo("Te Nero English Breakfast", "Classico blend corposo e robusto di tè di Ceylon e Assam, perfetto per il mattino", "Nessuno", 2.8, "Tisane", "Tè Neri", ""));
+        lista.add(new ProdottoDemo("Te Chai Speziato Indiano", "Tè nero infuso con cannella, cardamomo, chiodi di garofano, pepe nero e zenzero", "Nessuno", 3.0, "Tisane", "Tè Neri", ""));
+        lista.add(new ProdottoDemo("Te Nero Darjeeling Grand Cru", "Lo champagne dei tè neri, raccolto ai piedi dell'Himalaya con note moscate", "Nessuno", 3.5, "Tisane", "Tè Neri", ""));
+
+        // Tè Verdi & Bianchi
+        lista.add(new ProdottoDemo("Te Verde Matcha Giapponese", "Pregiato tè verde Uji macinato a pietra, ricco di antiossidanti dal gusto erbaceo vellutato", "Nessuno", 3.5, "Tisane", "Tè Verdi & Bianchi", ""));
+        lista.add(new ProdottoDemo("Te Bianco Silver Needle", "Gemme apicali primaverili raccolte a mano, delicatissimo con note floreali di gelsomino", "Nessuno", 3.8, "Tisane", "Tè Verdi & Bianchi", ""));
+        lista.add(new ProdottoDemo("Te Verde Gunpowder alla Menta", "Tè verde arrotolato in palline infuso con foglie di menta Nanah marocchina", "Nessuno", 2.8, "Tisane", "Tè Verdi & Bianchi", ""));
+        lista.add(new ProdottoDemo("Te Verde Jasmine al Gelsomino", "Foglie di tè verde profumate naturalmente durante la notte con boccioli di gelsomino fresco", "Nessuno", 3.0, "Tisane", "Tè Verdi & Bianchi", ""));
+        lista.add(new ProdottoDemo("Te Bancha Fiorito", "Tè verde giapponese a basso contenuto di caffeina con fiori di fiordaliso e girasole", "Nessuno", 2.8, "Tisane", "Tè Verdi & Bianchi", ""));
+        lista.add(new ProdottoDemo("Te Verde Sencha Makoto", "Tè verde tradizionale a foglia intera dal profilo fresco, vegetale e dissetante", "Nessuno", 3.0, "Tisane", "Tè Verdi & Bianchi", ""));
+        lista.add(new ProdottoDemo("Te Oolong Imperiale", "Tè semi-ossidato con note tostate di noce e miele castagno, morbido e persistente", "Nessuno", 3.2, "Tisane", "Tè Verdi & Bianchi", ""));
+
+        // Tisane Benessere
+        lista.add(new ProdottoDemo("Tisana Relax Camomilla e Miele", "Fiori di camomilla selvatica setacciata con sentori naturali di miele di zagara e melissa", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Digestiva Finocchio e Anice", "Miscela benefica di semi di finocchio dolce, anice stellato e radice di liquirizia", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Depurativa Tarassaco e Betulla", "Infuso detossinante con foglie di betulla, tarassaco, cardo mariano ed equiseto", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Balsamica Timo ed Eucalipto", "Infusione aromatica e rinfrescante con timo serpillo, foglie di eucalipto e menta", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Vitalita Ginseng e Guarana", "Infuso energizzante e rinvigorente naturale con radice di ginseng coreano e guaranà", "Nessuno", 3.0, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Fiori d'Arancio e Melissa", "Infuso serale rilassante con fiori d'arancio amaro, melissa officinale e lavanda", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Curcuma Zenzero e Cannella", "Infuso dorato speziato ad alto potere antinfiammatorio e digestivo", "Nessuno", 3.0, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Menta Piperita e Liquirizia", "Equilibrio rinfrescante e dolce tra menta piperita alpina e pura radice di liquirizia DOP", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+        lista.add(new ProdottoDemo("Tisana Sogni d'Oro Passiflora e Tiglio", "Infuso calmante serale con fiori di tiglio, passiflora, verbena e melissa", "Nessuno", 2.8, "Tisane", "Tisane Benessere", ""));
+
+        // Infusi & Frutta
+        lista.add(new ProdottoDemo("Tisana Zenzero e Limone", "Infuso caldo digestivo e rinfrescante", "Nessuno", 2.5, "Tisane", "Infusi & Frutta", ""));
+        lista.add(new ProdottoDemo("Tisana ai Frutti Rossi", "Infuso fruttato senza caffeina", "Nessuno", 2.5, "Tisane", "Infusi & Frutta", ""));
+        lista.add(new ProdottoDemo("Tisana Rosa Canina e Ibisco", "Infuso vitaminico dal colore rubino con bacche di rosa canina e fiori di ibisco karkadè", "Nessuno", 2.8, "Tisane", "Infusi & Frutta", ""));
+        lista.add(new ProdottoDemo("Tisana Mirtillo e Lavanda", "Infuso rilassante e antiossidante con mirtilli rossi, mirtilli neri e fiori di lavanda", "Nessuno", 3.0, "Tisane", "Infusi & Frutta", ""));
+        lista.add(new ProdottoDemo("Te Rooibos Vaniglia e Mandorla", "Infuso rosso sudafricano privo di teina con bacche di vaniglia Bourbon e petali di fiori", "Frutta a guscio", 3.0, "Tisane", "Infusi & Frutta", ""));
 
         return lista;
     }
@@ -137,10 +216,12 @@ public final class CatalogoDemo {
         String insertSql = "INSERT INTO menu_gusti (nome_gusto, descrizione, allergeni, prezzo_al_kg, disponibile, categoria, sottocategoria, immagine_url) "
                 + "VALUES (?, ?, ?, ?, 1, ?, ?, ?)";
         String updateFotoSql = "UPDATE menu_gusti SET immagine_url = ? WHERE nome_gusto = ? AND (immagine_url IS NULL OR immagine_url = '')";
+        String updateSottoSql = "UPDATE menu_gusti SET sottocategoria = ? WHERE nome_gusto = ?";
 
         try (PreparedStatement psCheck = conn.prepareStatement(checkSql);
              PreparedStatement psIns = conn.prepareStatement(insertSql);
-             PreparedStatement psFoto = conn.prepareStatement(updateFotoSql)) {
+             PreparedStatement psFoto = conn.prepareStatement(updateFotoSql);
+             PreparedStatement psSotto = conn.prepareStatement(updateSottoSql)) {
 
             for (ProdottoDemo p : PRODOTTI) {
                 psCheck.setString(1, p.nome());
@@ -151,6 +232,10 @@ public final class CatalogoDemo {
                     }
                 }
                 if (esiste) {
+                    psSotto.setString(1, p.sottocategoria());
+                    psSotto.setString(2, p.nome());
+                    psSotto.executeUpdate();
+
                     if (p.immagineUrl() != null && !p.immagineUrl().isEmpty()) {
                         psFoto.setString(1, p.immagineUrl());
                         psFoto.setString(2, p.nome());

@@ -21,6 +21,7 @@ public final class SchemaDatabase {
         try (Statement stmt = conn.createStatement()) {
             creaTabelle(stmt);
             migraMenuGustiSeNecessario(stmt);
+            migraIngredientiSeNecessario(stmt);
             popolaDatiIniziali(conn, stmt, isMySql);
         }
     }
@@ -81,7 +82,8 @@ public final class SchemaDatabase {
                 + "nome VARCHAR(64) PRIMARY KEY, "
                 + "quantita_disponibile DOUBLE NOT NULL, "
                 + "soglia_minima DOUBLE NOT NULL, "
-                + "unita_misura VARCHAR(20) NOT NULL)");
+                + "unita_misura VARCHAR(20) NOT NULL, "
+                + "categoria VARCHAR(50) NOT NULL DEFAULT 'Laboratorio & Basi')");
 
         stmt.execute("CREATE TABLE IF NOT EXISTS menu_gusti ("
                 + "nome_gusto VARCHAR(64) PRIMARY KEY, "
@@ -124,6 +126,22 @@ public final class SchemaDatabase {
             stmt.execute("UPDATE menu_gusti SET sottocategoria = 'Cioccolato' WHERE nome_gusto LIKE 'Fondente%'");
             stmt.execute("UPDATE menu_gusti SET sottocategoria = 'Frutta' "
                     + "WHERE nome_gusto LIKE 'Sorbetto%' OR nome_gusto LIKE 'Mango%'");
+        }
+    }
+
+    private static void migraIngredientiSeNecessario(Statement stmt) throws SQLException {
+        boolean haCategoria = false;
+        try (ResultSet rs = stmt.executeQuery("SELECT * FROM ingredienti LIMIT 1")) {
+            ResultSetMetaData md = rs.getMetaData();
+            for (int i = 1; i <= md.getColumnCount(); i++) {
+                if ("categoria".equalsIgnoreCase(md.getColumnName(i))) {
+                    haCategoria = true;
+                    break;
+                }
+            }
+        }
+        if (!haCategoria) {
+            stmt.execute("ALTER TABLE ingredienti ADD COLUMN categoria VARCHAR(50) NOT NULL DEFAULT 'Laboratorio & Basi'");
         }
     }
 

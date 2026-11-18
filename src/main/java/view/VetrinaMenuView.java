@@ -174,7 +174,7 @@ public class VetrinaMenuView {
 
     public static void mostraMessaggioEsito(Label lbl, String msg, boolean errore) {
         if (lbl == null) return;
-        lbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + (errore ? "#d62828" : "#2a9d8f") + ";");
+        lbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + (errore ? "#ef4444" : "#baa487") + ";");
         lbl.setText(msg);
     }
 
@@ -188,18 +188,18 @@ public class VetrinaMenuView {
         spunta.setAlignment(Pos.CENTER);
         spunta.setMinSize(46, 46);
         spunta.setMaxSize(46, 46);
-        spunta.setStyle("-fx-background-color: #588157; -fx-background-radius: 23; -fx-text-fill: white;"
+        spunta.setStyle("-fx-background-color: #baa487; -fx-background-radius: 23; -fx-text-fill: #141312;"
                 + " -fx-font-size: 24px; -fx-font-weight: bold;");
 
         Label lblTitolo = new Label(titolo);
         lblTitolo.setWrapText(true);
         lblTitolo.setMinHeight(Region.USE_PREF_SIZE);
         lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 17px; -fx-font-weight: bold;"
-                + " -fx-text-fill: #3a2618;");
+                + " -fx-text-fill: #f5ebe0;");
         Label lblMessaggio = new Label(messaggio);
         lblMessaggio.setWrapText(true);
         lblMessaggio.setMinHeight(Region.USE_PREF_SIZE);
-        lblMessaggio.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f5539;");
+        lblMessaggio.setStyle("-fx-font-size: 13px; -fx-text-fill: #ded7cd;");
         VBox testi = new VBox(4, lblTitolo, lblMessaggio);
         testi.setMinWidth(0);
         testi.setPrefWidth(larghezza - 46 - 16 - 48);
@@ -210,9 +210,9 @@ public class VetrinaMenuView {
         scheda.setPrefWidth(larghezza);
         scheda.setMinWidth(larghezza);
         scheda.setMaxWidth(larghezza);
-        scheda.setStyle("-fx-padding: 18 24; -fx-background-color: #fffdfa; -fx-background-radius: 18;"
-                + " -fx-border-color: #d5bdaf; -fx-border-radius: 18; -fx-border-width: 1;"
-                + " -fx-effect: dropshadow(gaussian, rgba(60,40,20,0.35), 22, 0.1, 0, 6); -fx-cursor: hand;");
+        scheda.setStyle("-fx-padding: 18 24; -fx-background-color: rgba(20,18,22,0.96); -fx-background-radius: 18;"
+                + " -fx-border-color: rgba(186,164,135,0.45); -fx-border-radius: 18; -fx-border-width: 1.2;"
+                + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.70), 22, 0.1, 0, 6); -fx-cursor: hand;");
         scheda.setOpacity(0);
         scheda.setTranslateY(-16);
 
@@ -294,10 +294,10 @@ public class VetrinaMenuView {
             Button b = new Button(emojiCategoria(c) + " " + c);
             b.setMinWidth(Region.USE_PREF_SIZE);
             boolean attiva = c.equals(categoriaSelezionata);
-            b.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 12;"
+            b.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 14;"
                     + " -fx-cursor: hand; "
-                    + (attiva ? "-fx-background-color: #7f5539; -fx-text-fill: white;"
-                    : "-fx-background-color: #ede0d4; -fx-text-fill: #5c3a21;"));
+                    + (attiva ? "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.4), 6, 0, 0, 1);"
+                    : "-fx-background-color: rgba(28,26,30,0.85); -fx-text-fill: #baa487; -fx-border-color: rgba(186,164,135,0.32); -fx-border-radius: 18;"));
             b.setOnAction(e -> {
                 categoriaSelezionata = c;
                 sottocategoriaSelezionata = null;
@@ -333,8 +333,8 @@ public class VetrinaMenuView {
         boolean attiva = Objects.equals(valore, sottocategoriaSelezionata);
         chip.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 14; -fx-padding: 4 14;"
                 + " -fx-cursor: hand; "
-                + (attiva ? "-fx-background-color: #588157; -fx-text-fill: white;"
-                : "-fx-background-color: white; -fx-text-fill: #588157; -fx-border-color: #588157;"
+                + (attiva ? "-fx-background-color: #baa487; -fx-text-fill: #141312;"
+                : "-fx-background-color: rgba(28,26,30,0.85); -fx-text-fill: #ded7cd; -fx-border-color: rgba(186,164,135,0.25);"
                 + " -fx-border-radius: 14;"));
         chip.setOnAction(e -> {
             sottocategoriaSelezionata = valore;
@@ -366,29 +366,29 @@ public class VetrinaMenuView {
                                                javafx.scene.Node nodoExtra,
                                                boolean selezionata) {
         StackPane foto = creaBoxFotoProdotto(g.getImmagineUrl(), emojiCategoria(g.getCategoria()), larghezza, altezzaFoto, 22);
-        foto.setStyle("-fx-background-color: #f1e3d3; -fx-background-radius: 11 11 0 0;");
+        foto.setStyle("-fx-background-color: rgba(18,16,20,0.95); -fx-background-radius: 11 11 0 0; -fx-border-color: rgba(186,164,135,0.18); -fx-border-width: 0 0 1 0;");
 
         Label nome = new Label(g.getNome());
         nome.setWrapText(true);
         nome.setPrefWidth(larghezza - 18);
         nome.setMinHeight(Region.USE_PREF_SIZE);
-        nome.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #3a2618;");
+        nome.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
 
         Label descrizione = new Label(g.getDescrizione());
         descrizione.setWrapText(true);
         descrizione.setPrefWidth(larghezza - 18);
         descrizione.setMaxHeight(32);
-        descrizione.setStyle("-fx-font-size: 10.5px; -fx-text-fill: #6b4f3a;");
+        descrizione.setStyle("-fx-font-size: 10.5px; -fx-text-fill: #ded7cd;");
 
         String unita = "Gelati".equalsIgnoreCase(g.getCategoria()) ? "/kg" : "";
         Label prezzo = new Label(String.format("EUR %.2f%s", g.getPrezzoAlKg(), unita));
         prezzo.setMinWidth(Region.USE_PREF_SIZE);
-        prezzo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #7f5539;");
+        prezzo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;");
 
         Label badge = new Label(g.isDisponibileOggi() ? "● Disponibile" : "● Esaurito");
         badge.setMinWidth(Region.USE_PREF_SIZE);
         badge.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: "
-                + (g.isDisponibileOggi() ? "#2a9d8f" : "#d62828") + ";");
+                + (g.isDisponibileOggi() ? "#a7f3d0" : "#fca5a5") + ";");
 
         HBox riga = new HBox(4, prezzo, new Region(), badge);
         HBox.setHgrow(riga.getChildren().get(1), Priority.ALWAYS);
@@ -398,7 +398,7 @@ public class VetrinaMenuView {
         allergeni.setWrapText(true);
         allergeni.setPrefWidth(larghezza - 18);
         allergeni.setMaxHeight(26);
-        allergeni.setStyle("-fx-font-size: 9.5px; -fx-text-fill: #9c6644;");
+        allergeni.setStyle("-fx-font-size: 9.5px; -fx-text-fill: #a89f92;");
 
         VBox testi = new VBox(3, nome, descrizione, riga, allergeni);
         if (nodoExtra != null) {
@@ -410,13 +410,14 @@ public class VetrinaMenuView {
         scheda.setPrefWidth(larghezza);
         scheda.setMinWidth(larghezza);
         scheda.setMaxWidth(larghezza);
-        scheda.setStyle("-fx-background-color: white; -fx-background-radius: 12;"
+        scheda.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-background-radius: 12;"
                 + (selezionata
-                ? " -fx-border-color: #588157; -fx-border-width: 3; -fx-border-radius: 12;"
-                + " -fx-effect: dropshadow(gaussian, rgba(88,129,87,0.6), 12, 0, 0, 0);"
-                : " -fx-effect: dropshadow(gaussian, rgba(60,40,20,0.22), 7, 0, 0, 2);"));
+                ? " -fx-border-color: #baa487; -fx-border-width: 2.2; -fx-border-radius: 12;"
+                + " -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.45), 14, 0, 0, 2);"
+                : " -fx-border-color: rgba(186,164,135,0.28); -fx-border-width: 1; -fx-border-radius: 12;"
+                + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0, 0, 3);"));
         if (!g.isDisponibileOggi()) {
-            scheda.setOpacity(0.6);
+            scheda.setOpacity(0.55);
         }
         return scheda;
     }
@@ -427,7 +428,7 @@ public class VetrinaMenuView {
         if (allaSelezione != null) {
             btnModifica = new Button("✏️ Modifica");
             btnModifica.setMaxWidth(Double.MAX_VALUE);
-            btnModifica.setStyle("-fx-background-color: #7f5539; -fx-text-fill: white; -fx-font-weight: bold;"
+            btnModifica.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold;"
                     + " -fx-font-size: 11.5px; -fx-background-radius: 9; -fx-padding: 5 10; -fx-cursor: hand;");
             btnModifica.setOnAction(e -> {
                 prodottoSelezionato = g.getNome();

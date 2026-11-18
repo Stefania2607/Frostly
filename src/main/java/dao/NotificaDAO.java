@@ -11,4 +11,6 @@ public interface NotificaDAO {
     List<Notifica> caricaNotifichePerUtente(String emailDestinatario);
 
     void inviaNotifica(Notifica notifica);
+
+    void eliminaNotifica(String emailDestinatario, String titolo, String timestamp);
 }

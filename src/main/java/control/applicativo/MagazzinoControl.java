@@ -38,7 +38,8 @@ public class MagazzinoControl {
                     Math.round(ing.getQuantitaDisponibile() * 100.0) / 100.0,
                     ing.getSogliaMinima(),
                     ing.getUnitaMisura(),
-                    ing.isSottoSoglia()));
+                    ing.isSottoSoglia(),
+                    ing.getCategoria()));
         }
         return risultato;
     }
@@ -111,7 +112,7 @@ public class MagazzinoControl {
             throw new DatiNonValidiException("La voce '" + nome + "' e' gia' presente a magazzino.");
         }
 
-        Ingrediente nuovo = new Ingrediente(nome, bean.getQuantitaDisponibile(), bean.getSogliaMinima(), unita);
+        Ingrediente nuovo = new Ingrediente(nome, bean.getQuantitaDisponibile(), bean.getSogliaMinima(), unita, bean.getCategoria());
         ingredienteDAO.salvaNuovoIngrediente(nuovo);
     }
 

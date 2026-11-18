@@ -121,26 +121,26 @@ public final class ClienteMenuView {
 
         String unita = "Gelati".equalsIgnoreCase(categoria) ? (numeroProdotti + " gusti") : (numeroProdotti + " prodotti");
         Label badgeCount = new Label(unita);
-        badgeCount.setStyle("-fx-background-color: rgba(58,38,24,0.82); -fx-text-fill: #fffdfa; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10;");
+        badgeCount.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10;");
         StackPane.setAlignment(badgeCount, Pos.TOP_RIGHT);
         StackPane.setMargin(badgeCount, new javafx.geometry.Insets(8, 8, 0, 0));
 
         topIconBox.getChildren().addAll(lblIconaGrande, badgeCount);
 
         Label lblTitolo = new Label(categoria);
-        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3a2618;");
+        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;");
 
         Label lblDesc = new Label(descrizioneMacroCategoria(categoria));
         lblDesc.setWrapText(true);
         lblDesc.setPrefWidth(larghezza - 24);
         lblDesc.setMinHeight(46);
         lblDesc.setAlignment(Pos.TOP_LEFT);
-        lblDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: #6b4f3a;");
+        lblDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
 
         Button btnApri = new Button("Apri " + categoria + " ➔");
         btnApri.setMaxWidth(Double.MAX_VALUE);
         btnApri.setMinHeight(Region.USE_PREF_SIZE);
-        btnApri.setStyle("-fx-background-color: #7f5539; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 6 12; -fx-cursor: hand;");
+        btnApri.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 6 12; -fx-cursor: hand;");
         btnApri.setOnAction(e -> {
             onClick.run();
             e.consume();
@@ -153,7 +153,7 @@ public final class ClienteMenuView {
         card.setPrefWidth(larghezza);
         card.setMinWidth(larghezza);
         card.setMaxWidth(larghezza);
-        card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 14; -fx-border-color: #e6d5c3; -fx-border-radius: 14; -fx-border-width: 1.5; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(60,40,20,0.22), 10, 0, 0, 3);");
+        card.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-background-radius: 14; -fx-border-color: rgba(186,164,135,0.32); -fx-border-radius: 14; -fx-border-width: 1.2; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0, 0, 3);");
         card.setOnMouseClicked(e -> onClick.run());
         return card;
     }
@@ -184,22 +184,13 @@ public final class ClienteMenuView {
             return "Crostate di frolla al burro alla marmellata o ai frutti di bosco.";
         }
         if ("Tisane".equalsIgnoreCase(categoria)) {
-            return "Infusi caldi rilassanti Zenzero & Limone e Frutti Rossi.";
+            return "Pregiati Tè neri, verdi e bianchi dal mondo, tisane biologiche ed infusi fruttati.";
         }
         return "Scopri e seleziona i prodotti artigianali di questa categoria.";
     }
 
     private static String coloreSfondoMacroCategoria(String categoria) {
-        if ("Gelati".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #f5ebe0, #e3d5ca)";
-        if ("Crepes".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #faedcd, #ddb892)";
-        if ("Panna".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #fffdfa, #ede0d4)";
-        if ("Cioccolate calde".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #e6ccb2, #b08968)";
-        if ("Bevande".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #e0fbfc, #bde0fe)";
-        if ("Caffetteria".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #ede0d4, #b08968)";
-        if ("Biscotti".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #fefae0, #e9edc9)";
-        if ("Crostate".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #ffedd8, #f3d5b5)";
-        if ("Tisane".equalsIgnoreCase(categoria)) return "linear-gradient(to bottom right, #d8f3dc, #b7e4c7)";
-        return "#f1e3d3";
+        return "linear-gradient(to bottom right, rgba(38,34,42,0.9), rgba(22,20,25,0.95))";
     }
 
     public static void renderGrigliaProdottiSelezionabili(VBox contenitore,
@@ -277,8 +268,8 @@ public final class ClienteMenuView {
         btnAzione.setMinHeight(Region.USE_PREF_SIZE);
         btnAzione.setDisable(!g.isDisponibileOggi());
         btnAzione.setStyle(selezionata
-                ? "-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand;"
-                : "-fx-background-color: #7f5539; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand;");
+                ? "-fx-background-color: rgba(30,65,48,0.9); -fx-text-fill: #a7f3d0; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand; -fx-border-color: #10b981; -fx-border-radius: 10;"
+                : "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand;");
         btnAzione.setOnAction(ev -> {
             onClickAzione.run();
             ev.consume();

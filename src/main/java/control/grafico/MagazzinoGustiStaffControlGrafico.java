@@ -10,7 +10,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.stage.Window;
 import view.MagazzinoStaffView;
+import view.StaffMenuEditorView;
 
 /**
  * Controller Grafico dedicato alla gestione del Magazzino Materie Prime
@@ -35,6 +37,11 @@ public class MagazzinoGustiStaffControlGrafico {
     private ListView<String> listaRichiesteGusto;
     private TextField campoCodRichiesta;
     private TextField campoRispostaGusto;
+    private ComboBox<String> comboCategoriaMagazzino;
+    private TextField campoRicercaMagazzino;
+    private String categoriaMagazzinoSelezionata = "Tutti";
+    private String testoRicercaCorrente = "";
+    private final java.util.List<IngredienteBean> tuttiIngredientiCaricati = new java.util.ArrayList<>();
     private final BiConsumer<String, Boolean> notificaEsito;
     private final Runnable onAggiornaGlobale;
 
@@ -42,6 +49,43 @@ public class MagazzinoGustiStaffControlGrafico {
                                              Runnable onAggiornaGlobale) {
         this.notificaEsito = notificaEsito;
         this.onAggiornaGlobale = onAggiornaGlobale;
+    }
+
+    public void legaFiltriMagazzino(ComboBox<String> comboCategoriaMagazzino, TextField campoRicercaMagazzino) {
+        this.comboCategoriaMagazzino = comboCategoriaMagazzino;
+        this.campoRicercaMagazzino = campoRicercaMagazzino;
+        if (this.comboCategoriaMagazzino != null) {
+            this.comboCategoriaMagazzino.getItems().setAll(
+                    "Tutte le Categorie",
+                    "🍨 Gelati",
+                    "☕ Caffetteria",
+                    "🍵 Tè e Tisane",
+                    "🍪 Biscotti",
+                    "🥧 Crostate",
+                    "🍫 Cioccolate calde",
+                    "🥤 Bevande",
+                    "🥞 Crepes",
+                    "🥛 Panna",
+                    "📦 Laboratorio & Basi"
+            );
+            this.comboCategoriaMagazzino.setValue("Tutte le Categorie");
+            this.comboCategoriaMagazzino.valueProperty().addListener((obs, oldVal, newVal) -> {
+                this.categoriaMagazzinoSelezionata = pulisciNomeCategoria(newVal);
+                applicaFiltriMagazzino();
+            });
+        }
+        if (this.campoRicercaMagazzino != null) {
+            this.campoRicercaMagazzino.textProperty().addListener((obs, oldVal, newVal) -> {
+                this.testoRicercaCorrente = (newVal != null) ? newVal.trim().toLowerCase() : "";
+                applicaFiltriMagazzino();
+            });
+        }
+    }
+
+    private String pulisciNomeCategoria(String raw) {
+        if (raw == null || raw.contains("Tutte")) return "Tutti";
+        int primoSpazio = raw.indexOf(' ');
+        return (primoSpazio > 0) ? raw.substring(primoSpazio + 1).trim() : raw.trim();
     }
 
     public void legaCampiMagazzino(ListView<IngredienteBean> listaMagazzino,
@@ -136,10 +180,10 @@ public class MagazzinoGustiStaffControlGrafico {
         }
 
         if (listaMagazzino != null) {
-            listaMagazzino.getItems().clear();
+            tuttiIngredientiCaricati.clear();
             int sottoSoglia = 0;
             for (IngredienteBean ing : magCtrl.visualizzaMagazzino()) {
-                listaMagazzino.getItems().add(ing);
+                tuttiIngredientiCaricati.add(ing);
                 if (ing.isSottoSoglia()) {
                     sottoSoglia++;
                 }
@@ -149,6 +193,7 @@ public class MagazzinoGustiStaffControlGrafico {
                         ? "✅ Tutte le scorte sono sufficienti"
                         : "⚠️ " + sottoSoglia + " ingredienti sotto soglia: da riordinare");
             }
+            applicaFiltriMagazzino();
         }
 
         int scorteUrgenti = 0;
@@ -173,6 +218,26 @@ public class MagazzinoGustiStaffControlGrafico {
             }
         }
         return scorteUrgenti;
+    }
+
+    private void applicaFiltriMagazzino() {
+        if (listaMagazzino == null) return;
+        listaMagazzino.getItems().clear();
+        for (IngredienteBean ing : tuttiIngredientiCaricati) {
+            if (categoriaMagazzinoSelezionata != null
+                    && !"Tutti".equalsIgnoreCase(categoriaMagazzinoSelezionata)
+                    && !ing.appartieneACategoria(categoriaMagazzinoSelezionata)) {
+                continue;
+            }
+            if (testoRicercaCorrente != null && !testoRicercaCorrente.isEmpty()) {
+                String nome = ing.getNome() != null ? ing.getNome().toLowerCase() : "";
+                String cat = ing.getCategoria() != null ? ing.getCategoria().toLowerCase() : "";
+                if (!nome.contains(testoRicercaCorrente) && !cat.contains(testoRicercaCorrente)) {
+                    continue;
+                }
+            }
+            listaMagazzino.getItems().add(ing);
+        }
     }
 
     public void registraRifornimentoManuale() {
@@ -243,10 +308,24 @@ public class MagazzinoGustiStaffControlGrafico {
         }
     }
 
+    private Window ricavaFinestraAttiva() {
+        if (listaMagazzino != null && listaMagazzino.getScene() != null) {
+            return listaMagazzino.getScene().getWindow();
+        }
+        if (campoNomeIngredienteRifornimento != null && campoNomeIngredienteRifornimento.getScene() != null) {
+            return campoNomeIngredienteRifornimento.getScene().getWindow();
+        }
+        return null;
+    }
+
     public void aggiungiNuovoIngrediente() {
         try {
             String nome = campoNuovoNomeIngrediente != null ? campoNuovoNomeIngrediente.getText() : null;
             if (nome == null || nome.trim().isEmpty()) {
+                Window win = ricavaFinestraAttiva();
+                if (win != null) {
+                    StaffMenuEditorView.mostraPopupAvviso(win, "Nome Mancante", "Inserisci il nome del prodotto o materia prima da aggiungere al magazzino.");
+                }
                 notificaEsito.accept("⚠️ Inserisci il nome della nuova voce di magazzino.", true);
                 return;
             }
@@ -259,6 +338,10 @@ public class MagazzinoGustiStaffControlGrafico {
                 try {
                     qta = Double.parseDouble(qtaStr.trim().replace(",", "."));
                 } catch (NumberFormatException e) {
+                    Window win = ricavaFinestraAttiva();
+                    if (win != null) {
+                        StaffMenuEditorView.mostraPopupAvviso(win, "Quantità Non Valida", "Inserisci una quantità numerica valida (es. 10 o 2.5).");
+                    }
                     notificaEsito.accept("⚠️ Inserisci una quantita' iniziale valida.", true);
                     return;
                 }
@@ -268,6 +351,10 @@ public class MagazzinoGustiStaffControlGrafico {
                 try {
                     soglia = Double.parseDouble(sogliaStr.trim().replace(",", "."));
                 } catch (NumberFormatException e) {
+                    Window win = ricavaFinestraAttiva();
+                    if (win != null) {
+                        StaffMenuEditorView.mostraPopupAvviso(win, "Soglia Non Valida", "Inserisci una soglia minima valida (es. 5 o 1.0).");
+                    }
                     notificaEsito.accept("⚠️ Inserisci una soglia minima valida.", true);
                     return;
                 }
@@ -278,6 +365,7 @@ public class MagazzinoGustiStaffControlGrafico {
             bean.setQuantitaDisponibile(qta);
             bean.setSogliaMinima(soglia);
             bean.setUnitaMisura(unita);
+            bean.setCategoria(model.Ingrediente.inferisciCategoria(nome.trim(), unita));
 
             new MagazzinoControl().aggiungiNuovoIngrediente(bean);
 
@@ -288,6 +376,10 @@ public class MagazzinoGustiStaffControlGrafico {
 
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {
+            Window win = ricavaFinestraAttiva();
+            if (win != null) {
+                StaffMenuEditorView.mostraPopupAvviso(win, "Attenzione", e.getMessage());
+            }
             notificaEsito.accept("⚠️ " + e.getMessage(), true);
         }
     }
@@ -296,6 +388,10 @@ public class MagazzinoGustiStaffControlGrafico {
         try {
             String nome = campoNomeIngredienteRifornimento != null ? campoNomeIngredienteRifornimento.getText() : null;
             if (nome == null || nome.trim().isEmpty()) {
+                Window win = ricavaFinestraAttiva();
+                if (win != null) {
+                    StaffMenuEditorView.mostraPopupAvviso(win, "Selezione Mancante", "Seleziona prima dalla lista del magazzino la voce da eliminare.");
+                }
                 notificaEsito.accept("⚠️ Seleziona prima dalla lista la voce da eliminare dal magazzino.", true);
                 return;
             }
@@ -306,6 +402,10 @@ public class MagazzinoGustiStaffControlGrafico {
 
             onAggiornaGlobale.run();
         } catch (FrostlyException e) {
+            Window win = ricavaFinestraAttiva();
+            if (win != null) {
+                StaffMenuEditorView.mostraPopupAvviso(win, "Attenzione", e.getMessage());
+            }
             notificaEsito.accept("⚠️ " + e.getMessage(), true);
         }
     }
