@@ -106,6 +106,15 @@ public final class SchemaDatabase {
                 + "risposta_maestro VARCHAR(1000), "
                 + "data_risposta VARCHAR(32), "
                 + "mi_piace INT NOT NULL DEFAULT 0)");
+
+        stmt.execute("CREATE TABLE IF NOT EXISTS pagamenti ("
+                + "codice_transazione VARCHAR(64) PRIMARY KEY, "
+                + "email_cliente VARCHAR(64) NOT NULL, "
+                + "importo DOUBLE NOT NULL, "
+                + "data_ora VARCHAR(32) NOT NULL, "
+                + "stato VARCHAR(20) NOT NULL, "
+                + "carta_mascherata VARCHAR(30) NOT NULL, "
+                + "modalita_consegna VARCHAR(255) NOT NULL)");
     }
 
     private static void migraMenuGustiSeNecessario(Statement stmt) throws SQLException {

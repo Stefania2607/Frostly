@@ -1,6 +1,8 @@
 package control.grafico;
 
 import bean.CarrelloBean;
+import bean.DatiConsegnaBean;
+import bean.EsitoPagamentoBean;
 import bean.GustoBean;
 import bean.NotificaBean;
 import bean.OrdineBean;
@@ -9,6 +11,7 @@ import bean.VaschettaItemBean;
 import control.applicativo.GestioneMenuControl;
 import control.applicativo.LoginControl;
 import control.applicativo.OrdiniControl;
+import control.applicativo.PagamentoControl;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +30,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import util.SessionManager;
 import view.CarrelloView;
+import view.CheckoutConsegnaView;
 import view.ClienteMenuView;
 import view.CrepeConfiguratoreView;
+import view.PagamentoOnlineView;
 import view.VetrinaMenuView;
 
 /**
@@ -342,30 +347,74 @@ public class GelateriaControlGrafico {
                     carrello.svuota();
                     aggiornaStatoCarrello();
                 },
-                (tipo, orario, note) -> {
-                    carrello.setModalitaConsegna(tipo);
-                    carrello.setFasciaOraria(orario);
-                    carrello.setIndirizzoONote(note);
-                    onClickPreOrdina();
-                });
+                (tipo, orario, note) -> avviaFlussoConsegnaEPagamento(tipo, owner));
     }
 
-    @FXML
-    public void onClickPreOrdina() {
-        try {
-            if (carrello.isVuoto()) {
-                boolean conPanna = checkPanna != null && checkPanna.isSelected();
-                if (!carrello.getGustiNellaVaschetta().isEmpty() || conPanna) {
-                    onClickAggiungiVaschettaAlCarrello();
-                } else {
-                    mostraEsito("⚠️ Aggiungi almeno un prodotto o una vaschetta al carrello prima di confermare l'ordine.", true);
-                    return;
-                }
+    private void avviaFlussoConsegnaEPagamento(String tipoSelezionato, Window owner) {
+        if (carrello.isVuoto()) {
+            boolean conPanna = checkPanna != null && checkPanna.isSelected();
+            if (!carrello.getGustiNellaVaschetta().isEmpty() || conPanna) {
+                onClickAggiungiVaschettaAlCarrello();
+            } else {
+                mostraEsito("⚠️ Aggiungi almeno un prodotto o una vaschetta al carrello prima del checkout.", true);
+                return;
             }
+        }
 
-            OrdineBean bean = carrello.costruisciOrdineBean(SessionManager.getInstance().getEmailUtenteLoggato());
+        DatiConsegnaBean datiIniziali = new DatiConsegnaBean();
+        datiIniziali.setTipoConsegna(DatiConsegnaBean.TipoConsegna.daStringa(tipoSelezionato));
+
+        CheckoutConsegnaView.apriPopupSceltaConsegna(
+                owner,
+                carrello.calcolaTotale(),
+                datiIniziali,
+                datiConfermati -> avviaFlussoPagamento(datiConfermati, owner),
+                this::onClickApriCarrello
+        );
+    }
+
+    private void avviaFlussoPagamento(DatiConsegnaBean datiConfermati, Window owner) {
+        PagamentoOnlineView.apriPopupPagamento(
+                owner,
+                carrello.calcolaTotale(),
+                datiConfermati,
+                cartaBean -> {
+                    try {
+                        PagamentoControl payCtrl = new PagamentoControl();
+                        String emailCliente = SessionManager.getInstance().getEmailUtenteLoggato();
+                        EsitoPagamentoBean esito = payCtrl.elaboraPagamento(
+                                cartaBean,
+                                carrello.calcolaTotale(),
+                                datiConfermati,
+                                emailCliente
+                        );
+                        PagamentoOnlineView.mostraRicevutaPagamento(
+                                owner,
+                                esito,
+                                () -> finalizzaOrdinePagato(datiConfermati, esito)
+                        );
+                    } catch (FrostlyException e) {
+                        mostraEsito("❌ Pagamento rifiutato: " + e.getMessage(), true);
+                        throw new RuntimeException(e.getMessage(), e);
+                    }
+                },
+                () -> avviaFlussoConsegnaEPagamento(datiConfermati.getTipoConsegna().getLabel(), owner)
+        );
+    }
+
+    private void finalizzaOrdinePagato(DatiConsegnaBean datiConfermati, EsitoPagamentoBean esito) {
+        try {
+            carrello.setModalitaConsegna(datiConfermati.getTipoConsegna().getLabel());
+            carrello.setFasciaOraria(datiConfermati.getOrarioRichiesto());
+            carrello.setIndirizzoONote(datiConfermati.costruisciStringaRiepilogoConsegna()
+                    + " [Transazione Online: " + esito.getCodiceTransazione() + " • " + esito.getCircuito() + " " + esito.getCartaMascherata() + "]");
+
+            String email = SessionManager.getInstance().getEmailUtenteLoggato();
+            OrdineBean bean = carrello.costruisciOrdineBean(email);
             OrdineBean confermato = new OrdiniControl().effettuaPreOrdine(bean);
-            mostraEsito("🛵 Ordine " + confermato.getCodiceOrdine() + " inviato alla Gelateria! Riceverai la notifica di conferma da Maestro o Dipendenti (" + carrello.getFasciaOraria() + ").", false);
+
+            mostraEsito("✅ Pagamento autorizzato (" + esito.getCodiceTransazione() + ")! Ordine "
+                    + confermato.getCodiceOrdine() + " inviato con successo (" + datiConfermati.getOrarioRichiesto() + ").", false);
 
             carrello.svuota();
             carrello.svuotaVaschettaInComposizione();
@@ -378,6 +427,13 @@ public class GelateriaControlGrafico {
         } catch (FrostlyException e) {
             mostraEsito("⚠️ " + e.getMessage(), true);
         }
+    }
+
+    @FXML
+    public void onClickPreOrdina() {
+        Window owner = (btnApriCarrello != null && btnApriCarrello.getScene() != null)
+                ? btnApriCarrello.getScene().getWindow() : null;
+        avviaFlussoConsegnaEPagamento("Consegna a Domicilio", owner);
     }
 
     // ================= STORICO ORDINI, GUSTO SU MISURA E LOGOUT =================

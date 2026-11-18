@@ -256,55 +256,39 @@ public final class CarrelloView {
             refreshInterno.run();
         });
 
-        VBox boxCheckout = new VBox(8);
-        boxCheckout.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 12 14;");
-
-        Label lblRitiroTit = new Label("🛵 Modalità di Consegna / Ritiro e Orario desiderato:");
-        lblRitiroTit.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
-
-        HBox rigaCombo = new HBox(10);
-        rigaCombo.setAlignment(Pos.CENTER_LEFT);
-        ComboBox<String> comboTipo = new ComboBox<>(FXCollections.observableArrayList(
-                "🛵 Consegna a Domicilio", "🛍️ Ritiro al Banco"));
-        comboTipo.setValue(carrello.getModalitaConsegna() != null ? carrello.getModalitaConsegna() : "🛵 Consegna a Domicilio");
-        comboTipo.setPrefWidth(220);
-
-        ComboBox<String> comboOra = new ComboBox<>(FXCollections.observableArrayList(
-                "Subito (~25-35 min)",
-                "Oggi 16:30", "Oggi 17:00", "Oggi 17:30", "Oggi 18:00",
-                "Oggi 18:30", "Oggi 19:00", "Oggi 19:30", "Oggi 20:00",
-                "Oggi 20:30", "Oggi 21:00", "Oggi 21:30", "Oggi 22:00",
-                "Domani 13:00", "Domani 18:00", "Domani 20:00"));
-        comboOra.setValue(carrello.getFasciaOraria() != null ? carrello.getFasciaOraria() : "Subito (~25-35 min)");
-        comboOra.setPrefWidth(190);
-        rigaCombo.getChildren().addAll(comboTipo, comboOra);
-
-        TextField txtNote = new TextField(carrello.getIndirizzoONote() != null ? carrello.getIndirizzoONote() : "");
-        txtNote.setPromptText("Indirizzo di consegna (es. Via Roma 10, int. 4) o note per la gelateria...");
-
-        boxCheckout.getChildren().addAll(lblRitiroTit, rigaCombo, txtNote);
-
-        HBox footer = new HBox(12);
+        HBox footer = new HBox(14);
         footer.setAlignment(Pos.CENTER_LEFT);
+        footer.setStyle("-fx-padding: 8 0 0 0;");
 
-        Button btnContinua = new Button("⬅ Continua a Scegliere dal Menu");
-        btnContinua.setStyle("-fx-background-color: rgba(38,35,40,0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 14; -fx-padding: 9 16; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
+        Button btnContinua = new Button("⬅ Continua ad Acquistare");
+        btnContinua.setStyle("-fx-background-color: rgba(38,35,40,0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 12; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
         btnContinua.setOnAction(e -> popup.close());
 
         Region spF = new Region();
         HBox.setHgrow(spF, Priority.ALWAYS);
 
-        Button btnInvia = new Button("🛵 Conferma e Invia Ordine");
-        btnInvia.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 14; -fx-padding: 9 20; -fx-cursor: hand;");
-        btnInvia.setOnAction(e -> {
+        final boolean[] procediSuccessivo = {false};
+        Button btnSuccessivo = new Button("Successivo ➔");
+        btnSuccessivo.setStyle("-fx-background-color: linear-gradient(to bottom, #baa487, #8c7355); -fx-text-fill: #141216; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 12; -fx-padding: 10 24; -fx-cursor: hand;");
+        btnSuccessivo.setOnAction(e -> {
+            if (carrello.isVuoto()) {
+                return;
+            }
+            procediSuccessivo[0] = true;
             popup.close();
-            onConfermaOrdine.accept(comboTipo.getValue(), comboOra.getValue(), txtNote.getText());
         });
 
-        footer.getChildren().addAll(btnContinua, spF, lblTotale, btnInvia);
+        footer.getChildren().addAll(btnContinua, spF, lblTotale, btnSuccessivo);
 
-        root.getChildren().addAll(top, scroll, boxCheckout, footer);
-        popup.setScene(new Scene(root));
+        root.getChildren().addAll(top, scroll, footer);
+        Scene scene = new Scene(root);
+        scene.setFill(javafx.scene.paint.Color.web("#121114"));
+        popup.setScene(scene);
+        popup.sizeToScene();
         popup.showAndWait();
+
+        if (procediSuccessivo[0] && onConfermaOrdine != null) {
+            onConfermaOrdine.accept("SUCCESSIVO", "", "");
+        }
     }
 }
