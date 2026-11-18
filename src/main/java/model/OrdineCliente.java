@@ -48,8 +48,11 @@ public class OrdineCliente {
             String d = v.getDescrizione();
             if (d == null) d = "";
             d = d.trim();
-            if (d.matches("^[Vv]aschetta #\\d+:\\s*.*")) {
-                d = d.replaceFirst("^[Vv]aschetta #\\d+:\\s*", "");
+            if (d.regionMatches(true, 0, "vaschetta #", 0, 11)) {
+                int colonIdx = d.indexOf(':');
+                if (colonIdx >= 0 && colonIdx < 20) {
+                    d = d.substring(colonIdx + 1).stripLeading();
+                }
             }
             if (d.isEmpty()) {
                 if (v.getPesoKg() > 0) {
