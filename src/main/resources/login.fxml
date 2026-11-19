@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane prefWidth="860" prefHeight="660" stylesheets="@style.css" styleClass="luxury-root-dark"
+           style="-fx-padding: 24;"
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="control.grafico.LoginControlGrafico">
+
+    <VBox spacing="11" alignment="CENTER" maxWidth="400" styleClass="luxury-black-gold-card"
+          style="-fx-padding: 28 34;">
+
+        <!-- 1. EMBLEMA MINIMALISTA & MODERNO FROSTLY -->
+        <StackPane alignment="CENTER">
+            <Circle radius="32" style="-fx-fill: #171617; -fx-stroke: #2e2b27; -fx-stroke-width: 1;"/>
+            <Circle radius="28" style="-fx-fill: transparent; -fx-stroke: #baa487; -fx-stroke-width: 0.8; -fx-stroke-dash-array: 2 3;"/>
+            <Label text="❄" style="-fx-font-size: 11px; -fx-text-fill: #baa487; -fx-padding: 0 0 16 0;"/>
+            <Label text="F" style="-fx-font-family: 'Georgia'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #ede6dc; -fx-padding: 6 0 0 0;"/>
+        </StackPane>
+
+        <!-- 2. BRANDING SOTTILE & TIPOGRAFIA ELEGANTE -->
+        <VBox alignment="CENTER" spacing="3">
+            <Label text="F R O S T L Y"
+                   style="-fx-font-family: 'Georgia'; -fx-font-size: 21px; -fx-font-weight: bold; -fx-text-fill: #ede6dc; -fx-letter-spacing: 4px;"/>
+            <Label text="HAUTE GELATERIA ARTIGIANALE • DAL 1984"
+                   style="-fx-font-family: 'Georgia'; -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: #8f8475; -fx-letter-spacing: 1.5px;"/>
+        </VBox>
+
+        <!-- 3. CONSULTAZIONE LIBERA -->
+        <VBox spacing="6" maxWidth="330">
+            <Button text="🍨  Consulta la Carta del Giorno (Accesso Libero)" onAction="#onClickApriMenuPubblico"
+                    prefWidth="330" styleClass="luxury-outline-btn"/>
+            <Button text="⭐  Recensioni d'Eccellenza dei Clienti" onAction="#onClickApriRecensioniPubbliche"
+                    prefWidth="330" styleClass="luxury-outline-btn"/>
+        </VBox>
+
+        <!-- SEPARATORE DISCRETO -->
+        <HBox alignment="CENTER" spacing="10" maxWidth="330" style="-fx-padding: 3 0;">
+            <Region HBox.hgrow="ALWAYS" style="-fx-background-color: #211f22; -fx-pref-height: 1; -fx-max-height: 1;"/>
+            <Label text="ACCESSO RISERVATO"
+                   style="-fx-font-family: 'Georgia'; -fx-font-size: 8px; -fx-font-weight: bold; -fx-text-fill: #736c64; -fx-letter-spacing: 1px;"/>
+            <Region HBox.hgrow="ALWAYS" style="-fx-background-color: #211f22; -fx-pref-height: 1; -fx-max-height: 1;"/>
+        </HBox>
+
+        <!-- 4. CAMPI AUTENTICAZIONE -->
+        <VBox spacing="7" maxWidth="330">
+            <Label text="Indirizzo Email"
+                   style="-fx-font-family: 'Georgia'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: #c7beb2;"/>
+            <TextField fx:id="campoEmail" promptText="nome@esempio.it" styleClass="luxury-input"/>
+
+            <Label text="Password"
+                   style="-fx-font-family: 'Georgia'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: #c7beb2;"/>
+            <PasswordField fx:id="campoPassword" promptText="Inserisci la password" styleClass="luxury-input"/>
+
+            <HBox spacing="14" alignment="CENTER" style="-fx-padding: 4 0 2 0;">
+                <HBox spacing="6" alignment="CENTER">
+                    <Label text="Versione:" style="-fx-font-family: 'Georgia'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: #8f8475;"/>
+                    <ComboBox fx:id="comboModalita" prefWidth="110" styleClass="luxury-combo"/>
+                </HBox>
+                <CheckBox fx:id="checkSecondaGui" text="Tema Notturno"
+                          style="-fx-font-family: 'Georgia'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: #8f8475;"/>
+            </HBox>
+        </VBox>
+
+        <!-- 5. PULSANTE ACCEDI -->
+        <Button text="ACCEDI AL SISTEMA" onAction="#onClickLogin" prefWidth="330" styleClass="luxury-gold-btn"/>
+
+        <!-- 6. REGISTRAZIONE SOTTILE -->
+        <VBox alignment="CENTER" spacing="4" maxWidth="330" style="-fx-padding: 2 0 0 0;">
+            <Label text="Non fai ancora parte del nostro Club di Gelateria?"
+                   style="-fx-font-size: 10px; -fx-text-fill: #666057; -fx-font-style: italic;"/>
+            <Button text="Crea un Nuovo Profilo Cliente" onAction="#onClickVaiARegistrazione"
+                    prefWidth="330" styleClass="luxury-sub-btn"/>
+        </VBox>
+
+        <!-- 7. MESSAGGIO ESITO -->
+        <Label fx:id="etichettaMessaggio" wrapText="true" alignment="CENTER"
+               style="-fx-text-fill: #e57373; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+    </VBox>
+</StackPane>

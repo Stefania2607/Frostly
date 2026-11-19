@@ -1,0 +1,396 @@
+/* ==========================================================================
+   FROSTLY — HAUTE GELATERIA & LUXURY TEA SALON
+   Design System: Quiet Luxury (Nero Ossidiana, Grafite Satinato, Oro Champagne)
+   ========================================================================== */
+
+/* 1. ROOT BACKGROUND: FOTOGRAFIA SALA DA TÈ & GELATERIA BOUTIQUE */
+.root, .root-light, .root-dark, .luxury-root-dark {
+    -fx-background-image: url("bg_frostly.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+    -fx-font-family: "Georgia", -apple-system, "SF Pro Display", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+/* 2. CARD PANELS: VETRO FUMÉ TRASLUCIDO CON FILETTO ORO CHAMPAGNE */
+.glass-card, .dark-card, .luxury-black-gold-card {
+    -fx-background-color: rgba(18, 17, 19, 0.88);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(186, 164, 135, 0.32);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 26, 0, 0, 8);
+}
+
+/* 2b. TILES DASHBOARD (QUIET LUXURY GLASS) */
+.luxury-tile {
+    -fx-background-color: rgba(26, 24, 28, 0.90);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(186, 164, 135, 0.28);
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.40), 12, 0, 0, 4);
+}
+
+.luxury-tile:hover {
+    -fx-background-color: rgba(35, 32, 38, 0.95);
+    -fx-border-color: rgba(186, 164, 135, 0.60);
+    -fx-effect: dropshadow(gaussian, rgba(186, 164, 135, 0.22), 16, 0, 0, 5);
+}
+
+.luxury-toolbar {
+    -fx-background-color: rgba(24, 22, 26, 0.85);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(186, 164, 135, 0.20);
+    -fx-border-radius: 10;
+    -fx-padding: 8 12;
+}
+
+/* 3. TOP NAVIGATION BAR */
+.top-bar-light, .top-bar-dark {
+    -fx-background-color: rgba(14, 13, 15, 0.94);
+    -fx-padding: 10 24;
+    -fx-border-color: transparent transparent rgba(186, 164, 135, 0.28) transparent;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 14, 0, 0, 3);
+}
+
+/* 4. CAMPI INPUT E COMBOBOX */
+.text-field, .password-field, .luxury-input {
+    -fx-background-color: rgba(13, 12, 14, 0.9);
+    -fx-background-radius: 8;
+    -fx-border-color: #2b282e;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 7 11;
+    -fx-text-fill: #ede6dc;
+    -fx-prompt-text-fill: #615a63;
+    -fx-font-size: 11.5px;
+}
+
+.text-field:focused, .password-field:focused, .luxury-input:focused {
+    -fx-border-color: #baa487;
+    -fx-border-width: 1.2;
+}
+
+.combo-box, .luxury-combo {
+    -fx-background-color: rgba(15, 14, 16, 0.9);
+    -fx-background-radius: 8;
+    -fx-border-color: #2b282e;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 2 6;
+}
+
+.combo-box > .list-cell, .luxury-combo > .list-cell {
+    -fx-padding: 4 8;
+    -fx-text-fill: #ded7cd;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #171618;
+    -fx-border-color: #3b373d;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ded7cd;
+}
+
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #28262b;
+    -fx-text-fill: #baa487;
+}
+
+/* 5. LISTVIEW (ZERO SCROLLBAR ORIZZONTALI & TEMA SCURO ELEGANTE) */
+.list-view {
+    -fx-background-color: rgba(15, 14, 16, 0.75);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(186, 164, 135, 0.22);
+    -fx-border-radius: 12;
+    -fx-padding: 4;
+}
+
+.list-view .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-padding: -7;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+.list-view .scroll-bar:horizontal .thumb,
+.list-view .scroll-bar:horizontal .track,
+.list-view .scroll-bar:horizontal .increment-button,
+.list-view .scroll-bar:horizontal .decrement-button {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
+.list-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.list-view .scroll-bar:vertical .thumb {
+    -fx-background-color: #38353b;
+    -fx-background-radius: 4;
+}
+
+.list-view .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-text-fill: #ede6dc;
+    -fx-font-size: 12px;
+}
+
+.list-view .list-cell:filled:selected, .list-view .list-cell:filled:selected:focused {
+    -fx-background-color: rgba(186, 164, 135, 0.22);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+}
+
+.list-view .list-cell:filled:hover {
+    -fx-background-color: rgba(45, 42, 48, 0.6);
+    -fx-background-radius: 8;
+}
+
+/* 6. TABPANE & NAVIGATION */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: rgba(13, 12, 14, 0.85);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(186, 164, 135, 0.18);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 7 16;
+    -fx-cursor: hand;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #baa487;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: #9e9384;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #141312;
+    -fx-font-weight: bold;
+}
+
+.tab-pane .tab:hover .tab-label {
+    -fx-text-fill: #ede6dc;
+}
+
+/* 7. BOTTONI & AZIONI (NERO, GRIGIO, ORO CHAMPAGNE) */
+.btn-primary, .luxury-gold-btn {
+    -fx-background-color: #baa487;
+    -fx-text-fill: #141312;
+    -fx-font-family: "Georgia", serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover, .luxury-gold-btn:hover {
+    -fx-background-color: #c9b499;
+}
+
+.btn-outline, .luxury-outline-btn {
+    -fx-background-color: rgba(28, 27, 30, 0.85);
+    -fx-text-fill: #ded7cd;
+    -fx-border-color: rgba(186, 164, 135, 0.35);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-border-width: 1;
+    -fx-font-weight: bold;
+    -fx-font-size: 11.5px;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+}
+
+.btn-outline:hover, .luxury-outline-btn:hover {
+    -fx-background-color: #36343a;
+    -fx-border-color: #baa487;
+    -fx-text-fill: #ffffff;
+}
+
+.btn-warm {
+    -fx-background-color: rgba(38, 36, 32, 0.9);
+    -fx-text-fill: #c9b499;
+    -fx-border-color: rgba(186, 164, 135, 0.45);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-font-weight: bold;
+    -fx-font-size: 11.5px;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+}
+
+.btn-warm:hover {
+    -fx-background-color: #baa487;
+    -fx-text-fill: #141312;
+}
+
+.btn-sage {
+    -fx-background-color: #244234;
+    -fx-text-fill: #d1fae5;
+    -fx-border-color: #2f6049;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-font-weight: bold;
+    -fx-font-size: 11.5px;
+    -fx-padding: 7 16;
+    -fx-cursor: hand;
+}
+
+.btn-sage:hover {
+    -fx-background-color: #2e5442;
+}
+
+.btn-danger {
+    -fx-background-color: #421d1d;
+    -fx-text-fill: #fee2e2;
+    -fx-border-color: #6e2828;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-font-weight: bold;
+    -fx-font-size: 11.5px;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #572424;
+}
+
+.luxury-sub-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8f8475;
+    -fx-border-color: #262427;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-font-family: "Georgia", serif;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 12;
+    -fx-cursor: hand;
+}
+
+.luxury-sub-btn:hover {
+    -fx-border-color: #3b3734;
+    -fx-text-fill: #baa487;
+    -fx-background-color: #171617;
+}
+
+/* 8. GUSTI CARDS BOUTIQUE GELATI & DOLCI */
+.gusto-card {
+    -fx-padding: 8 12;
+    -fx-background-color: rgba(24, 23, 26, 0.9);
+    -fx-border-color: rgba(186, 164, 135, 0.22);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.gusto-card:hover {
+    -fx-background-color: rgba(36, 34, 38, 0.95);
+    -fx-border-color: #baa487;
+}
+
+.gusto-card-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #f5f0e6;
+}
+
+.gusto-card-desc {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #a89f92;
+}
+
+.gusto-card-price {
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+    -fx-text-fill: #baa487;
+    -fx-padding: 3 8;
+    -fx-background-color: rgba(186, 164, 135, 0.16);
+    -fx-border-color: rgba(186, 164, 135, 0.3);
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+/* 9. CARRELLO ED ELEMENTI COMANDA */
+.carrello-item {
+    -fx-background-color: rgba(26, 25, 28, 0.9);
+    -fx-border-color: rgba(186, 164, 135, 0.25);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6 10;
+}
+
+.ordine-badge-id {
+    -fx-background-color: #baa487;
+    -fx-text-fill: #141312;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+    -fx-padding: 3 8;
+    -fx-background-radius: 6;
+}
+
+.ordine-badge-stato {
+    -fx-background-color: rgba(36, 66, 52, 0.85);
+    -fx-text-fill: #a7f3d0;
+    -fx-font-weight: bold;
+    -fx-font-size: 10.5px;
+    -fx-padding: 2 7;
+    -fx-background-radius: 6;
+}
+
+/* 10. SCROLLPANE & SEPARATORI */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.separator .line {
+    -fx-border-color: rgba(186, 164, 135, 0.22);
+    -fx-border-width: 1;
+}
+
+.check-box {
+    -fx-text-fill: #ded7cd;
+}
+
+.check-box .box {
+    -fx-background-color: #121113;
+    -fx-border-color: #3b373d;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: #baa487;
+}
+
+.date-picker .text-field {
+    -fx-background-color: rgba(13, 12, 14, 0.9);
+    -fx-text-fill: #ede6dc;
+}
