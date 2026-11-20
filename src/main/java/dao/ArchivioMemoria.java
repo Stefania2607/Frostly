@@ -140,8 +140,6 @@ public class ArchivioMemoria {
                 "Le crepes calde preparate al momento sono fragranti e farcite generosamente. Ottima anche la consegna a domicilio super puntuale!",
                 "10/11/2026 09:45", null, null, 6));
     }
-
-    // ====== UTENTI ======
     public MaestroGelataio getMaestroGelataio() {
         return maestro;
     }
@@ -215,8 +213,6 @@ public class ArchivioMemoria {
             clienti.addAll(daDbClienti);
         }
     }
-
-    // ====== TURNI ======
     public List<Turno> getTurni() {
         return turni;
     }
@@ -243,8 +239,6 @@ public class ArchivioMemoria {
         }
         emergenze.removeIf(e -> e.getTurno() != null && codiceTurno.equalsIgnoreCase(e.getTurno().getCodiceTurno()));
     }
-
-    // ====== EMERGENZE ======
     public List<Emergenza> getEmergenze() {
         return emergenze;
     }
@@ -294,8 +288,6 @@ public class ArchivioMemoria {
             emergenze.add(em);
         }
     }
-
-    // ====== INGREDIENTI ======
     public List<Ingrediente> getIngredienti() {
         return ingredienti;
     }
@@ -338,8 +330,6 @@ public class ArchivioMemoria {
             ingredienti.add(new Ingrediente(nome, quantita, sogliaMin, unita, categoria));
         }
     }
-
-    // ====== GUSTI ======
     public List<Gusto> getGusti() {
         return gusti;
     }
@@ -388,8 +378,6 @@ public class ArchivioMemoria {
             gusti.add(nuovo);
         }
     }
-
-    // ====== RICHIESTE GUSTO ======
     public List<RichiestaGustoPersonalizzato> getRichiesteGusto() {
         return richiesteGusto;
     }
@@ -446,8 +434,6 @@ public class ArchivioMemoria {
         }
         return StatoRichiesta.IN_ATTESA;
     }
-
-    // ====== ORDINI ======
     public List<OrdineCliente> getOrdini() {
         return ordini;
     }
@@ -493,8 +479,6 @@ public class ArchivioMemoria {
             }
         }
     }
-
-    // ====== NOTIFICHE ======
     public List<Notifica> caricaNotifichePerUtente(String emailDestinatario) {
         List<Notifica> risultato = new ArrayList<>();
         for (Notifica n : notifiche) {
@@ -532,8 +516,6 @@ public class ArchivioMemoria {
         }
         notifiche.add(new Notifica(emailDest, titolo, messaggio, timestamp));
     }
-
-    // ====== RECENSIONI ======
     public synchronized List<Recensione> getRecensioni() {
         return new ArrayList<>(recensioni);
     }

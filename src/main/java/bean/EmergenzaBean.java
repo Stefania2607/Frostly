@@ -20,7 +20,6 @@ public class EmergenzaBean {
     private String notaRisposta;
 
     public EmergenzaBean() {
-        // Costruttore vuoto JavaBean
     }
 
     public String getCodiceEmergenza() {

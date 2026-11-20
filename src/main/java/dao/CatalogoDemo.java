@@ -29,7 +29,6 @@ public final class CatalogoDemo {
     private static final List<ProdottoDemo> PRODOTTI = creaCatalogoDemo();
 
     private CatalogoDemo() {
-        // Utility class
     }
 
     public static List<ProdottoDemo> getProdotti() {

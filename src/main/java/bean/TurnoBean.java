@@ -17,7 +17,6 @@ public class TurnoBean {
     private String stato;
 
     public TurnoBean() {
-        // Costruttore vuoto JavaBean
     }
 
     public String getCodiceTurno() {

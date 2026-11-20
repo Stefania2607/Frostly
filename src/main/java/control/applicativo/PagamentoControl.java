@@ -19,7 +19,6 @@ import java.util.Locale;
 
 /**
  * Controller Applicativo dedicato alla gestione e simulazione delle transazioni di pagamento online.
- * Separa rigorosamente la logica di business e validazione bancaria dalla presentazione (BCE).
  */
 public class PagamentoControl {
 
@@ -69,7 +68,7 @@ public class PagamentoControl {
         CartaCredito carta = PagamentoValidator.validaCarta(cartaBean);
 
         // 4. Simulazione autorizzazione gateway bancario
-        // Convenzione di test per esami: carte che terminano con '0000' simulano fondi insufficienti
+        // Carte che terminano con 0000 simulano fondi insufficienti
         if (carta.getNumeroCarta().endsWith("0000")) {
             throw new PagamentoException("Transazione rifiutata dall'istituto bancario emittente: Plafond esaurito o fondi insufficienti.");
         }

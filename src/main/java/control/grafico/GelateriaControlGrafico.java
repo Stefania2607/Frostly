@@ -1,8 +1,6 @@
 package control.grafico;
 
 import bean.CarrelloBean;
-import bean.DatiConsegnaBean;
-import bean.EsitoPagamentoBean;
 import bean.GustoBean;
 import bean.NotificaBean;
 import bean.OrdineBean;
@@ -11,7 +9,6 @@ import bean.VaschettaItemBean;
 import control.applicativo.GestioneMenuControl;
 import control.applicativo.LoginControl;
 import control.applicativo.OrdiniControl;
-import control.applicativo.PagamentoControl;
 import frostly.exception.FrostlyException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,16 +27,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import util.SessionManager;
 import view.CarrelloView;
-import view.CheckoutConsegnaView;
 import view.ClienteMenuView;
 import view.CrepeConfiguratoreView;
-import view.PagamentoOnlineView;
 import view.VetrinaMenuView;
 
 /**
  * Controller Grafico JavaFX principale per la schermata del Cliente ('cliente.fxml', 'cliente_gui2.fxml').
  * Coordina la navigazione del catalogo prodotti per macro-categorie, delegando:
  * - la composizione della vaschetta a {@link VaschettaControlGrafico}
+ * - il checkout, pagamento online e scontrino QR a {@link CheckoutControlGrafico}
+ * - le recensioni a {@link RecensioniControlGrafico}
  * - le proposte "Gusto su Misura" a {@link RichiestaGustoControlGrafico}.
  */
 public class GelateriaControlGrafico {
@@ -105,6 +102,7 @@ public class GelateriaControlGrafico {
     private RichiestaGustoControlGrafico gustoCustomHelper;
     private VaschettaControlGrafico vaschettaHelper;
     private RecensioniControlGrafico recensioniHelper;
+    private CheckoutControlGrafico checkoutHelper;
 
     @FXML
     public void initialize() {
@@ -135,6 +133,14 @@ public class GelateriaControlGrafico {
                 lblCapienzaVaschetta, boxVaschettaGrafica, checkPanna, checkGranella,
                 lblPrezzoVaschettaCorrente, this::mostraEsito, this::aggiornaBoxGustiDisponibili);
         vaschettaHelper.inizializza();
+
+        checkoutHelper = new CheckoutControlGrafico(
+                carrello,
+                this::mostraEsito,
+                this::aggiornaStatoCarrello,
+                this::pulisciDopoOrdineCompletato,
+                this::aggiornaVistaCliente,
+                this::aggiungiVaschettaSeProntaPrimaDelCheckout);
 
         aggiornaVistaCliente();
         aggiornaStatoCarrello();
@@ -222,9 +228,6 @@ public class GelateriaControlGrafico {
                 this::onClickAggiungiGustoAllaVaschetta,
                 this::aggiungiProdottoMenuAlCarrello);
     }
-
-    // ================= GESTIONE VASCHETTA (DELEGA A VaschettaControlGrafico) =================
-
     public void onClickAggiungiGustoAllaVaschetta(GustoBean g) {
         vaschettaHelper.aggiungiORimuoviGusto(g);
     }
@@ -250,14 +253,14 @@ public class GelateriaControlGrafico {
             mostraEsito("⚠️ Il prodotto '" + g.getNome() + "' è momentaneamente esaurito.", true);
             return;
         }
+        if (checkoutHelper != null && !checkoutHelper.verificaLimiteDisponibilitaPerProdotto(g.getNome())) {
+            return;
+        }
         carrello.aggiungiArticolo(new VaschettaItemBean(0.0, List.of(g.getNome()), false, false,
                 g.getNome() + " (" + g.getDescrizione() + ")", g.getPrezzoAlKg()));
         aggiornaStatoCarrello();
         mostraEsito("🛒 '" + g.getNome() + "' aggiunto al carrello! Clicca sul tasto '🛒 Vedi Carrello' per il riepilogo.", false);
     }
-
-    // ================= COMPOSIZIONE CREPES CON TOPPING & GRANELLA =================
-
     private void costruisciSchermataCrepes() {
         List<GustoBean> farciture = new ArrayList<>();
         for (GustoBean g : tuttiProdottiMenu) {
@@ -300,6 +303,9 @@ public class GelateriaControlGrafico {
 
     public void confermaCrepeNelCarrello(boolean includiTopping) {
         if (crepeSelezionata == null) return;
+        if (checkoutHelper != null && !checkoutHelper.verificaLimiteDisponibilitaPerProdotto(crepeSelezionata.getNome())) {
+            return;
+        }
         String top = includiTopping ? toppingCrepeScelto : CrepeConfiguratoreView.NESSUN_TOPPING;
         String gran = includiTopping ? granellaCrepeScelta : CrepeConfiguratoreView.NESSUNA_GRANELLA;
 
@@ -316,9 +322,6 @@ public class GelateriaControlGrafico {
         aggiornaStatoCarrello();
         mostraEsito("🥞 '" + desc + "' aggiunta al carrello! Clicca '🛒 Vedi Carrello' per completare l'ordine.", false);
     }
-
-    // ================= CARRELLO E INVIO PRE-ORDINE =================
-
     private void aggiornaStatoCarrello() {
         CarrelloView.aggiornaBottoneCarrello(btnApriCarrello, carrello);
     }
@@ -327,105 +330,8 @@ public class GelateriaControlGrafico {
     public void onClickApriCarrello() {
         Window owner = (btnApriCarrello != null && btnApriCarrello.getScene() != null)
                 ? btnApriCarrello.getScene().getWindow() : null;
-
-        CarrelloView.apriPopupCarrello(
-                owner,
-                carrello,
-                idx -> {
-                    carrello.incrementaArticolo(idx);
-                    aggiornaStatoCarrello();
-                },
-                idx -> {
-                    carrello.decrementaArticolo(idx);
-                    aggiornaStatoCarrello();
-                },
-                idx -> {
-                    carrello.rimuoviArticolo(idx);
-                    aggiornaStatoCarrello();
-                },
-                () -> {
-                    carrello.svuota();
-                    aggiornaStatoCarrello();
-                },
-                (tipo, orario, note) -> avviaFlussoConsegnaEPagamento(tipo, owner));
-    }
-
-    private void avviaFlussoConsegnaEPagamento(String tipoSelezionato, Window owner) {
-        if (carrello.isVuoto()) {
-            boolean conPanna = checkPanna != null && checkPanna.isSelected();
-            if (!carrello.getGustiNellaVaschetta().isEmpty() || conPanna) {
-                onClickAggiungiVaschettaAlCarrello();
-            } else {
-                mostraEsito("⚠️ Aggiungi almeno un prodotto o una vaschetta al carrello prima del checkout.", true);
-                return;
-            }
-        }
-
-        DatiConsegnaBean datiIniziali = new DatiConsegnaBean();
-        datiIniziali.setTipoConsegna(DatiConsegnaBean.TipoConsegna.daStringa(tipoSelezionato));
-
-        CheckoutConsegnaView.apriPopupSceltaConsegna(
-                owner,
-                carrello.calcolaTotale(),
-                datiIniziali,
-                datiConfermati -> avviaFlussoPagamento(datiConfermati, owner),
-                this::onClickApriCarrello
-        );
-    }
-
-    private void avviaFlussoPagamento(DatiConsegnaBean datiConfermati, Window owner) {
-        PagamentoOnlineView.apriPopupPagamento(
-                owner,
-                carrello.calcolaTotale(),
-                datiConfermati,
-                cartaBean -> {
-                    try {
-                        PagamentoControl payCtrl = new PagamentoControl();
-                        String emailCliente = SessionManager.getInstance().getEmailUtenteLoggato();
-                        EsitoPagamentoBean esito = payCtrl.elaboraPagamento(
-                                cartaBean,
-                                carrello.calcolaTotale(),
-                                datiConfermati,
-                                emailCliente
-                        );
-                        PagamentoOnlineView.mostraRicevutaPagamento(
-                                owner,
-                                esito,
-                                () -> finalizzaOrdinePagato(datiConfermati, esito)
-                        );
-                    } catch (FrostlyException e) {
-                        mostraEsito("❌ Pagamento rifiutato: " + e.getMessage(), true);
-                        throw new RuntimeException(e.getMessage(), e);
-                    }
-                },
-                () -> avviaFlussoConsegnaEPagamento(datiConfermati.getTipoConsegna().getLabel(), owner)
-        );
-    }
-
-    private void finalizzaOrdinePagato(DatiConsegnaBean datiConfermati, EsitoPagamentoBean esito) {
-        try {
-            carrello.setModalitaConsegna(datiConfermati.getTipoConsegna().getLabel());
-            carrello.setFasciaOraria(datiConfermati.getOrarioRichiesto());
-            carrello.setIndirizzoONote(datiConfermati.costruisciStringaRiepilogoConsegna()
-                    + " [Transazione Online: " + esito.getCodiceTransazione() + " • " + esito.getCircuito() + " " + esito.getCartaMascherata() + "]");
-
-            String email = SessionManager.getInstance().getEmailUtenteLoggato();
-            OrdineBean bean = carrello.costruisciOrdineBean(email);
-            OrdineBean confermato = new OrdiniControl().effettuaPreOrdine(bean);
-
-            mostraEsito("✅ Pagamento autorizzato (" + esito.getCodiceTransazione() + ")! Ordine "
-                    + confermato.getCodiceOrdine() + " inviato con successo (" + datiConfermati.getOrarioRichiesto() + ").", false);
-
-            carrello.svuota();
-            carrello.svuotaVaschettaInComposizione();
-            vaschettaHelper.resetSelettoriExtra();
-            vaschettaHelper.aggiornaVaschettaGrafica();
-
-            aggiornaBoxGustiDisponibili();
-            aggiornaStatoCarrello();
-            aggiornaMieiOrdini();
-        } catch (FrostlyException e) {
-            mostraEsito("⚠️ " + e.getMessage(), true);
+        if (checkoutHelper != null) {
+            checkoutHelper.apriCarrello(owner);
         }
     }
 
@@ -433,11 +339,26 @@ public class GelateriaControlGrafico {
     public void onClickPreOrdina() {
         Window owner = (btnApriCarrello != null && btnApriCarrello.getScene() != null)
                 ? btnApriCarrello.getScene().getWindow() : null;
-        avviaFlussoConsegnaEPagamento("Consegna a Domicilio", owner);
+        if (checkoutHelper != null) {
+            checkoutHelper.avviaFlussoConsegnaEPagamento("Consegna a Domicilio", owner);
+        }
     }
 
-    // ================= STORICO ORDINI, GUSTO SU MISURA E LOGOUT =================
+    private void aggiungiVaschettaSeProntaPrimaDelCheckout() {
+        boolean conPanna = checkPanna != null && checkPanna.isSelected();
+        if (!carrello.getGustiNellaVaschetta().isEmpty() || conPanna) {
+            onClickAggiungiVaschettaAlCarrello();
+        }
+    }
 
+    private void pulisciDopoOrdineCompletato() {
+        carrello.svuota();
+        carrello.svuotaVaschettaInComposizione();
+        vaschettaHelper.resetSelettoriExtra();
+        vaschettaHelper.aggiornaVaschettaGrafica();
+        aggiornaVistaCliente();
+        aggiornaStatoCarrello();
+    }
     private void aggiornaMieiOrdini() {
         if (listaMieiOrdini == null) return;
         String email = SessionManager.getInstance().getEmailUtenteLoggato();
@@ -482,7 +403,14 @@ public class GelateriaControlGrafico {
     }
 
     private void mostraEsito(String msg, boolean errore) {
-        VetrinaMenuView.mostraMessaggioEsito(lblEsito, msg, errore);
+        if (lblEsito != null) {
+            VetrinaMenuView.mostraMessaggioEsito(lblEsito, msg, errore);
+            return;
+        }
+        Window owner = btnApriCarrello != null && btnApriCarrello.getScene() != null
+                ? btnApriCarrello.getScene().getWindow()
+                : null;
+        VetrinaMenuView.mostraToast(owner, msg, errore);
     }
 
     private void aggiornaVistaCliente() {

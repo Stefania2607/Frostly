@@ -57,6 +57,8 @@ public class MagazzinoGustiStaffControlGrafico {
         if (this.comboCategoriaMagazzino != null) {
             this.comboCategoriaMagazzino.getItems().setAll(
                     "Tutte le Categorie",
+                    "🔴 Da Riordinare / Sotto Soglia",
+                    "⛔ Esauriti (0)",
                     "🍨 Gelati",
                     "☕ Caffetteria",
                     "🍵 Tè e Tisane",
@@ -84,6 +86,8 @@ public class MagazzinoGustiStaffControlGrafico {
 
     private String pulisciNomeCategoria(String raw) {
         if (raw == null || raw.contains("Tutte")) return "Tutti";
+        if (raw.contains("Da Riordinare")) return "DA_RIORDINARE";
+        if (raw.contains("Esauriti")) return "ESAURITI";
         int primoSpazio = raw.indexOf(' ');
         return (primoSpazio > 0) ? raw.substring(primoSpazio + 1).trim() : raw.trim();
     }
@@ -128,6 +132,7 @@ public class MagazzinoGustiStaffControlGrafico {
 
     public void inizializza(Runnable onSelezionaTabMagazzino) {
         MagazzinoStaffView.configuraCelleMagazzino(listaMagazzino);
+        MagazzinoStaffView.configuraCelleUrgenzeMagazzino(listaUrgenzeMagazzino);
 
         if (listaUrgenzeMagazzino != null) {
             listaUrgenzeMagazzino.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -224,7 +229,11 @@ public class MagazzinoGustiStaffControlGrafico {
         if (listaMagazzino == null) return;
         listaMagazzino.getItems().clear();
         for (IngredienteBean ing : tuttiIngredientiCaricati) {
-            if (categoriaMagazzinoSelezionata != null
+            if ("DA_RIORDINARE".equals(categoriaMagazzinoSelezionata)) {
+                if (!ing.isSottoSoglia()) continue;
+            } else if ("ESAURITI".equals(categoriaMagazzinoSelezionata)) {
+                if (ing.getQuantitaDisponibile() > 0.0) continue;
+            } else if (categoriaMagazzinoSelezionata != null
                     && !"Tutti".equalsIgnoreCase(categoriaMagazzinoSelezionata)
                     && !ing.appartieneACategoria(categoriaMagazzinoSelezionata)) {
                 continue;

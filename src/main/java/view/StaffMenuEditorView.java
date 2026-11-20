@@ -29,12 +29,11 @@ import javafx.stage.Window;
  */
 public final class StaffMenuEditorView {
 
-    private static final String STILE_LABEL_CAMPO = "-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #f5ebe0;";
+    private static final String STILE_LABEL_CAMPO = "-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #f5ebe0;";
     private static final List<String> CATEGORIE = Arrays.asList(
             "Gelati", "Crepes", "Panna", "Cioccolate calde", "Bevande", "Caffetteria", "Biscotti", "Crostate", "Tisane");
 
     private StaffMenuEditorView() {
-        // Classe di utilità View
     }
 
     @FunctionalInterface
@@ -108,7 +107,7 @@ public final class StaffMenuEditorView {
         HBox.setHgrow(controlliDestraFoto, Priority.ALWAYS);
 
         Label lblFotoInfo = new Label(urlFotoCorrente[0].isEmpty() ? "Nessuna foto caricata" : ("🖼 Foto: " + estraiNomeFile(urlFotoCorrente[0])));
-        lblFotoInfo.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #5c3a21;");
+        lblFotoInfo.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #5c3a21;");
 
         HBox bottoniFoto = new HBox(8);
         Button btnScegliFoto = new Button("📁 Scegli foto dal PC…");
@@ -157,10 +156,10 @@ public final class StaffMenuEditorView {
         Runnable aggiornaTestoDisp = () -> {
             if (disponibileCorrente[0]) {
                 btnToggleDisp.setText("🟢 Stato: Disponibile in Vetrina (clicca per segnare Esaurito)");
-                btnToggleDisp.setStyle("-fx-background-color: #e8f5e9; -fx-text-fill: #2a9d8f; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 5 10; -fx-cursor: hand;");
+                btnToggleDisp.setStyle("-fx-background-color: #e8f5e9; -fx-text-fill: #2a9d8f; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 5 10; -fx-cursor: hand;");
             } else {
                 btnToggleDisp.setText("🔴 Stato: Esaurito Oggi (clicca per rimettere Disponibile)");
-                btnToggleDisp.setStyle("-fx-background-color: #fceae8; -fx-text-fill: #bc4749; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 5 10; -fx-cursor: hand;");
+                btnToggleDisp.setStyle("-fx-background-color: #fceae8; -fx-text-fill: #bc4749; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 5 10; -fx-cursor: hand;");
             }
         };
         aggiornaTestoDisp.run();
@@ -363,7 +362,7 @@ public final class StaffMenuEditorView {
 
         VBox titleBox = new VBox(2);
         Label lblBrand = new Label("FROSTLY — AVVISO COMPILAZIONE");
-        lblBrand.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #bc4749; -fx-letter-spacing: 0.8px;");
+        lblBrand.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #bc4749; -fx-letter-spacing: 0.8px;");
 
         Label lblTit = new Label(titolo != null ? titolo : "Attenzione");
         lblTit.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 17.5px; -fx-text-fill: #3a2618;");
@@ -389,13 +388,13 @@ public final class StaffMenuEditorView {
 
         Button btnOk = new Button("Ho Capito ➔");
         btnOk.setStyle("-fx-background-color: #3a2618; -fx-text-fill: white; -fx-font-weight: bold; "
-                + "-fx-font-size: 12px; -fx-background-radius: 14; -fx-padding: 8 22; -fx-cursor: hand; "
+                + "-fx-font-size: 13.5px; -fx-background-radius: 14; -fx-padding: 8 22; -fx-cursor: hand; "
                 + "-fx-effect: dropshadow(gaussian, rgba(58,38,24,0.3), 6, 0, 0, 2);");
         btnOk.setOnMouseEntered(e -> btnOk.setStyle("-fx-background-color: #5c3a21; -fx-text-fill: white; -fx-font-weight: bold; "
-                + "-fx-font-size: 12px; -fx-background-radius: 14; -fx-padding: 8 22; -fx-cursor: hand; "
+                + "-fx-font-size: 13.5px; -fx-background-radius: 14; -fx-padding: 8 22; -fx-cursor: hand; "
                 + "-fx-effect: dropshadow(gaussian, rgba(58,38,24,0.45), 8, 0, 0, 3);"));
         btnOk.setOnMouseExited(e -> btnOk.setStyle("-fx-background-color: #3a2618; -fx-text-fill: white; -fx-font-weight: bold; "
-                + "-fx-font-size: 12px; -fx-background-radius: 14; -fx-padding: 8 22; -fx-cursor: hand; "
+                + "-fx-font-size: 13.5px; -fx-background-radius: 14; -fx-padding: 8 22; -fx-cursor: hand; "
                 + "-fx-effect: dropshadow(gaussian, rgba(58,38,24,0.3), 6, 0, 0, 2);"));
         btnOk.setOnAction(e -> dialog.close());
 

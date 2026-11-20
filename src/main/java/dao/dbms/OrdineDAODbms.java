@@ -36,14 +36,23 @@ public class OrdineDAODbms implements OrdineDAO {
                 dStmt.setString(1, ordine.getCodiceOrdine());
                 dStmt.executeUpdate();
 
+                String dataRitiro = ordine.getDataRitiro() != null ? ordine.getDataRitiro() : "";
+                if (dataRitiro.length() > 500) {
+                    dataRitiro = dataRitiro.substring(0, 500);
+                }
+                String descrizione = ordine.getDescrizioneDettagliata() != null ? ordine.getDescrizioneDettagliata() : "";
+                if (descrizione.length() > 1990) {
+                    descrizione = descrizione.substring(0, 1990);
+                }
+
                 iStmt.setString(1, ordine.getCodiceOrdine());
                 iStmt.setString(2, ordine.getCliente() != null ? ordine.getCliente().getEmail() : "");
                 iStmt.setString(3, ordine.getGusto() != null ? ordine.getGusto().getNome() : "");
                 iStmt.setDouble(4, ordine.getPesoKg());
-                iStmt.setString(5, ordine.getDataRitiro() != null ? ordine.getDataRitiro() : "");
+                iStmt.setString(5, dataRitiro);
                 iStmt.setString(6, ordine.getStato() != null ? ordine.getStato().name() : "IN_ATTESA");
                 iStmt.setDouble(7, ordine.getPrezzoTotale());
-                iStmt.setString(8, ordine.getDescrizioneDettagliata() != null ? ordine.getDescrizioneDettagliata() : "");
+                iStmt.setString(8, descrizione);
                 iStmt.executeUpdate();
             }
         } catch (FrostlyException | SQLException ignored) {

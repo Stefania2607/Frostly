@@ -119,9 +119,9 @@ public final class TurniStaffView {
         cellaAngolo.setAlignment(Pos.CENTER);
         cellaAngolo.setStyle("-fx-background-color: rgba(35, 32, 38, 0.95); -fx-background-radius: 8; -fx-padding: 8 6; -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 8;");
         Label lblAngolo1 = new Label("⏰ FASCE ORARIE");
-        lblAngolo1.setStyle("-fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 11px;");
+        lblAngolo1.setStyle("-fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 12.5px;");
         Label lblAngolo2 = new Label("🗓️ GIORNI SETTIMANA");
-        lblAngolo2.setStyle("-fx-text-fill: #baa487; -fx-font-size: 9.5px; -fx-font-weight: bold;");
+        lblAngolo2.setStyle("-fx-text-fill: #baa487; -fx-font-size: 11.5px; -fx-font-weight: bold;");
         cellaAngolo.getChildren().addAll(lblAngolo1, lblAngolo2);
         griglia.add(cellaAngolo, 0, 0);
 
@@ -138,10 +138,10 @@ public final class TurniStaffView {
             headerGiorno.setStyle("-fx-background-color: " + bgHeader + "; -fx-background-radius: 8; -fx-padding: 7 4; -fx-border-color: " + borderHeader + "; -fx-border-radius: 8;");
 
             Label lblNomeGiorno = new Label(GIORNI_ETICHETTE[g] + (isOggi ? " (OGGI)" : ""));
-            lblNomeGiorno.setStyle("-fx-text-fill: " + (isOggi ? "#141312" : "#f5ebe0") + "; -fx-font-weight: bold; -fx-font-size: 11.5px;");
+            lblNomeGiorno.setStyle("-fx-text-fill: " + (isOggi ? "#141312" : "#f5ebe0") + "; -fx-font-weight: bold; -fx-font-size: 13px;");
 
             Label lblData = new Label(dataGiorno.format(FMT_COMPLETO));
-            lblData.setStyle("-fx-text-fill: " + (isOggi ? "#141312" : "#baa487") + "; -fx-font-size: 10.5px; -fx-font-weight: bold;");
+            lblData.setStyle("-fx-text-fill: " + (isOggi ? "#141312" : "#baa487") + "; -fx-font-size: 12px; -fx-font-weight: bold;");
 
             headerGiorno.getChildren().addAll(lblNomeGiorno, lblData);
             griglia.add(headerGiorno, g + 1, 0);
@@ -164,10 +164,10 @@ public final class TurniStaffView {
                     + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 10;");
 
             Label lblRange = new Label("⏰ " + rangeLabel);
-            lblRange.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
+            lblRange.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
 
             Label lblDesc = new Label(descFascia);
-            lblDesc.setStyle("-fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: " + (soloWeekend ? "#fcd34d;" : "#baa487;"));
+            lblDesc.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (soloWeekend ? "#fcd34d;" : "#baa487;"));
 
             boxFascia.getChildren().addAll(lblRange, lblDesc);
             griglia.add(boxFascia, 0, f + 1);
@@ -187,7 +187,7 @@ public final class TurniStaffView {
                     cellaDisabilitata.setStyle("-fx-background-color: rgba(24, 22, 26, 0.40); -fx-border-color: rgba(186, 164, 135, 0.12); "
                             + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6;");
                     Label lblNo = new Label("— Solo Sab / Dom —");
-                    lblNo.setStyle("-fx-text-fill: #7d756d; -fx-font-size: 10px; -fx-font-style: italic;");
+                    lblNo.setStyle("-fx-text-fill: #7d756d; -fx-font-size: 12px; -fx-font-style: italic;");
                     cellaDisabilitata.getChildren().add(lblNo);
                     griglia.add(cellaDisabilitata, g + 1, f + 1);
                     continue;
@@ -235,7 +235,7 @@ public final class TurniStaffView {
 
         if (turniCella.isEmpty()) {
             Label lblVuoto = new Label("Nessun assegnato");
-            lblVuoto.setStyle("-fx-text-fill: #7d756d; -fx-font-size: 10px; -fx-font-style: italic;");
+            lblVuoto.setStyle("-fx-text-fill: #7d756d; -fx-font-size: 12px; -fx-font-style: italic;");
             cella.getChildren().add(lblVuoto);
         } else {
             for (TurnoBean t : turniCella) {
@@ -261,7 +261,7 @@ public final class TurniStaffView {
             Button btnGestisci = new Button(turniCella.isEmpty() ? "➕ Inserisci" : "✏️ Gestisci / +");
             btnGestisci.setMaxWidth(Double.MAX_VALUE);
             btnGestisci.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; "
-                    + "-fx-font-size: 10px; -fx-padding: 3 6; -fx-background-radius: 6; -fx-cursor: hand;");
+                    + "-fx-font-size: 12px; -fx-padding: 3 6; -fx-background-radius: 6; -fx-cursor: hand;");
             btnGestisci.setOnAction(e -> onClickIncrocioMaestro.onIncrocioSelezionato(
                     indiceGiorno, indiceFascia, chiaveDataGiorno, titoloGiornoEsteso));
             cella.getChildren().add(btnGestisci);
@@ -310,10 +310,10 @@ public final class TurniStaffView {
 
         Label lblNome = new Label("👤 " + t.getNomeDipendente());
         lblNome.setWrapText(true);
-        lblNome.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " + textColor + ";");
+        lblNome.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: " + textColor + ";");
 
         Label lblStato = new Label(statoLabel);
-        lblStato.setStyle("-fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+        lblStato.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
 
         badge.getChildren().addAll(lblNome, lblStato);
         badge.setOnMouseClicked(e -> {
@@ -434,7 +434,7 @@ public final class TurniStaffView {
         VBox boxPresenti = new VBox(8);
         if (turniAttualiCella == null || turniAttualiCella.isEmpty()) {
             Label lblNessuno = new Label("Nessun dipendente assegnato in questa fascia. Usa il modulo sotto per inserirne uno.");
-            lblNessuno.setStyle("-fx-text-fill: #ded7cd; -fx-font-style: italic; -fx-font-size: 12px;");
+            lblNessuno.setStyle("-fx-text-fill: #ded7cd; -fx-font-style: italic; -fx-font-size: 13.5px;");
             boxPresenti.getChildren().add(lblNessuno);
         } else {
             for (TurnoBean t : turniAttualiCella) {
@@ -448,13 +448,13 @@ public final class TurniStaffView {
                 rigaTop.setAlignment(Pos.CENTER_LEFT);
 
                 Label lblInfo = new Label("👤 " + t.getNomeDipendente() + " (" + t.getEmailDipendente() + ") — [" + t.getCodiceTurno() + "]");
-                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
-                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #3a2618;");
+                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
+                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #3a2618;");
                 HBox.setHgrow(lblInfo, Priority.ALWAYS);
 
                 Button btnRimuovi = new Button("🗑️ Rimuovi dal Turno");
                 btnRimuovi.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; "
-                        + "-fx-font-size: 11px; -fx-padding: 4 10; -fx-background-radius: 6; -fx-cursor: hand;");
+                        + "-fx-font-size: 12.5px; -fx-padding: 4 10; -fx-background-radius: 6; -fx-cursor: hand;");
                 btnRimuovi.setOnAction(e -> {
                     if (onRimuoviTurnoCodice != null) {
                         onRimuoviTurnoCodice.accept(t.getCodiceTurno());
@@ -474,7 +474,7 @@ public final class TurniStaffView {
 
                         Label lblMotivo = new Label("🚨 Emergenza segnalata (" + em.getCodiceEmergenza() + "): \"" + em.getMotivazione() + "\"");
                         lblMotivo.setWrapText(true);
-                        lblMotivo.setStyle("-fx-font-weight: bold; -fx-text-fill: #b71c1c; -fx-font-size: 12px;");
+                        lblMotivo.setStyle("-fx-font-weight: bold; -fx-text-fill: #b71c1c; -fx-font-size: 13.5px;");
 
                         HBox rigaSost = new HBox(8);
                         rigaSost.setAlignment(Pos.CENTER_LEFT);
@@ -500,7 +500,7 @@ public final class TurniStaffView {
                         rigaAzioniEm.setAlignment(Pos.CENTER_RIGHT);
 
                         Button btnRifiuta = new Button("✕ Rifiuta Richiesta");
-                        btnRifiuta.setStyle("-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 5 10; -fx-background-radius: 6; -fx-cursor: hand;");
+                        btnRifiuta.setStyle("-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 5 10; -fx-background-radius: 6; -fx-cursor: hand;");
                         btnRifiuta.setOnAction(ev -> {
                             if (onRifiutaEmergenza != null) {
                                 onRifiutaEmergenza.accept(em.getCodiceEmergenza(), campoNota.getText());
@@ -509,7 +509,7 @@ public final class TurniStaffView {
                         });
 
                         Button btnApprova = new Button("✔ Approva e Sostituisci");
-                        btnApprova.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 5 12; -fx-background-radius: 6; -fx-cursor: hand;");
+                        btnApprova.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 5 12; -fx-background-radius: 6; -fx-cursor: hand;");
                         btnApprova.setOnAction(ev -> {
                             String sel = comboSost.getValue();
                             if (sel != null && onApprovaEmergenza != null) {
@@ -558,7 +558,7 @@ public final class TurniStaffView {
 
         Button btnInserisci = new Button("➕ Assegna al Turno");
         btnInserisci.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; "
-                + "-fx-font-size: 12.5px; -fx-padding: 7 16; -fx-background-radius: 8; -fx-cursor: hand;");
+                + "-fx-font-size: 14px; -fx-padding: 7 16; -fx-background-radius: 8; -fx-cursor: hand;");
         btnInserisci.setOnAction(e -> {
             String selezionato = comboNuovoDip.getValue();
             if (selezionato != null && onAssegnaDipendenteEmail != null) {
@@ -617,11 +617,11 @@ public final class TurniStaffView {
 
         Label lblDipInfo = new Label("👤 Dipendente: " + turnoSelezionato.getNomeDipendente()
                 + "   •   Stato attuale: " + turnoSelezionato.getStato());
-        lblDipInfo.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
+        lblDipInfo.setStyle("-fx-font-size: 13px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
         boxRiepilogo.getChildren().addAll(lblTurnoInfo, lblDipInfo);
 
         Label lblTipo = new Label("1. Seleziona la tipologia di imprevisto o modifica richiesta:");
-        lblTipo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
+        lblTipo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
 
         ComboBox<String> comboMotivoRapido = new ComboBox<>(FXCollections.observableArrayList(
                 "🤒 Malattia / Febbre / Indisposizione medica",
@@ -634,7 +634,7 @@ public final class TurniStaffView {
         comboMotivoRapido.getSelectionModel().selectFirst();
 
         Label lblDettagli = new Label("2. Descrivi la situazione dell'emergenza e la modifica richiesta al Maestro:");
-        lblDettagli.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
+        lblDettagli.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
 
         TextArea areaDettagli = new TextArea();
         areaDettagli.setPromptText("Es. Non potrò essere presente per visita medica urgente, chiedo sostituzione o spostamento al turno serale...");
@@ -642,7 +642,7 @@ public final class TurniStaffView {
         areaDettagli.setPrefRowCount(4);
 
         Label lblErrore = new Label();
-        lblErrore.setStyle("-fx-text-fill: #c62828; -fx-font-weight: bold; -fx-font-size: 11.5px;");
+        lblErrore.setStyle("-fx-text-fill: #c62828; -fx-font-weight: bold; -fx-font-size: 13px;");
         lblErrore.setVisible(false);
         lblErrore.setManaged(false);
 
@@ -654,7 +654,7 @@ public final class TurniStaffView {
         btnAnnulla.setOnAction(e -> dialog.close());
 
         Button btnInvia = new Button("🚨 Invia Emergenza e Richiesta Modifica");
-        btnInvia.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 8 18; -fx-background-radius: 8; -fx-cursor: hand;");
+        btnInvia.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 8 18; -fx-background-radius: 8; -fx-cursor: hand;");
         btnInvia.setOnAction(e -> {
             String base = comboMotivoRapido.getValue() != null ? comboMotivoRapido.getValue() : "";
             String extra = areaDettagli.getText() != null ? areaDettagli.getText().trim() : "";
@@ -713,28 +713,28 @@ public final class TurniStaffView {
                 riga.setStyle("-fx-padding: 8 12; -fx-background-color: rgba(30, 27, 34, 0.85); -fx-background-radius: 8; -fx-border-color: rgba(186, 164, 135, 0.22); -fx-border-radius: 8;");
 
                 Label lblCod = new Label(cod);
-                lblCod.setStyle("-fx-background-color: rgba(186, 164, 135, 0.18); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 6; -fx-font-size: 11px;");
+                lblCod.setStyle("-fx-background-color: rgba(186, 164, 135, 0.18); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 6; -fx-font-size: 12.5px;");
 
                 Label lblGiorno = new Label("📅 " + giorno);
-                lblGiorno.setStyle("-fx-background-color: rgba(255, 255, 255, 0.06); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-padding: 4 9; -fx-background-radius: 6; -fx-font-size: 11.5px;");
+                lblGiorno.setStyle("-fx-background-color: rgba(255, 255, 255, 0.06); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-padding: 4 9; -fx-background-radius: 6; -fx-font-size: 13px;");
 
                 Label lblOrario = new Label("⏰ " + orario);
-                lblOrario.setStyle("-fx-background-color: rgba(255, 255, 255, 0.04); -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-padding: 3 8; -fx-font-size: 11.5px;");
+                lblOrario.setStyle("-fx-background-color: rgba(255, 255, 255, 0.04); -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-padding: 3 8; -fx-font-size: 13px;");
 
                 Label lblStaff = new Label(mostraDipendente ? ("👤 " + staff) : "");
                 HBox.setHgrow(lblStaff, Priority.ALWAYS);
-                lblStaff.setStyle("-fx-font-weight: bold; -fx-text-fill: #f5ebe0; -fx-font-size: 12px;");
+                lblStaff.setStyle("-fx-font-weight: bold; -fx-text-fill: #f5ebe0; -fx-font-size: 13.5px;");
 
                 Label lblStato = new Label();
                 if (stato.toUpperCase().contains("EMERGENZA")) {
                     lblStato.setText("🚨 IN EMERGENZA");
-                    lblStato.setStyle("-fx-background-color: rgba(198, 40, 40, 0.22); -fx-text-fill: #ff8a80; -fx-border-color: rgba(198, 40, 40, 0.45); -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 8; -fx-font-size: 10.5px;");
+                    lblStato.setStyle("-fx-background-color: rgba(198, 40, 40, 0.22); -fx-text-fill: #ff8a80; -fx-border-color: rgba(198, 40, 40, 0.45); -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 8; -fx-font-size: 12px;");
                 } else if (stato.toUpperCase().contains("SOSTITUIT")) {
                     lblStato.setText("🔄 SOSTITUITO");
-                    lblStato.setStyle("-fx-background-color: rgba(21, 101, 192, 0.22); -fx-text-fill: #90caf9; -fx-border-color: rgba(21, 101, 192, 0.45); -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 8; -fx-font-size: 10.5px;");
+                    lblStato.setStyle("-fx-background-color: rgba(21, 101, 192, 0.22); -fx-text-fill: #90caf9; -fx-border-color: rgba(21, 101, 192, 0.45); -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 8; -fx-font-size: 12px;");
                 } else {
                     lblStato.setText("✔ ASSEGNATO");
-                    lblStato.setStyle("-fx-background-color: rgba(46, 125, 50, 0.22); -fx-text-fill: #a5d6a7; -fx-border-color: rgba(46, 125, 50, 0.45); -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 8; -fx-font-size: 10.5px;");
+                    lblStato.setStyle("-fx-background-color: rgba(46, 125, 50, 0.22); -fx-text-fill: #a5d6a7; -fx-border-color: rgba(46, 125, 50, 0.45); -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 8; -fx-font-size: 12px;");
                 }
 
                 if (mostraDipendente) {

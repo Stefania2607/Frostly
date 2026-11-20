@@ -5,7 +5,7 @@ import java.util.List;
 import model.Turno;
 
 /**
- * Interfaccia DAO dedicata esclusivamente all'Entity Turno (Single Responsibility Principle).
+ * Interfaccia DAO dedicata esclusivamente all'Entity Turno.
  * Implementata in 3 versioni:
  * - TurnoDAOMemory (per la modalita' DEMO In-Memory)
  * - TurnoDAODbms (per la modalita' FULL su Database SQLite JDBC)

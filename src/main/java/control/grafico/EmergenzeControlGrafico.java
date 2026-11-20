@@ -92,6 +92,7 @@ public class EmergenzeControlGrafico {
         }
 
         if (listaEmergenze != null) {
+            view.MagazzinoStaffView.configuraCelleListaTendina(listaEmergenze, "rgba(239,68,68,0.55)");
             listaEmergenze.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null) {
                     EmergenzaBean e = mappaEmergenzeAttive.get(newVal);
@@ -174,6 +175,9 @@ public class EmergenzeControlGrafico {
                 mappaEmergenzeAttive.put(sintetica, e);
                 listaEmergenze.getItems().add(sintetica);
             }
+        }
+        if (emergenzeAttive == 0 && listaEmergenze != null) {
+            listaEmergenze.getItems().add("✅ Nessuna richiesta di cambio turno");
         }
         return emergenzeAttive;
     }

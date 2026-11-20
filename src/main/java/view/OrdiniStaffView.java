@@ -16,7 +16,6 @@ import javafx.scene.layout.VBox;
 /**
  * Componente View dedicato alla visualizzazione e alle card grafiche degli ordini clienti per lo Staff.
  * Rispetta l'architettura BCE con zero chiamate a setStyle nei controller grafici.
- * Stile Quiet Luxury: grafite satinato, finiture oro champagne, avorio, zero scrollbar orizzontali.
  */
 public final class OrdiniStaffView {
 
@@ -40,7 +39,7 @@ public final class OrdiniStaffView {
             badgeStyle = "-fx-background-color: rgba(25, 45, 65, 0.90); -fx-text-fill: #93c5fd; -fx-border-color: #3b82f6;";
         }
         Label lbl = new Label(badgeText);
-        lbl.setStyle(badgeStyle + " -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 9; -fx-background-radius: 8; -fx-border-radius: 8;");
+        lbl.setStyle(badgeStyle + " -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 3 9; -fx-background-radius: 8; -fx-border-radius: 8;");
         return lbl;
     }
 
@@ -53,11 +52,15 @@ public final class OrdiniStaffView {
             protected void updateItem(OrdineBean item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item != null && !empty) {
-                    VBox card = buildCardOrdineStaff(item, onConfermaOrdine, onDisdiciOrdine);
-                    card.maxWidthProperty().bind(listaOrdiniStaff.widthProperty().subtract(28));
-                    setGraphic(card);
+                    HBox riga = buildRigaCompattaOrdineStaff(item, () -> {
+                        javafx.stage.Window owner = listaOrdiniStaff.getScene() != null
+                                ? listaOrdiniStaff.getScene().getWindow() : null;
+                        mostraPopupDettaglioOrdine(owner, item, onConfermaOrdine, onDisdiciOrdine);
+                    });
+                    riga.maxWidthProperty().bind(listaOrdiniStaff.widthProperty().subtract(28));
+                    setGraphic(riga);
                     setText(null);
-                    setStyle("-fx-background-color: transparent; -fx-padding: 4 0;");
+                    setStyle("-fx-background-color: transparent; -fx-padding: 3 0;");
                 } else {
                     setGraphic(null);
                     setText(null);
@@ -65,6 +68,124 @@ public final class OrdiniStaffView {
                 }
             }
         });
+    }
+
+    private static HBox buildRigaCompattaOrdineStaff(OrdineBean item, Runnable onApriDettaglio) {
+        boolean isNuovo = "IN_ATTESA".equalsIgnoreCase(item.getStato());
+        boolean isConfermato = "APPROVATA".equalsIgnoreCase(item.getStato());
+
+        HBox riga = new HBox(14);
+        riga.setAlignment(Pos.CENTER_LEFT);
+        riga.setCursor(javafx.scene.Cursor.HAND);
+
+        if (isNuovo) {
+            riga.setStyle("-fx-padding: 12 16; -fx-background-color: rgba(30, 26, 33, 0.96); -fx-border-color: #baa487; "
+                    + "-fx-border-width: 1.6; -fx-border-radius: 12; -fx-background-radius: 12; "
+                    + "-fx-effect: dropshadow(gaussian, rgba(186,164,135,0.22), 8, 0, 0, 2);");
+        } else if (isConfermato) {
+            riga.setStyle("-fx-padding: 11 16; -fx-background-color: rgba(22, 20, 25, 0.92); -fx-border-color: rgba(16,185,129,0.35); "
+                    + "-fx-border-width: 1.0; -fx-border-radius: 12; -fx-background-radius: 12;");
+        } else {
+            riga.setStyle("-fx-padding: 11 16; -fx-background-color: rgba(18, 17, 20, 0.86); -fx-border-color: rgba(239,68,68,0.28); "
+                    + "-fx-border-width: 1.0; -fx-border-radius: 12; -fx-background-radius: 12; -fx-opacity: 0.85;");
+        }
+
+        Label lblId = new Label(item.getCodiceOrdine());
+        lblId.setMinWidth(Region.USE_PREF_SIZE);
+        lblId.setStyle(isNuovo
+                ? "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 4 11; -fx-background-radius: 8;"
+                : "-fx-background-color: rgba(186,164,135,0.18); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 4 11; -fx-background-radius: 8;");
+
+        String nomeMostrato = (item.getNomeCliente() != null && !item.getNomeCliente().isBlank())
+                ? item.getNomeCliente()
+                : (item.getEmailCliente() != null ? item.getEmailCliente() : "Cliente");
+        VBox boxCliente = new VBox(2);
+        Label lblNome = new Label("👤 " + nomeMostrato);
+        lblNome.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 14.5px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
+        boxCliente.getChildren().add(lblNome);
+        if (item.getEmailCliente() != null && !item.getEmailCliente().isBlank()
+                && !item.getEmailCliente().equalsIgnoreCase(nomeMostrato)) {
+            Label lblMail = new Label(item.getEmailCliente());
+            lblMail.setStyle("-fx-font-size: 12px; -fx-text-fill: #a89f92;");
+            boxCliente.getChildren().add(lblMail);
+        }
+
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        Label lblTotale = new Label(String.format(Locale.US, "EUR %.2f", item.getPrezzoTotale()));
+        lblTotale.setMinWidth(Region.USE_PREF_SIZE);
+        lblTotale.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #baa487;");
+
+        Label lblStato = creaBadgeStatoOrdine(item.getStato());
+        lblStato.setMinWidth(Region.USE_PREF_SIZE);
+
+        Label lblDet = new Label("Dettagli ➔");
+        lblDet.setMinWidth(Region.USE_PREF_SIZE);
+        lblDet.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #ded7cd; "
+                + "-fx-background-color: rgba(255,255,255,0.07); -fx-padding: 4 10; -fx-background-radius: 8;");
+
+        riga.getChildren().addAll(lblId, boxCliente, sp, lblTotale, lblStato, lblDet);
+        riga.setOnMouseClicked(e -> {
+            if (onApriDettaglio != null) {
+                onApriDettaglio.run();
+            }
+        });
+        return riga;
+    }
+
+    public static void mostraPopupDettaglioOrdine(javafx.stage.Window owner,
+                                                  OrdineBean item,
+                                                  Consumer<String> onConfermaOrdine,
+                                                  Consumer<String> onDisdiciOrdine) {
+        if (item == null) return;
+
+        javafx.stage.Stage popup = new javafx.stage.Stage();
+        popup.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        popup.setTitle("Frostly — Dettaglio Ordine " + item.getCodiceOrdine());
+        if (owner != null) {
+            popup.initOwner(owner);
+        }
+
+        VBox cardDettaglio = buildCardOrdineStaff(
+                item,
+                cod -> {
+                    popup.close();
+                    if (onConfermaOrdine != null) {
+                        javafx.application.Platform.runLater(() -> onConfermaOrdine.accept(cod));
+                    }
+                },
+                cod -> {
+                    popup.close();
+                    if (onDisdiciOrdine != null) {
+                        javafx.application.Platform.runLater(() -> onDisdiciOrdine.accept(cod));
+                    }
+                });
+
+        javafx.scene.control.ScrollPane scroll = new javafx.scene.control.ScrollPane(cardDettaglio);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+
+        Button btnChiudi = new Button("Chiudi");
+        btnChiudi.setStyle("-fx-background-color: transparent; -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 13px; "
+                + "-fx-border-color: rgba(255,255,255,0.22); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 7 18; -fx-cursor: hand;");
+        btnChiudi.setOnAction(e -> popup.close());
+
+        HBox footer = new HBox(btnChiudi);
+        footer.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox root = new VBox(14, scroll, footer);
+        root.setStyle("-fx-padding: 18 22; -fx-background-color: rgba(16, 15, 18, 0.98); "
+                + "-fx-border-color: rgba(186,164,135,0.40); -fx-border-width: 1.2;");
+        root.setPrefWidth(720);
+        root.setPrefHeight(500);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 720, 500);
+        scene.setFill(javafx.scene.paint.Color.web("#121114"));
+        popup.setScene(scene);
+        popup.centerOnScreen();
+        popup.showAndWait();
     }
 
     public static VBox buildCardOrdineStaff(OrdineBean item,
@@ -98,14 +219,20 @@ public final class OrdiniStaffView {
                     + "-fx-font-size: 13px; -fx-padding: 4 12; -fx-background-radius: 8;");
         } else if (isConfermato) {
             lblId.setStyle("-fx-background-color: rgba(30,55,42,0.9); -fx-text-fill: #a7f3d0; -fx-font-weight: bold; "
-                    + "-fx-font-size: 12.5px; -fx-padding: 4 11; -fx-background-radius: 8; -fx-border-color: #10b981; -fx-border-radius: 8;");
+                    + "-fx-font-size: 14px; -fx-padding: 4 11; -fx-background-radius: 8; -fx-border-color: #10b981; -fx-border-radius: 8;");
         } else {
             lblId.setStyle("-fx-background-color: rgba(38,36,40,0.85); -fx-text-fill: #baa487; -fx-font-weight: bold; "
-                    + "-fx-font-size: 12.5px; -fx-padding: 4 11; -fx-background-radius: 8;");
+                    + "-fx-font-size: 14px; -fx-padding: 4 11; -fx-background-radius: 8;");
         }
 
-        Label lblCliente = new Label("👤  " + (item.getEmailCliente() != null ? item.getEmailCliente() : "Cliente"));
-        lblCliente.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
+        String nomeCli = (item.getNomeCliente() != null && !item.getNomeCliente().isBlank())
+                ? item.getNomeCliente()
+                : (item.getEmailCliente() != null ? item.getEmailCliente() : "Cliente");
+        String mailCli = (item.getEmailCliente() != null && !item.getEmailCliente().equalsIgnoreCase(nomeCli))
+                ? " (" + item.getEmailCliente() + ")"
+                : "";
+        Label lblCliente = new Label("👤  " + nomeCli + mailCli);
+        lblCliente.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
 
         Region spTop = new Region();
         HBox.setHgrow(spTop, Priority.ALWAYS);
@@ -113,8 +240,6 @@ public final class OrdiniStaffView {
         Label lblBadge = creaBadgeStatoOrdine(item.getStato());
 
         top.getChildren().addAll(lblId, lblCliente, spTop, lblBadge);
-
-        // 2. RIGA CONSEGNA / RITIRO & INDIRIZZO
         String rawDataRitiro = item.getDataRitiro() != null ? item.getDataRitiro() : "Ritiro al banco";
         String infoConsegna = rawDataRitiro;
         String noteIndirizzo = "";
@@ -132,18 +257,16 @@ public final class OrdiniStaffView {
 
         Label lblMod = new Label("🛵  " + infoConsegna);
         lblMod.setWrapText(true);
-        lblMod.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+        lblMod.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
         HBox.setHgrow(lblMod, Priority.ALWAYS);
         boxConsegna.getChildren().add(lblMod);
 
         if (!noteIndirizzo.isEmpty()) {
             Label lblNote = new Label("📍 " + noteIndirizzo);
             lblNote.setWrapText(true);
-            lblNote.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #d5bdaf; -fx-background-color: rgba(35,32,38,0.85); -fx-padding: 3 8; -fx-background-radius: 6;");
+            lblNote.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #d5bdaf; -fx-background-color: rgba(35,32,38,0.85); -fx-padding: 3 8; -fx-background-radius: 6;");
             boxConsegna.getChildren().add(lblNote);
         }
-
-        // 3. SEZIONE ARTICOLI ORDINATI (ORGANIZZATI E CLASSIFICATI PER TIPOLOGIA)
         VBox boxArticoli = new VBox(6);
         boxArticoli.setStyle("-fx-background-color: rgba(15, 14, 18, 0.85); -fx-border-color: rgba(186,164,135,0.18); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 12;");
 
@@ -152,7 +275,7 @@ public final class OrdiniStaffView {
             String[] splitArticoli = descCompleta.split(" \\| ");
 
             Label lblTitoloSezione = new Label("📋 Articoli Ordinati (" + splitArticoli.length + "):");
-            lblTitoloSezione.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+            lblTitoloSezione.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
             boxArticoli.getChildren().add(lblTitoloSezione);
 
             for (int i = 0; i < splitArticoli.length; i++) {
@@ -241,22 +364,22 @@ public final class OrdiniStaffView {
                 rowItem.setStyle("-fx-padding: 8 10; -fx-background-color: rgba(26, 24, 28, 0.90); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 8; -fx-background-radius: 8;");
 
                 Label lblIdx = new Label("#" + (i + 1));
-                lblIdx.setStyle("-fx-background-color: rgba(40, 36, 42, 0.85); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 7; -fx-background-radius: 6;");
+                lblIdx.setStyle("-fx-background-color: rgba(40, 36, 42, 0.85); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 2 7; -fx-background-radius: 6;");
 
                 Label lblCatBadge = new Label(icon + " " + cat);
-                lblCatBadge.setStyle(styleBadge + " -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 7; -fx-background-radius: 6; -fx-border-radius: 6;");
+                lblCatBadge.setStyle(styleBadge + " -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 2 7; -fx-background-radius: 6; -fx-border-radius: 6;");
 
                 VBox vbInfo = new VBox(2);
                 Label lblNome = new Label(nomeProdotto);
                 lblNome.setWrapText(true);
-                lblNome.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
+                lblNome.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
                 vbInfo.getChildren().add(lblNome);
 
                 if (!dettagli.isEmpty()) {
                     String prefissoDettaglio = cat.equals("GELATO") ? "↳ Gusti scelti: " : "↳ Dettagli: ";
                     Label lblDett = new Label(prefissoDettaglio + dettagli);
                     lblDett.setWrapText(true);
-                    lblDett.setStyle("-fx-font-size: 11px; -fx-text-fill: #d5bdaf; -fx-font-style: italic;");
+                    lblDett.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #d5bdaf; -fx-font-style: italic;");
                     vbInfo.getChildren().add(lblDett);
                 }
                 HBox.setHgrow(vbInfo, Priority.ALWAYS);
@@ -280,12 +403,12 @@ public final class OrdiniStaffView {
 
         if (isNuovo) {
             Button btnDis = new Button("✕ Disdici");
-            btnDis.setStyle("-fx-background-color: rgba(70, 20, 25, 0.85); -fx-text-fill: #fca5a5; -fx-font-size: 11.5px; -fx-font-weight: bold; "
+            btnDis.setStyle("-fx-background-color: rgba(70, 20, 25, 0.85); -fx-text-fill: #fca5a5; -fx-font-size: 13px; -fx-font-weight: bold; "
                     + "-fx-background-radius: 8; -fx-padding: 6 14; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 8;");
             btnDis.setOnAction(e -> onDisdiciOrdine.accept(item.getCodiceOrdine()));
 
             Button btnConf = new Button("✔ Conferma Ordine");
-            btnConf.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-size: 12px; -fx-font-weight: bold; "
+            btnConf.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-size: 13.5px; -fx-font-weight: bold; "
                     + "-fx-background-radius: 8; -fx-padding: 6 18; -fx-cursor: hand; "
                     + "-fx-effect: dropshadow(gaussian, rgba(186,164,135,0.40), 8, 0, 0, 2);");
             btnConf.setOnAction(e -> onConfermaOrdine.accept(item.getCodiceOrdine()));
@@ -293,11 +416,11 @@ public final class OrdiniStaffView {
             bottom.getChildren().addAll(btnDis, btnConf);
         } else if (isConfermato) {
             Label lblOk = new Label("✔ Ordine approvato e notificato al cliente");
-            lblOk.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #a7f3d0; -fx-font-weight: bold; -fx-background-color: rgba(22,55,38,0.85); -fx-padding: 4 10; -fx-background-radius: 6; -fx-border-color: #10b981; -fx-border-radius: 6;");
+            lblOk.setStyle("-fx-font-size: 13px; -fx-text-fill: #a7f3d0; -fx-font-weight: bold; -fx-background-color: rgba(22,55,38,0.85); -fx-padding: 4 10; -fx-background-radius: 6; -fx-border-color: #10b981; -fx-border-radius: 6;");
             bottom.getChildren().add(lblOk);
         } else {
             Label lblNo = new Label("✕ Ordine non evaso o disdetto");
-            lblNo.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-background-color: rgba(65,20,25,0.85); -fx-padding: 4 10; -fx-background-radius: 6; -fx-border-color: #ef4444; -fx-border-radius: 6;");
+            lblNo.setStyle("-fx-font-size: 13px; -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-background-color: rgba(65,20,25,0.85); -fx-padding: 4 10; -fx-background-radius: 6; -fx-border-color: #ef4444; -fx-border-radius: 6;");
             bottom.getChildren().add(lblNo);
         }
 

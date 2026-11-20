@@ -54,7 +54,7 @@ public final class EmergenzeStaffView {
         Label lblTitolo = new Label("🚨 RICHIESTA DI SOSTITUZIONE URGENTE");
         lblTitolo.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #ff8a80;");
         Label lblSub = new Label("Codice: " + e.getCodiceEmergenza() + " • Turno: " + e.getCodiceTurno());
-        lblSub.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #baa487;");
+        lblSub.setStyle("-fx-font-size: 13px; -fx-text-fill: #baa487;");
 
         VBox cardInfo = new VBox(6);
         cardInfo.setStyle("-fx-padding: 12 16; -fx-background-color: rgba(28, 25, 33, 0.85); -fx-background-radius: 10; -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 10;");
@@ -62,13 +62,13 @@ public final class EmergenzeStaffView {
         lblDip.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
         String turnoDettagli = e.getDataTurno() != null ? (e.getDataTurno() + " ore " + e.getOrarioTurno()) : "Turno di lavoro programmato";
         Label lblTurno = new Label("📅 Turno coinvolto: " + e.getCodiceTurno() + " • " + turnoDettagli);
-        lblTurno.setStyle("-fx-font-size: 12px; -fx-text-fill: #ded7cd;");
+        lblTurno.setStyle("-fx-font-size: 13.5px; -fx-text-fill: #ded7cd;");
         cardInfo.getChildren().addAll(lblDip, lblTurno);
 
         VBox cardMotivo = new VBox(6);
         cardMotivo.setStyle("-fx-padding: 12 16; -fx-background-color: rgba(24, 21, 28, 0.95); -fx-background-radius: 10; -fx-border-color: rgba(198, 40, 40, 0.35); -fx-border-radius: 10;");
         Label lblMotivoTitolo = new Label("💬 Motivo comunicato dal dipendente:");
-        lblMotivoTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #ff8a80;");
+        lblMotivoTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #ff8a80;");
         Label lblMotivoTesto = new Label("\"" + e.getMotivazione() + "\"");
         lblMotivoTesto.setWrapText(true);
         lblMotivoTesto.setStyle("-fx-font-size: 13px; -fx-font-style: italic; -fx-text-fill: #f5ebe0; -fx-font-family: 'Georgia';");
@@ -76,7 +76,7 @@ public final class EmergenzeStaffView {
 
         VBox cardAzione = new VBox(8);
         Label lblSostituto = new Label("🔁 Scegli il dipendente per coprire e modificare il turno:");
-        lblSostituto.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
+        lblSostituto.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
 
         ComboBox<String> comboSostitutoModal = new ComboBox<>();
         comboSostitutoModal.setMaxWidth(Double.MAX_VALUE);
@@ -91,7 +91,7 @@ public final class EmergenzeStaffView {
         }
 
         Label lblNota = new Label("✍️ Nota o risposta del Maestro in tempo reale:");
-        lblNota.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
+        lblNota.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
         TextField txtNota = new TextField("Sostituzione approvata e turno riassegnato");
         txtNota.setStyle("-fx-background-color: #1c1921; -fx-text-fill: #f5ebe0; -fx-border-color: rgba(186, 164, 135, 0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
 

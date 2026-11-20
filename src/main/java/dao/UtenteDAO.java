@@ -8,7 +8,6 @@ import model.MaestroGelataio;
 
 /**
  * Interfaccia DAO dedicata esclusivamente alla persistenza degli Utenti (Maestro, Dipendenti, Clienti).
- * Rispetta il Single Responsibility Principle e l'Interface Segregation Principle.
  */
 public interface UtenteDAO {
 

@@ -28,16 +28,15 @@ import javafx.scene.layout.VBox;
 public final class ClienteMenuView {
 
     private ClienteMenuView() {
-        // Classe di utilità View
     }
 
     public static void evidenziaPulsanteCategoria(Button b, boolean attivo) {
         if (b == null) return;
         b.setMinWidth(Region.USE_PREF_SIZE);
         if (attivo) {
-            b.setStyle("-fx-background-color: #7f5539; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 12; -fx-font-size: 12px;");
+            b.setStyle("-fx-background-color: #7f5539; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 12; -fx-font-size: 13.5px;");
         } else {
-            b.setStyle("-fx-background-color: #ede0d4; -fx-text-fill: #5c3a21; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 12; -fx-font-size: 12px; -fx-cursor: hand;");
+            b.setStyle("-fx-background-color: #ede0d4; -fx-text-fill: #5c3a21; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 12; -fx-font-size: 13.5px; -fx-cursor: hand;");
         }
     }
 
@@ -62,7 +61,7 @@ public final class ClienteMenuView {
 
         Button btnHomeCategorie = new Button("⬅ Tutte le Categorie");
         btnHomeCategorie.setMinWidth(Region.USE_PREF_SIZE);
-        btnHomeCategorie.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 14; -fx-font-size: 12px; -fx-cursor: hand;");
+        btnHomeCategorie.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 14; -fx-font-size: 13.5px; -fx-cursor: hand;");
         btnHomeCategorie.setOnAction(e -> onSelezionaCategoria.accept(null));
         boxCategorie.getChildren().add(btnHomeCategorie);
 
@@ -94,38 +93,68 @@ public final class ClienteMenuView {
 
         for (String cat : categorie) {
             int conteggio = 0;
+            String immagineRappresentativa = null;
             for (GustoBean g : tuttiProdotti) {
                 if (cat.equalsIgnoreCase(g.getCategoria())) {
                     conteggio++;
+                    if (immagineRappresentativa == null
+                            && g.getImmagineUrl() != null
+                            && !g.getImmagineUrl().isBlank()
+                            && VetrinaMenuView.risolviPercorsoImmagine(g.getImmagineUrl()) != null) {
+                        immagineRappresentativa = g.getImmagineUrl();
+                    }
                 }
             }
-            VBox card = creaSchedaMacroCategoria(cat, conteggio, () -> onSelezionaCategoria.accept(cat));
+            VBox card = creaSchedaMacroCategoria(cat, conteggio, immagineRappresentativa, () -> onSelezionaCategoria.accept(cat));
             griglia.getChildren().add(card);
         }
 
         contenitore.getChildren().addAll(banner, griglia);
     }
 
-    private static VBox creaSchedaMacroCategoria(String categoria, int numeroProdotti, Runnable onClick) {
+    private static VBox creaSchedaMacroCategoria(String categoria, int numeroProdotti, String immagineUrl, Runnable onClick) {
         double larghezza = 215;
+        double altezzaFoto = 118;
 
         StackPane topIconBox = new StackPane();
-        topIconBox.setPrefSize(larghezza, 82);
-        topIconBox.setMinSize(larghezza, 82);
-        topIconBox.setMaxSize(larghezza, 82);
+        topIconBox.setPrefSize(larghezza, altezzaFoto);
+        topIconBox.setMinSize(larghezza, altezzaFoto);
+        topIconBox.setMaxSize(larghezza, altezzaFoto);
         topIconBox.setStyle("-fx-background-color: " + coloreSfondoMacroCategoria(categoria)
                 + "; -fx-background-radius: 14 14 0 0;");
 
-        Label lblIconaGrande = new Label(VetrinaMenuView.emojiCategoria(categoria));
-        lblIconaGrande.setStyle("-fx-font-size: 40px;");
+        StackPane boxFoto = VetrinaMenuView.creaBoxFotoProdotto(
+                immagineUrl,
+                VetrinaMenuView.emojiCategoria(categoria),
+                larghezza,
+                altezzaFoto,
+                0);
+        boxFoto.setStyle("-fx-background-color: transparent;");
+
+        Region veloSfumato = new Region();
+        veloSfumato.setPrefSize(larghezza, altezzaFoto);
+        veloSfumato.setStyle("-fx-background-color: linear-gradient(to bottom, rgba(16,14,18,0.22) 0%, rgba(16,14,18,0.05) 55%, rgba(20,18,22,0.55) 100%);");
 
         String unita = "Gelati".equalsIgnoreCase(categoria) ? (numeroProdotti + " gusti") : (numeroProdotti + " prodotti");
         Label badgeCount = new Label(unita);
-        badgeCount.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10;");
+        badgeCount.setStyle("-fx-background-color: rgba(186,164,135,0.95); -fx-text-fill: #141312; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 3 9; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 6, 0, 0, 1);");
         StackPane.setAlignment(badgeCount, Pos.TOP_RIGHT);
         StackPane.setMargin(badgeCount, new javafx.geometry.Insets(8, 8, 0, 0));
 
-        topIconBox.getChildren().addAll(lblIconaGrande, badgeCount);
+        topIconBox.getChildren().addAll(boxFoto, veloSfumato, badgeCount);
+
+        // Copre solo gli angoli superiori arrotondati, lasciando dritta la base che unisce la foto al corpo della card
+        javafx.scene.shape.Path clipArrotondatoAlto = new javafx.scene.shape.Path(
+                new javafx.scene.shape.MoveTo(0, 14),
+                new javafx.scene.shape.QuadCurveTo(0, 0, 14, 0),
+                new javafx.scene.shape.LineTo(larghezza - 14, 0),
+                new javafx.scene.shape.QuadCurveTo(larghezza, 0, larghezza, 14),
+                new javafx.scene.shape.LineTo(larghezza, altezzaFoto),
+                new javafx.scene.shape.LineTo(0, altezzaFoto),
+                new javafx.scene.shape.ClosePath()
+        );
+        clipArrotondatoAlto.setFill(javafx.scene.paint.Color.BLACK);
+        topIconBox.setClip(clipArrotondatoAlto);
 
         Label lblTitolo = new Label(categoria);
         lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;");
@@ -135,12 +164,12 @@ public final class ClienteMenuView {
         lblDesc.setPrefWidth(larghezza - 24);
         lblDesc.setMinHeight(46);
         lblDesc.setAlignment(Pos.TOP_LEFT);
-        lblDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+        lblDesc.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
 
         Button btnApri = new Button("Apri " + categoria + " ➔");
         btnApri.setMaxWidth(Double.MAX_VALUE);
         btnApri.setMinHeight(Region.USE_PREF_SIZE);
-        btnApri.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 6 12; -fx-cursor: hand;");
+        btnApri.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 10; -fx-padding: 6 12; -fx-cursor: hand;");
         btnApri.setOnAction(e -> {
             onClick.run();
             e.consume();
@@ -263,22 +292,29 @@ public final class ClienteMenuView {
                                              boolean selezionata,
                                              String testoAzione,
                                              Runnable onClickAzione) {
-        Button btnAzione = new Button(testoAzione);
+        boolean disponibile = g.isDisponibileOggi();
+        Button btnAzione = new Button(disponibile ? testoAzione : "Momentaneamente Esaurito");
         btnAzione.setMaxWidth(Double.MAX_VALUE);
         btnAzione.setMinHeight(Region.USE_PREF_SIZE);
-        btnAzione.setDisable(!g.isDisponibileOggi());
-        btnAzione.setStyle(selezionata
-                ? "-fx-background-color: rgba(30,65,48,0.9); -fx-text-fill: #a7f3d0; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand; -fx-border-color: #10b981; -fx-border-radius: 10;"
-                : "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand;");
+        btnAzione.setDisable(!disponibile);
+        if (!disponibile) {
+            btnAzione.setStyle("-fx-background-color: rgba(45,42,48,0.85); -fx-text-fill: #9e9384; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-border-color: rgba(158,147,132,0.28); -fx-border-radius: 10;");
+        } else {
+            btnAzione.setStyle(selezionata
+                    ? "-fx-background-color: rgba(30,65,48,0.9); -fx-text-fill: #a7f3d0; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand; -fx-border-color: #10b981; -fx-border-radius: 10;"
+                    : "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 6 10; -fx-cursor: hand;");
+        }
         btnAzione.setOnAction(ev -> {
             onClickAzione.run();
             ev.consume();
         });
 
         VBox scheda = VetrinaMenuView.creaCorpoSchedaProdotto(g, 214, 154, btnAzione, selezionata);
-        if (g.isDisponibileOggi()) {
+        if (disponibile) {
             scheda.setStyle(scheda.getStyle() + " -fx-cursor: hand;");
             scheda.setOnMouseClicked(e -> onClickAzione.run());
+        } else {
+            scheda.setOpacity(0.62);
         }
         return scheda;
     }

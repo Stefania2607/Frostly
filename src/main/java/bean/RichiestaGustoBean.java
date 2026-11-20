@@ -19,7 +19,6 @@ public class RichiestaGustoBean {
     private String rispostaMaestro;
 
     public RichiestaGustoBean() {
-        // Costruttore vuoto JavaBean
     }
 
     public String getCodiceRichiesta() {

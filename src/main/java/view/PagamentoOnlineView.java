@@ -18,17 +18,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import model.CartaCredito;
 
 /**
  * View dedicata alla simulazione del pagamento online con Carta di Credito / Debito.
- * Implementa un'esperienza visiva 'Quiet Luxury' con anteprima realistica della carta,
  * controlli di validazione e schermata di esito (transazione autorizzata o rifiutata).
  */
 public final class PagamentoOnlineView {
 
     private PagamentoOnlineView() {
-        // Utility View
     }
 
     public static void apriPopupPagamento(Window owner,
@@ -58,7 +55,7 @@ public final class PagamentoOnlineView {
 
         VBox titleBox = new VBox(2);
         Label lblSub = new Label("FROSTLY • GATEWAY DI PAGAMENTO PROTETTO SSL 256-BIT");
-        lblSub.setStyle("-fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-letter-spacing: 0.8px;");
+        lblSub.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-letter-spacing: 0.8px;");
         Label lblTitolo = new Label("Simulazione Pagamento con Carta");
         lblTitolo.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 17.5px; -fx-text-fill: #f5ebe0;");
         titleBox.getChildren().addAll(lblSub, lblTitolo);
@@ -69,7 +66,7 @@ public final class PagamentoOnlineView {
         VBox boxTotale = new VBox(2);
         boxTotale.setAlignment(Pos.CENTER_RIGHT);
         Label lblTotTit = new Label("IMPORTO DA SALDARE");
-        lblTotTit.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #a89f92;");
+        lblTotTit.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #a89f92;");
         Label lblImporto = new Label(String.format(Locale.US, "EUR %.2f", importo));
         lblImporto.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #baa487;");
         boxTotale.getChildren().addAll(lblTotTit, lblImporto);
@@ -85,7 +82,7 @@ public final class PagamentoOnlineView {
         Label lblRiepIcon = new Label(datiConsegna.getTipoConsegna() == DatiConsegnaBean.TipoConsegna.DOMICILIO ? "🛵" : "🛍️");
         lblRiepIcon.setStyle("-fx-font-size: 14px;");
         Label lblRiepTesto = new Label(datiConsegna.costruisciStringaRiepilogoConsegna());
-        lblRiepTesto.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+        lblRiepTesto.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
         boxRiepilogo.getChildren().addAll(lblRiepIcon, lblRiepTesto);
 
         // Card Grafica Simulata (Dark Luxury Glass Card)
@@ -98,13 +95,13 @@ public final class PagamentoOnlineView {
         rigaTopCard.setAlignment(Pos.CENTER_LEFT);
 
         Label lblChip = new Label("💳 CHIP");
-        lblChip.setStyle("-fx-background-color: rgba(186,164,135,0.3); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-font-size: 9px; -fx-padding: 3 6; -fx-background-radius: 4;");
+        lblChip.setStyle("-fx-background-color: rgba(186,164,135,0.3); -fx-text-fill: #baa487; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 3 6; -fx-background-radius: 4;");
 
         Region spCard = new Region();
         HBox.setHgrow(spCard, Priority.ALWAYS);
 
         Label lblCircuito = new Label("MASTERCARD / VISA");
-        lblCircuito.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #baa487;");
+        lblCircuito.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;");
         rigaTopCard.getChildren().addAll(lblChip, spCard, lblCircuito);
 
         Label lblPreviewNumero = new Label("••••  ••••  ••••  ••••");
@@ -115,16 +112,16 @@ public final class PagamentoOnlineView {
 
         VBox bTitolare = new VBox(1);
         Label lblTitTit = new Label("TITOLARE CARTA");
-        lblTitTit.setStyle("-fx-font-size: 8px; -fx-font-weight: bold; -fx-text-fill: #a89f92;");
+        lblTitTit.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #a89f92;");
         Label lblPreviewTitolare = new Label("NOME COGNOME");
-        lblPreviewTitolare.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #ded7cd;");
+        lblPreviewTitolare.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #ded7cd;");
         bTitolare.getChildren().addAll(lblTitTit, lblPreviewTitolare);
 
         VBox bScadenza = new VBox(1);
         Label lblScadTit = new Label("SCADENZA");
-        lblScadTit.setStyle("-fx-font-size: 8px; -fx-font-weight: bold; -fx-text-fill: #a89f92;");
+        lblScadTit.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #a89f92;");
         Label lblPreviewScadenza = new Label("MM/AA");
-        lblPreviewScadenza.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #ded7cd;");
+        lblPreviewScadenza.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #ded7cd;");
         bScadenza.getChildren().addAll(lblScadTit, lblPreviewScadenza);
 
         Region spBC = new Region();
@@ -171,7 +168,7 @@ public final class PagamentoOnlineView {
                 }
             }
             lblPreviewNumero.setText(formatted.toString());
-            lblCircuito.setText(CartaCredito.rilevaCircuito(clean));
+            lblCircuito.setText(rilevaEtichettaCircuito(clean));
         });
 
         HBox rigaScadCvv = new HBox(12);
@@ -193,7 +190,7 @@ public final class PagamentoOnlineView {
 
         Button btnDemo = new Button("✨ Compila con Carta di Test");
         btnDemo.setStyle("-fx-background-color: rgba(186,164,135,0.15); -fx-text-fill: #baa487; -fx-font-weight: bold; "
-                + "-fx-font-size: 11px; -fx-border-color: rgba(186,164,135,0.35); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6 12; -fx-cursor: hand;");
+                + "-fx-font-size: 12.5px; -fx-border-color: rgba(186,164,135,0.35); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6 12; -fx-cursor: hand;");
         btnDemo.setOnAction(e -> {
             // Carta Visa di test standard valida con algoritmo di Luhn
             txtTitolare.setText("Mario Rossi");
@@ -209,21 +206,21 @@ public final class PagamentoOnlineView {
         Label lblErrore = new Label();
         lblErrore.setWrapText(true);
         lblErrore.setVisible(false);
-        lblErrore.setStyle("-fx-text-fill: #ff8a80; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-padding: 6 10; "
+        lblErrore.setStyle("-fx-text-fill: #ff8a80; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 10; "
                 + "-fx-background-color: rgba(188,71,73,0.22); -fx-border-color: rgba(255,138,128,0.4); -fx-border-radius: 6; -fx-background-radius: 6;");
 
         // Footer Pulsanti
         HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_RIGHT);
 
+        final boolean[] tornaIndietro = {false};
+
         Button btnIndietro = new Button("⬅ Modifica Dati Consegna");
         btnIndietro.setStyle("-fx-background-color: transparent; -fx-text-fill: #ded7cd; -fx-font-weight: bold; "
                 + "-fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 16; -fx-cursor: hand;");
         btnIndietro.setOnAction(e -> {
+            tornaIndietro[0] = true;
             popup.close();
-            if (onTornaIndietro != null) {
-                onTornaIndietro.run();
-            }
         });
 
         Button btnPaga = new Button(String.format(Locale.US, "🔒 Paga e Autorizza EUR %.2f", importo));
@@ -260,86 +257,40 @@ public final class PagamentoOnlineView {
         popup.sizeToScene();
         popup.centerOnScreen();
         popup.showAndWait();
+
+        if (tornaIndietro[0] && onTornaIndietro != null) {
+            javafx.application.Platform.runLater(onTornaIndietro);
+        }
     }
 
     public static void mostraRicevutaPagamento(Window owner,
                                                EsitoPagamentoBean esito,
                                                Runnable onConcludiOrdine) {
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Frostly — Ricevuta di Pagamento");
-        if (owner != null) {
-            dialog.initOwner(owner);
+        if (esito != null && esito.isSuccesso() && onConcludiOrdine != null) {
+            onConcludiOrdine.run();
         }
-
-        VBox root = new VBox(14);
-        root.setAlignment(Pos.CENTER);
-        root.setStyle("-fx-padding: 26 30; -fx-background-color: rgba(18, 17, 20, 0.98); "
-                + "-fx-border-color: rgba(186,164,135,0.45); -fx-border-width: 1.5; -fx-background-radius: 12; -fx-border-radius: 12;");
-        root.setPrefWidth(500);
-
-        Label lblIcon = new Label(esito.isSuccesso() ? "✅" : "❌");
-        lblIcon.setStyle("-fx-font-size: 38px; -fx-background-color: "
-                + (esito.isSuccesso() ? "rgba(42,157,143,0.20);" : "rgba(188,71,73,0.20);")
-                + " -fx-padding: 10 16; -fx-background-radius: 50;");
-
-        Label lblTitolo = new Label(esito.isSuccesso() ? "PAGAMENTO AUTORIZZATO!" : "PAGAMENTO RIFIUTATO");
-        lblTitolo.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 18px; "
-                + "-fx-text-fill: " + (esito.isSuccesso() ? "#baa487;" : "#ff8a80;"));
-
-        Label lblMsg = new Label(esito.getMessaggio());
-        lblMsg.setWrapText(true);
-        lblMsg.setAlignment(Pos.CENTER);
-        lblMsg.setStyle("-fx-font-size: 12px; -fx-text-fill: #ded7cd; -fx-line-spacing: 2px;");
-
-        VBox cardRicevuta = new VBox(6);
-        cardRicevuta.setStyle("-fx-background-color: rgba(28,25,33,0.90); -fx-border-color: rgba(186,164,135,0.25); "
-                + "-fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 12 16;");
-
-        if (esito.isSuccesso()) {
-            HBox rTrx = creaRigaDettaglio("Codice Transazione:", esito.getCodiceTransazione());
-            HBox rImp = creaRigaDettaglio("Importo Addebitato:", String.format(Locale.US, "EUR %.2f", esito.getImporto()));
-            HBox rData = creaRigaDettaglio("Data e Ora:", esito.getDataOra());
-            HBox rCarta = creaRigaDettaglio("Metodo:", esito.getCircuito() + " (" + esito.getCartaMascherata() + ")");
-            cardRicevuta.getChildren().addAll(rTrx, rImp, rData, rCarta);
-        }
-
-        Button btnChiudi = new Button(esito.isSuccesso() ? "Invia Ordine al Laboratorio ➔" : "Chiudi e Riprova");
-        btnChiudi.setStyle(esito.isSuccesso()
-                ? "-fx-background-color: linear-gradient(to bottom, #baa487, #8c7355); -fx-text-fill: #141216; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 9 22; -fx-cursor: hand;"
-                : "-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 8 18; -fx-cursor: hand;");
-
-        btnChiudi.setOnAction(e -> {
-            dialog.close();
-            if (esito.isSuccesso() && onConcludiOrdine != null) {
-                onConcludiOrdine.run();
-            }
-        });
-
-        root.getChildren().addAll(lblIcon, lblTitolo, lblMsg);
-        if (esito.isSuccesso()) {
-            root.getChildren().add(cardRicevuta);
-        }
-        root.getChildren().add(btnChiudi);
-
-        Scene scene = new Scene(root, 520, 380);
-        scene.setFill(javafx.scene.paint.Color.web("#121114"));
-        dialog.setScene(scene);
-        dialog.sizeToScene();
-        dialog.centerOnScreen();
-        dialog.showAndWait();
+        RicevutaPagamentoView.mostraRicevuta(owner, esito, null, null);
     }
 
-    private static HBox creaRigaDettaglio(String label, String valore) {
-        HBox r = new HBox(8);
-        r.setAlignment(Pos.CENTER_LEFT);
-        Label l = new Label(label);
-        l.setStyle("-fx-font-size: 11px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
-        Region sp = new Region();
-        HBox.setHgrow(sp, Priority.ALWAYS);
-        Label v = new Label(valore != null ? valore : "");
-        v.setStyle("-fx-font-size: 11px; -fx-text-fill: #f5ebe0;");
-        r.getChildren().addAll(l, sp, v);
-        return r;
+    public static void mostraRicevutaPagamento(Window owner,
+                                               EsitoPagamentoBean esito,
+                                               String codiceOrdine) {
+        RicevutaPagamentoView.mostraRicevuta(owner, esito, codiceOrdine, null);
+    }
+
+    public static void mostraRicevutaPagamento(Window owner,
+                                               EsitoPagamentoBean esito,
+                                               String codiceOrdine,
+                                               String urlScontrino) {
+        RicevutaPagamentoView.mostraRicevuta(owner, esito, codiceOrdine, urlScontrino);
+    }
+
+    private static String rilevaEtichettaCircuito(String numero) {
+        if (numero == null || numero.isEmpty()) return "CARTA DI CREDITO";
+        if (numero.startsWith("4")) return "VISA";
+        if (numero.startsWith("5") || numero.startsWith("2")) return "MASTERCARD";
+        if (numero.startsWith("34") || numero.startsWith("37")) return "AMEX";
+        if (numero.startsWith("6")) return "DISCOVER / MAESTRO";
+        return "CARTA DI CREDITO";
     }
 }

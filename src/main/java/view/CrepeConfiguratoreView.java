@@ -46,7 +46,6 @@ public final class CrepeConfiguratoreView {
     );
 
     private CrepeConfiguratoreView() {
-        // Classe di utilità View
     }
 
     public static class AzioniCrepe {
@@ -87,7 +86,7 @@ public final class CrepeConfiguratoreView {
         Region spB = new Region();
         HBox.setHgrow(spB, Priority.ALWAYS);
         Label lblInfoExtra = new Label("Topping a scelta (+€0,50) • Granella a scelta (+€0,50 o Nessuna)");
-        lblInfoExtra.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+        lblInfoExtra.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
         banner.getChildren().addAll(lblTitolo, spB, lblInfoExtra);
         contenitore.getChildren().add(banner);
 
@@ -108,7 +107,7 @@ public final class CrepeConfiguratoreView {
 
         if (crepeSelezionata != null) {
             VBox boxConfig = new VBox(10);
-            boxConfig.setStyle("-fx-background-color: #fff8ee; -fx-border-color: #588157; -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 12 16;");
+            boxConfig.setStyle("-fx-background-color: rgba(26, 24, 28, 0.96); -fx-border-color: #baa487; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 12 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0, 0, 3);");
 
             HBox barraScelta = new HBox(12);
             barraScelta.setAlignment(Pos.CENTER_LEFT);
@@ -121,12 +120,12 @@ public final class CrepeConfiguratoreView {
                     + String.format(Locale.US, " (Base EUR %.2f)", crepeSelezionata.getPrezzoAlKg()));
             lblScelta.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 14.5px; -fx-text-fill: #f5ebe0;");
             Label lblSub = new Label("Clicca su 'Scegli il Topping' per personalizzare topping (+€0,50) e granella (+€0,50 o Nessuna):");
-            lblSub.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #ded7cd;");
+            lblSub.setStyle("-fx-font-size: 13px; -fx-text-fill: #ded7cd;");
             infoScelta.getChildren().addAll(lblScelta, lblSub);
 
             Button btnScegliTopping = new Button("✨ Scegli il Topping & Granella (+€0,50)");
             btnScegliTopping.setMinWidth(Region.USE_PREF_SIZE);
-            btnScegliTopping.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-background-radius: 14; -fx-padding: 8 16; -fx-cursor: hand;");
+            btnScegliTopping.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 14; -fx-padding: 8 16; -fx-cursor: hand;");
             btnScegliTopping.setOnAction(e -> azioni.onClickApriScegliTopping.run());
 
             barraScelta.getChildren().addAll(miniatura, infoScelta, btnScegliTopping);
@@ -137,7 +136,7 @@ public final class CrepeConfiguratoreView {
                 pannelloOpzioni.setStyle("-fx-background-color: rgba(20,18,22,0.92); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 14;");
 
                 Label lblTopTitle = new Label("1. Scegli il Topping (+ EUR 0.50, oppure Nessuno):");
-                lblTopTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
+                lblTopTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
                 FlowPane chipToppings = new FlowPane(8, 6);
                 for (String opzTop : OPZIONI_TOPPING_CREPE) {
                     boolean attivo = opzTop.equalsIgnoreCase(toppingScelto);
@@ -149,7 +148,7 @@ public final class CrepeConfiguratoreView {
                 }
 
                 Label lblGranTitle = new Label("2. Scegli la Granella (+ EUR 0.50, oppure Nessuna):");
-                lblGranTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
+                lblGranTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
                 FlowPane chipGranelle = new FlowPane(8, 6);
                 for (String opzGran : OPZIONI_GRANELLA_CREPE) {
                     boolean attivo = opzGran.equalsIgnoreCase(granellaScelta);
@@ -169,7 +168,7 @@ public final class CrepeConfiguratoreView {
 
                 Label lblRiep = new Label("🧾 " + descCompleta);
                 lblRiep.setWrapText(true);
-                lblRiep.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #ded7cd;");
+                lblRiep.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #ded7cd;");
                 HBox.setHgrow(lblRiep, Priority.ALWAYS);
 
                 Label lblPrezzoTot = new Label(String.format(Locale.US, "Totale Crepe: EUR %.2f", totCrepe));
@@ -178,7 +177,7 @@ public final class CrepeConfiguratoreView {
 
                 Button btnMettiCarrello = new Button("➕ Aggiungi Crepe al Carrello");
                 btnMettiCarrello.setMinWidth(Region.USE_PREF_SIZE);
-                btnMettiCarrello.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-background-radius: 14; -fx-padding: 8 18; -fx-cursor: hand;");
+                btnMettiCarrello.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 14; -fx-padding: 8 18; -fx-cursor: hand;");
                 btnMettiCarrello.setOnAction(e -> azioni.onConfermaCrepeNelCarrello.run());
 
                 footerConferma.getChildren().addAll(lblRiep, lblPrezzoTot, btnMettiCarrello);
@@ -226,7 +225,7 @@ public final class CrepeConfiguratoreView {
     public static Button creaChipOpzione(String testo, boolean attivo, Runnable onClick) {
         Button b = new Button(testo);
         b.setMinWidth(Region.USE_PREF_SIZE);
-        b.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 14; -fx-padding: 5 12; -fx-cursor: hand; "
+        b.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 14; -fx-padding: 5 12; -fx-cursor: hand; "
                 + (attivo
                 ? "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-border-color: #baa487; -fx-border-radius: 14;"
                 : "-fx-background-color: rgba(32,30,35,0.85); -fx-text-fill: #ded7cd; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 14;"));

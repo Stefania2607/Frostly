@@ -14,7 +14,7 @@
                    style="-fx-text-fill: #baa487; -fx-font-size: 13px;"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="lblIntestazione" text="Ospite"
-                   style="-fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                   style="-fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 13.5px;"/>
             <Button fx:id="btnApriCarrello" text="🛒 Vedi Carrello (0 prodotti • EUR 0.00)"
                     onAction="#onClickApriCarrello" styleClass="btn-primary"/>
             <Button text="Esci (Logout)" onAction="#onClickLogout" styleClass="btn-outline"/>
@@ -23,12 +23,7 @@
 
     <center>
         <VBox spacing="4" style="-fx-padding: 6 12;">
-            <Label fx:id="lblEsito" wrapText="true"
-                   text="Benvenuto in Frostly! Seleziona i prodotti dal menu qui sotto per aggiungerli al tuo carrello."
-                   style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;"/>
-
             <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
-                <!-- ================= TAB 1: MENU SELEZIONABILE A TUTTO SCHERMO + TASTO DEDICATO CARRELLO ================= -->
                 <Tab text="🍨 Menu &amp; Ordinazione">
                     <VBox spacing="6" styleClass="glass-card" style="-fx-padding: 8 12;">
                         <!-- BARRA DI NAVIGAZIONE CATEGORIE (VISIBILE QUANDO SI ENTRA IN UNA CATEGORIA) -->
@@ -51,28 +46,28 @@
                                            style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #f5ebe0;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Button text="🔄 Svuota" minWidth="-Infinity" onAction="#onClickSvuotaVaschetta"
-                                            styleClass="btn-outline" style="-fx-font-size: 10.5px; -fx-padding: 3 8;"/>
+                                            styleClass="btn-outline" style="-fx-font-size: 12px; -fx-padding: 3 8;"/>
                                 </HBox>
 
                                 <Label text="1. Scegli il formato desiderato:"
-                                       style="-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #baa487;"/>
+                                       style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;"/>
                                 <VBox spacing="6">
                                     <HBox spacing="6">
-                                        <Button fx:id="btnFormato350" text="350g (3 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato350" styleClass="btn-outline" style="-fx-font-size: 11px;"/>
-                                        <Button fx:id="btnFormato500" text="500g (4 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato500" styleClass="btn-outline" style="-fx-font-size: 11px;"/>
+                                        <Button fx:id="btnFormato350" text="350g (3 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato350" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
+                                        <Button fx:id="btnFormato500" text="500g (4 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato500" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
                                     </HBox>
                                     <HBox spacing="6">
-                                        <Button fx:id="btnFormato750" text="750g (5 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato750" styleClass="btn-outline" style="-fx-font-size: 11px;"/>
-                                        <Button fx:id="btnFormato1000" text="1 Kg (6 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato1000" styleClass="btn-outline" style="-fx-font-size: 11px;"/>
+                                        <Button fx:id="btnFormato750" text="750g (5 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato750" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
+                                        <Button fx:id="btnFormato1000" text="1 Kg (6 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato1000" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
                                     </HBox>
                                 </VBox>
 
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text="2. Scomparti vaschetta:"
-                                           style="-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #baa487;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Label fx:id="lblCapienzaVaschetta" text="0/4 gusti scelti (500g)" minWidth="-Infinity"
-                                           style="-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #baa487;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
                                 </HBox>
 
                                 <HBox fx:id="boxVaschettaGrafica" alignment="CENTER" spacing="6" VBox.vgrow="ALWAYS"
@@ -80,13 +75,13 @@
 
                                 <VBox spacing="5" style="-fx-background-color: rgba(32,29,35,0.90); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 10;">
                                     <Label text="3. Guarnizioni extra sulla vaschetta:"
-                                           style="-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #baa487;"/>
-                                    <CheckBox fx:id="checkPanna" text="☁️ +Panna Montata Fresca (+2.50€)" minWidth="-Infinity" style="-fx-font-size: 11px; -fx-text-fill: #f5ebe0;"/>
-                                    <CheckBox fx:id="checkGranella" text="✨ +Granella di Pistacchio (+3.50€)" minWidth="-Infinity" style="-fx-font-size: 11px; -fx-text-fill: #f5ebe0;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
+                                    <CheckBox fx:id="checkPanna" text="☁️ +Panna Montata Fresca (+2.50€)" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
+                                    <CheckBox fx:id="checkGranella" text="✨ +Granella di Pistacchio (+3.50€)" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
                                 </VBox>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="Prezzo Vaschetta:" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;"/>
+                                    <Label text="Prezzo Vaschetta:" style="-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Label fx:id="lblPrezzoVaschettaCorrente" text="EUR 0.00" minWidth="-Infinity"
                                            style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #baa487;"/>
@@ -94,28 +89,26 @@
 
                                 <Button text="➕ Metti Vaschetta nel Carrello" maxWidth="Infinity" minWidth="-Infinity"
                                         onAction="#onClickAggiungiVaschettaAlCarrello"
-                                        styleClass="btn-primary" style="-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 9 14;"/>
+                                        styleClass="btn-primary" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 9 14;"/>
                             </VBox>
                         </HBox>
                     </VBox>
                 </Tab>
-
-                <!-- ================= TAB 2: RECENSIONI DEI CLIENTI ================= -->
                 <Tab text="⭐ Recensioni">
                     <HBox spacing="16" style="-fx-padding: 10 2;">
                         <VBox spacing="10" prefWidth="380" styleClass="glass-card" style="-fx-padding: 16;">
                             <Label text="Lascia la tua Recensione"
                                    style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;"/>
                             <Label text="Condividi la tua esperienza con il Maestro e con la community!"
-                                   wrapText="true" style="-fx-font-size: 11px; -fx-text-fill: #baa487;"/>
+                                   wrapText="true" style="-fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
 
-                            <Label text="Valutazione (Stelle)" style="-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #f5ebe0;"/>
+                            <Label text="Valutazione (Stelle)" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
                             <ComboBox fx:id="comboVotoRecensione" maxWidth="Infinity"/>
 
-                            <Label text="Titolo della Recensione" style="-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #f5ebe0;"/>
+                            <Label text="Titolo della Recensione" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
                             <TextField fx:id="campoTitoloRecensione" promptText="Es. Il miglior pistacchio di Roma!"/>
 
-                            <Label text="Il tuo Commento Artigianale" style="-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #f5ebe0;"/>
+                            <Label text="Il tuo Commento Artigianale" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
                             <TextArea fx:id="campoCommentoRecensione" promptText="Racconta cosa ti è piaciuto del gelato, delle crepes o del servizio..."
                                       wrapText="true" prefRowCount="4"/>
 
@@ -130,10 +123,10 @@
                                     <Label text="Cosa Dicono i Nostri Clienti"
                                            style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;"/>
                                     <Label fx:id="lblMediaRecensioniCliente" text="⭐ Valutazione in caricamento..."
-                                           style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;"/>
                                 </VBox>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <Button text="🔄 Aggiorna" onAction="#onClickAggiornaRecensioni" styleClass="btn-outline" style="-fx-font-size: 11px; -fx-padding: 4 10;"/>
+                                <Button text="🔄 Aggiorna" onAction="#onClickAggiornaRecensioni" styleClass="btn-outline" style="-fx-font-size: 12.5px; -fx-padding: 4 10;"/>
                             </HBox>
 
                             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
@@ -146,8 +139,6 @@
                         </VBox>
                     </HBox>
                 </Tab>
-
-                <!-- ================= TAB 3: I MIEI ORDINI ================= -->
                 <Tab text="📦 I Miei Ordini">
                     <VBox spacing="10" styleClass="glass-card" style="-fx-padding: 16;">
                         <HBox alignment="CENTER_LEFT" spacing="10">
@@ -155,7 +146,7 @@
                                 <Label text="I Miei Pre-Ordini in Boutique"
                                        style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;"/>
                                 <Label text="Consulta i tuoi ordini inviati alla gelateria, il dettaglio dei prodotti e lo stato di conferma."
-                                       style="-fx-font-size: 11.5px; -fx-text-fill: #baa487;"/>
+                                       style="-fx-font-size: 13px; -fx-text-fill: #baa487;"/>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button text="🔄 Aggiorna Ordini" onAction="#onClickAggiornaOrdini" styleClass="btn-outline"/>

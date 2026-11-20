@@ -27,7 +27,6 @@ import javafx.stage.Window;
 public final class CheckoutConsegnaView {
 
     private CheckoutConsegnaView() {
-        // Utility View
     }
 
     public static void apriPopupSceltaConsegna(Window owner,
@@ -42,6 +41,26 @@ public final class CheckoutConsegnaView {
                                                DatiConsegnaBean datiIniziali,
                                                Consumer<DatiConsegnaBean> onConsegnaConfermata,
                                                Runnable onTornaAlCarrello) {
+        apriPopupSceltaConsegna(owner, totaleOrdine, datiIniziali, false, onConsegnaConfermata, onTornaAlCarrello);
+    }
+
+    public static void apriPopupSceltaConsegna(Window owner,
+                                               double totaleOrdine,
+                                               DatiConsegnaBean datiIniziali,
+                                               boolean apriDirettamenteForm,
+                                               Consumer<DatiConsegnaBean> onConsegnaConfermata,
+                                               Runnable onTornaAlCarrello) {
+        apriPopupSceltaConsegna(owner, totaleOrdine, datiIniziali, apriDirettamenteForm,
+                null, onConsegnaConfermata, onTornaAlCarrello);
+    }
+
+    public static void apriPopupSceltaConsegna(Window owner,
+                                               double totaleOrdine,
+                                               DatiConsegnaBean datiIniziali,
+                                               boolean apriDirettamenteForm,
+                                               Consumer<DatiConsegnaBean> validatoreDati,
+                                               Consumer<DatiConsegnaBean> onConsegnaConfermata,
+                                               Runnable onTornaAlCarrello) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Frostly — Modalità di Ricezione Ordine");
@@ -52,28 +71,46 @@ public final class CheckoutConsegnaView {
         final DatiConsegnaBean[] esito = new DatiConsegnaBean[1];
         final boolean[] tornaIndietro = {false};
 
-        // Mostra prima la schermata dei due bottoni affiancati
-        mostraSchermataDueBottoni(
-                popup,
-                owner,
-                totaleOrdine,
-                datiIniziali,
-                datiScelti -> {
-                    esito[0] = datiScelti;
-                    popup.close();
-                },
-                () -> {
-                    tornaIndietro[0] = true;
-                    popup.close();
-                }
-        );
+        Consumer<DatiConsegnaBean> conferma = datiScelti -> {
+            esito[0] = datiScelti;
+            popup.close();
+        };
+        Runnable indietro = () -> {
+            tornaIndietro[0] = true;
+            popup.close();
+        };
+
+        if (apriDirettamenteForm && datiIniziali != null && datiIniziali.getTipoConsegna() != null) {
+            mostraFormDati(
+                    popup,
+                    owner,
+                    totaleOrdine,
+                    datiIniziali.getTipoConsegna(),
+                    datiIniziali,
+                    validatoreDati,
+                    conferma,
+                    indietro
+            );
+        } else {
+            // Mostra prima la schermata dei due bottoni affiancati
+            mostraSchermataDueBottoni(
+                    popup,
+                    owner,
+                    totaleOrdine,
+                    datiIniziali,
+                    validatoreDati,
+                    conferma,
+                    indietro
+            );
+        }
 
         popup.showAndWait();
 
         if (tornaIndietro[0] && onTornaAlCarrello != null) {
-            onTornaAlCarrello.run();
+            javafx.application.Platform.runLater(onTornaAlCarrello);
         } else if (esito[0] != null && onConsegnaConfermata != null) {
-            onConsegnaConfermata.accept(esito[0]);
+            DatiConsegnaBean confermati = esito[0];
+            javafx.application.Platform.runLater(() -> onConsegnaConfermata.accept(confermati));
         }
     }
 
@@ -84,6 +121,7 @@ public final class CheckoutConsegnaView {
                                                   Window owner,
                                                   double totaleOrdine,
                                                   DatiConsegnaBean datiIniziali,
+                                                  Consumer<DatiConsegnaBean> validatoreDati,
                                                   Consumer<DatiConsegnaBean> onConsegnaConfermata,
                                                   Runnable onTornaAlCarrello) {
         VBox root = new VBox(18);
@@ -101,7 +139,7 @@ public final class CheckoutConsegnaView {
 
         VBox titleBox = new VBox(2);
         Label lblSub = new Label("STEP 1 DI 2 • MODALITÀ DI RICEZIONE");
-        lblSub.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-letter-spacing: 0.8px;");
+        lblSub.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-letter-spacing: 0.8px;");
         Label lblTitolo = new Label("Come desideri ricevere il tuo ordine?");
         lblTitolo.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #f5ebe0;");
         titleBox.getChildren().addAll(lblSub, lblTitolo);
@@ -115,7 +153,7 @@ public final class CheckoutConsegnaView {
         header.getChildren().addAll(lblBadge, titleBox, spH, lblTotale);
 
         Label lblIstruzione = new Label("Clicca sulla modalità desiderata per proseguire:");
-        lblIstruzione.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
+        lblIstruzione.setStyle("-fx-font-size: 14px; -fx-text-fill: #ded7cd;");
 
         // Due Bottoni Affiancati (HBox)
         HBox boxDueBottoni = new HBox(18);
@@ -127,7 +165,7 @@ public final class CheckoutConsegnaView {
                 "Consegna a Domicilio",
                 "DELIVERY A CASA TUA",
                 "Ricevi il gelato e i dolci caldi comodamente a casa con consegna in box termici brevettati.",
-                () -> mostraFormDati(stage, owner, totaleOrdine, TipoConsegna.DOMICILIO, datiIniziali, onConsegnaConfermata, onTornaAlCarrello)
+                () -> mostraFormDati(stage, owner, totaleOrdine, TipoConsegna.DOMICILIO, datiIniziali, validatoreDati, onConsegnaConfermata, onTornaAlCarrello)
         );
         HBox.setHgrow(cardDelivery, Priority.ALWAYS);
 
@@ -137,7 +175,7 @@ public final class CheckoutConsegnaView {
                 "Ritiro al Banco",
                 "TAKE AWAY IN GELATERIA",
                 "Salta la fila e ritira al banco del laboratorio di Via del Corso all'orario che preferisci.",
-                () -> mostraFormDati(stage, owner, totaleOrdine, TipoConsegna.ASPORTO, datiIniziali, onConsegnaConfermata, onTornaAlCarrello)
+                () -> mostraFormDati(stage, owner, totaleOrdine, TipoConsegna.ASPORTO, datiIniziali, validatoreDati, onConsegnaConfermata, onTornaAlCarrello)
         );
         HBox.setHgrow(cardBanco, Priority.ALWAYS);
 
@@ -151,18 +189,36 @@ public final class CheckoutConsegnaView {
         btnIndietro.setStyle("-fx-background-color: transparent; -fx-text-fill: #ded7cd; -fx-font-weight: bold; "
                 + "-fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 9 18; -fx-cursor: hand;");
         btnIndietro.setOnAction(e -> {
-            stage.close();
             if (onTornaAlCarrello != null) {
                 onTornaAlCarrello.run();
+            } else {
+                stage.close();
             }
         });
 
         footer.getChildren().add(btnIndietro);
 
         root.getChildren().addAll(header, lblIstruzione, boxDueBottoni, footer);
-        Scene scene = new Scene(root, 700, 440);
-        scene.setFill(javafx.scene.paint.Color.web("#121114"));
-        stage.setScene(scene);
+        applicaContenuto(stage, root, 700, 440);
+    }
+
+    private static void applicaContenuto(Stage stage, VBox root, double width, double height) {
+        if (stage.getScene() == null) {
+            javafx.scene.layout.StackPane contenitoreRadice = new javafx.scene.layout.StackPane(root);
+            contenitoreRadice.setStyle("-fx-background-color: #121114;");
+            Scene scene = new Scene(contenitoreRadice, width, height);
+            scene.setFill(javafx.scene.paint.Color.web("#121114"));
+            stage.setScene(scene);
+        } else {
+            javafx.scene.Parent currentRoot = stage.getScene().getRoot();
+            if (currentRoot instanceof javafx.scene.layout.StackPane contenitoreRadice) {
+                contenitoreRadice.getChildren().setAll(root);
+            } else {
+                stage.getScene().setRoot(root);
+            }
+            stage.setWidth(width);
+            stage.setHeight(height + 28);
+        }
         stage.sizeToScene();
         stage.centerOnScreen();
     }
@@ -183,7 +239,7 @@ public final class CheckoutConsegnaView {
 
         Label lblBadge = new Label(badge);
         lblBadge.setStyle("-fx-background-color: rgba(186,164,135,0.18); -fx-text-fill: #baa487; -fx-font-weight: bold; "
-                + "-fx-font-size: 9.5px; -fx-padding: 3 8; -fx-background-radius: 6;");
+                + "-fx-font-size: 11.5px; -fx-padding: 3 8; -fx-background-radius: 6;");
 
         Label lblTit = new Label(titolo);
         lblTit.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #f5ebe0;");
@@ -191,11 +247,11 @@ public final class CheckoutConsegnaView {
         Label lblDesc = new Label(descrizione);
         lblDesc.setWrapText(true);
         lblDesc.setAlignment(Pos.CENTER);
-        lblDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: #a89f92; -fx-line-spacing: 2px;");
+        lblDesc.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #a89f92; -fx-line-spacing: 2px;");
 
         Button btnAzione = new Button("Scegli " + titolo + " ➔");
         btnAzione.setStyle("-fx-background-color: linear-gradient(to bottom, #baa487, #8c7355); -fx-text-fill: #141216; "
-                + "-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 8; -fx-padding: 7 16; -fx-cursor: hand;");
+                + "-fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-padding: 7 16; -fx-cursor: hand;");
 
         card.getChildren().addAll(lblEmoji, lblBadge, lblTit, lblDesc, btnAzione);
 
@@ -221,6 +277,7 @@ public final class CheckoutConsegnaView {
                                        double totaleOrdine,
                                        TipoConsegna tipoScelto,
                                        DatiConsegnaBean datiIniziali,
+                                       Consumer<DatiConsegnaBean> validatoreDati,
                                        Consumer<DatiConsegnaBean> onConsegnaConfermata,
                                        Runnable onTornaAlCarrello) {
         VBox root = new VBox(14);
@@ -238,7 +295,7 @@ public final class CheckoutConsegnaView {
 
         VBox titleBox = new VBox(2);
         Label lblSub = new Label("STEP 2 DI 2 • COMPILAZIONE DATI");
-        lblSub.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-letter-spacing: 0.8px;");
+        lblSub.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-letter-spacing: 0.8px;");
 
         String titStr = (tipoScelto == TipoConsegna.DOMICILIO)
                 ? "Dati di Recapito per la Consegna a Domicilio"
@@ -286,21 +343,21 @@ public final class CheckoutConsegnaView {
 
         if (tipoScelto == TipoConsegna.DOMICILIO) {
             Label lblIndPrompt = new Label("📍 Indirizzo di consegna e numero civico *");
-            lblIndPrompt.setStyle("-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #baa487;");
+            lblIndPrompt.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;");
             txtIndirizzo.setPromptText("Es. Via del Corso 124, interno 3");
             txtIndirizzo.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
 
             HBox rigaCittaTel = new HBox(12);
             VBox bCitta = new VBox(4);
             Label lblCitta = new Label("Città / CAP");
-            lblCitta.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+            lblCitta.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             txtCittaCap.setPrefWidth(220);
             txtCittaCap.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
             bCitta.getChildren().addAll(lblCitta, txtCittaCap);
 
             VBox bTel = new VBox(4);
             Label lblTel = new Label("Recapito Telefonico per il Rider *");
-            lblTel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+            lblTel.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
             txtTelefono.setPromptText("Es. 333 1234567");
             HBox.setHgrow(bTel, Priority.ALWAYS);
             txtTelefono.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
@@ -311,13 +368,13 @@ public final class CheckoutConsegnaView {
             HBox rigaOraCit = new HBox(12);
             VBox bOra = new VBox(4);
             Label lblOra = new Label("Orario Consegna Desiderato");
-            lblOra.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+            lblOra.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             comboOraDelivery.setPrefWidth(220);
             bOra.getChildren().addAll(lblOra, comboOraDelivery);
 
             VBox bCit = new VBox(4);
             Label lblCit = new Label("Istruzioni Consegna / Citofono (Facoltativo)");
-            lblCit.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+            lblCit.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             txtCitofono.setPromptText("Citofono, scala, piano o note per il fattorino...");
             HBox.setHgrow(bCit, Priority.ALWAYS);
             txtCitofono.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
@@ -327,16 +384,16 @@ public final class CheckoutConsegnaView {
             cardForm.getChildren().addAll(lblIndPrompt, txtIndirizzo, rigaCittaTel, rigaOraCit);
         } else {
             Label lblOraTit = new Label("⏰ Seleziona l'Orario di Ritiro al Banco della Gelateria *");
-            lblOraTit.setStyle("-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #baa487;");
+            lblOraTit.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;");
             comboOraBanco.setMaxWidth(Double.MAX_VALUE);
 
             Label lblNomeTit = new Label("👤 Nominativo per il Ritiro");
-            lblNomeTit.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+            lblNomeTit.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             txtNomeRitiro.setPromptText("Nome e cognome per il ritiro dell'ordine al banco (es. Mario Rossi)");
             txtNomeRitiro.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
 
             Label lblNoteTit = new Label("💬 Note per il Personale al Banco (Facoltativo)");
-            lblNoteTit.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+            lblNoteTit.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             txtNoteBanco.setPromptText("Es. Confezionare con cura, vaschette separate...");
             txtNoteBanco.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
 
@@ -347,7 +404,7 @@ public final class CheckoutConsegnaView {
         Label lblErrore = new Label();
         lblErrore.setWrapText(true);
         lblErrore.setVisible(false);
-        lblErrore.setStyle("-fx-text-fill: #ff8a80; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-padding: 6 10; "
+        lblErrore.setStyle("-fx-text-fill: #ff8a80; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 10; "
                 + "-fx-background-color: rgba(188,71,73,0.22); -fx-border-color: rgba(255,138,128,0.4); -fx-border-radius: 6; -fx-background-radius: 6;");
 
         // Footer Pulsanti
@@ -357,32 +414,20 @@ public final class CheckoutConsegnaView {
         Button btnCambiaModalita = new Button("⬅ Cambia Modalità");
         btnCambiaModalita.setStyle("-fx-background-color: transparent; -fx-text-fill: #ded7cd; -fx-font-weight: bold; "
                 + "-fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 16; -fx-cursor: hand;");
-        btnCambiaModalita.setOnAction(e -> mostraSchermataDueBottoni(stage, owner, totaleOrdine, datiIniziali, onConsegnaConfermata, onTornaAlCarrello));
+        btnCambiaModalita.setOnAction(e -> mostraSchermataDueBottoni(stage, owner, totaleOrdine, datiIniziali, validatoreDati, onConsegnaConfermata, onTornaAlCarrello));
 
         Button btnProcediPagamento = new Button("💳 Procedi al Pagamento Online ➔");
         btnProcediPagamento.setStyle("-fx-background-color: linear-gradient(to bottom, #baa487, #8c7355); -fx-text-fill: #141216; "
-                + "-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-background-radius: 10; -fx-padding: 9 22; -fx-cursor: hand;");
+                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-padding: 9 22; -fx-cursor: hand;");
 
         btnProcediPagamento.setOnAction(e -> {
             lblErrore.setVisible(false);
             DatiConsegnaBean bean = new DatiConsegnaBean();
             if (tipoScelto == TipoConsegna.DOMICILIO) {
                 bean.setTipoConsegna(TipoConsegna.DOMICILIO);
-                String ind = txtIndirizzo.getText() != null ? txtIndirizzo.getText().trim() : "";
-                String tel = txtTelefono.getText() != null ? txtTelefono.getText().trim() : "";
-                if (ind.length() < 5) {
-                    lblErrore.setText("⚠️ Inserisci un indirizzo valido completo di via e numero civico.");
-                    lblErrore.setVisible(true);
-                    return;
-                }
-                if (tel.replaceAll("[^0-9]", "").length() < 6) {
-                    lblErrore.setText("⚠️ Inserisci un recapito telefonico valido per il rider.");
-                    lblErrore.setVisible(true);
-                    return;
-                }
-                bean.setIndirizzo(ind);
+                bean.setIndirizzo(txtIndirizzo.getText() != null ? txtIndirizzo.getText().trim() : "");
                 bean.setCittaCap(txtCittaCap.getText() != null ? txtCittaCap.getText().trim() : "Roma (RM)");
-                bean.setTelefono(tel);
+                bean.setTelefono(txtTelefono.getText() != null ? txtTelefono.getText().trim() : "");
                 bean.setOrarioRichiesto(comboOraDelivery.getValue());
                 bean.setNoteCitofono(txtCitofono.getText() != null ? txtCitofono.getText().trim() : "");
             } else {
@@ -392,18 +437,25 @@ public final class CheckoutConsegnaView {
                 bean.setNoteCitofono(txtNoteBanco.getText() != null ? txtNoteBanco.getText().trim() : "");
             }
 
-            stage.close();
+            if (validatoreDati != null) {
+                try {
+                    validatoreDati.accept(bean);
+                } catch (RuntimeException ex) {
+                    lblErrore.setText("⚠️ " + ex.getMessage());
+                    lblErrore.setVisible(true);
+                    return;
+                }
+            }
+
             if (onConsegnaConfermata != null) {
                 onConsegnaConfermata.accept(bean);
+            } else {
+                stage.close();
             }
         });
 
         footer.getChildren().addAll(btnCambiaModalita, btnProcediPagamento);
         root.getChildren().addAll(header, cardForm, lblErrore, footer);
-        Scene scene = new Scene(root, 700, 540);
-        scene.setFill(javafx.scene.paint.Color.web("#121114"));
-        stage.setScene(scene);
-        stage.sizeToScene();
-        stage.centerOnScreen();
+        applicaContenuto(stage, root, 700, 540);
     }
 }

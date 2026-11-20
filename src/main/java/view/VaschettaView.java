@@ -20,7 +20,6 @@ import javafx.scene.layout.VBox;
 public final class VaschettaView {
 
     private VaschettaView() {
-        // Classe di utilità View
     }
 
     public static void evidenziaPulsanteFormato(Button b, boolean attivo) {
@@ -55,7 +54,7 @@ public final class VaschettaView {
             Label lblTit = new Label("Vaschetta di Sola Panna Montata Fresca (" + ((int) (pesoSelezionatoKg * 1000)) + "g)");
             lblTit.setWrapText(true);
             lblTit.setAlignment(Pos.CENTER);
-            lblTit.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+            lblTit.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
 
             pannaCard.getChildren().addAll(lblIco, lblTit);
             boxVaschettaGrafica.getChildren().add(pannaCard);
@@ -92,11 +91,11 @@ public final class VaschettaView {
                     Label lblNome = new Label(g.getNome());
                     lblNome.setWrapText(true);
                     HBox.setHgrow(lblNome, Priority.ALWAYS);
-                    lblNome.setStyle("-fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: " + coloreTesto + ";");
+                    lblNome.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + coloreTesto + ";");
 
                     Button btnRimuovi = new Button("✕");
                     btnRimuovi.setMinWidth(Region.USE_PREF_SIZE);
-                    btnRimuovi.setStyle("-fx-font-size: 9.5px; -fx-padding: 2 6; -fx-background-color: rgba(0,0,0,0.22); -fx-text-fill: " + coloreTesto + "; -fx-background-radius: 6; -fx-cursor: hand;");
+                    btnRimuovi.setStyle("-fx-font-size: 11.5px; -fx-padding: 2 6; -fx-background-color: rgba(0,0,0,0.22); -fx-text-fill: " + coloreTesto + "; -fx-background-radius: 6; -fx-cursor: hand;");
                     btnRimuovi.setOnAction(ev -> onRimuoviGusto.accept(g));
 
                     scomparto.getChildren().addAll(lblEmoji, lblNome, btnRimuovi);
@@ -110,10 +109,10 @@ public final class VaschettaView {
                     slotVuoto.setStyle("-fx-background-color: rgba(255,255,255,0.04); -fx-border-color: rgba(186,164,135,0.3); -fx-border-style: dashed; -fx-border-width: 1.2; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 6 8;");
 
                     Label lblPiu = new Label("＋");
-                    lblPiu.setStyle("-fx-font-size: 12px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
+                    lblPiu.setStyle("-fx-font-size: 13.5px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
 
                     Label lblSlot = new Label("Gusto " + (i + 1));
-                    lblSlot.setStyle("-fx-font-size: 10.5px; -fx-text-fill: #a89f92; -fx-font-style: italic;");
+                    lblSlot.setStyle("-fx-font-size: 12px; -fx-text-fill: #a89f92; -fx-font-style: italic;");
 
                     slotVuoto.getChildren().addAll(lblPiu, lblSlot);
                     rigaCorrente.getChildren().add(slotVuoto);

@@ -47,6 +47,7 @@ public class OrdiniStaffControlGrafico {
     public void inizializza() {
         OrdiniStaffView.configuraCelleOrdiniStaff(
                 listaOrdiniStaff, this::eseguiConfermaOrdine, this::eseguiDisdettaOrdine);
+        view.MagazzinoStaffView.configuraCelleListaTendina(listaOrdiniUrgentiTendina, "rgba(186,164,135,0.55)");
     }
 
     public void avviaMonitoraggioRealTime(IntConsumer onNuovoOrdineRilevato) {

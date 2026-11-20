@@ -22,7 +22,6 @@ import javafx.stage.Window;
  * per lo Staff (Maestro e Dipendenti).
  * Gestisce il rendering delle card, l'evidenziazione degli avvisi nuovi,
  * l'eliminazione dei singoli avvisi, l'eliminazione delle scrollbar e il popup modale per la lettura completa.
- * Stile Quiet Luxury: grafite satinato, finiture champagne, avorio, zero scrollbar orizzontali.
  */
 public final class AvvisiStaffView {
 
@@ -123,10 +122,10 @@ public final class AvvisiStaffView {
         rigaTop.setAlignment(Pos.CENTER_LEFT);
 
         Label lblCat = new Label(icona + "  " + categoria);
-        lblCat.setStyle(badgeStyle + " -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 6; -fx-border-radius: 6;");
+        lblCat.setStyle(badgeStyle + " -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 6; -fx-border-radius: 6;");
 
         Label lblTimestamp = new Label("🕒 " + ts);
-        lblTimestamp.setStyle("-fx-font-size: 11px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
+        lblTimestamp.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #baa487; -fx-font-weight: bold;");
 
         Region spTop = new Region();
         HBox.setHgrow(spTop, Priority.ALWAYS);
@@ -135,27 +134,21 @@ public final class AvvisiStaffView {
 
         if (isNuovo) {
             Label lblBadgeNuovo = new Label("🔔 NUOVO");
-            lblBadgeNuovo.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 10.5px; -fx-padding: 2 7; -fx-background-radius: 6;");
+            lblBadgeNuovo.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 2 7; -fx-background-radius: 6;");
             rigaTop.getChildren().add(lblBadgeNuovo);
         }
-
-        // 2. TITOLO IN EVIDENZA
         Label lblTitolo = new Label(tit);
         lblTitolo.setWrapText(true);
         lblTitolo.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
-
-        // 3. ANTEPRIMA MESSAGGIO
         String msg = n.getMessaggio() != null ? n.getMessaggio().trim() : "";
         Label lblMsg = new Label(msg);
         lblMsg.setWrapText(true);
-        lblMsg.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #ded7cd;");
-
-        // 4. FOOTER CON CALLOUT CLICK PER DETTAGLIO ED ELIMINA
+        lblMsg.setStyle("-fx-font-size: 13px; -fx-text-fill: #ded7cd;");
         HBox rigaBottom = new HBox(10);
         rigaBottom.setAlignment(Pos.CENTER_LEFT);
 
         Label lblCallout = new Label("👁️ Clicca per visualizzare l'avviso completo ➔");
-        lblCallout.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-cursor: hand;");
+        lblCallout.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #baa487; -fx-cursor: hand;");
 
         Region spBottom = new Region();
         HBox.setHgrow(spBottom, Priority.ALWAYS);
@@ -165,7 +158,7 @@ public final class AvvisiStaffView {
         if (onEliminaNotifica != null) {
             Button btnElimina = new Button("🗑️ Elimina");
             btnElimina.setStyle("-fx-background-color: rgba(70, 20, 25, 0.85); -fx-text-fill: #fca5a5; -fx-border-color: #ef4444; "
-                    + "-fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 11px; -fx-font-weight: bold; "
+                    + "-fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 12.5px; -fx-font-weight: bold; "
                     + "-fx-padding: 3 10; -fx-cursor: hand;");
             btnElimina.setOnAction(e -> {
                 e.consume();
@@ -227,7 +220,7 @@ public final class AvvisiStaffView {
         lblTit.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;");
 
         Label lblTs = new Label("Registrato: " + n.getTimestamp());
-        lblTs.setStyle("-fx-font-size: 11px; -fx-text-fill: #baa487;");
+        lblTs.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #baa487;");
         vTop.getChildren().addAll(lblTit, lblTs);
         HBox.setHgrow(vTop, Priority.ALWAYS);
 
@@ -256,7 +249,7 @@ public final class AvvisiStaffView {
         if (onEliminaNotifica != null) {
             Button btnEliminaModal = new Button("🗑️ Elimina Avviso");
             btnEliminaModal.setStyle("-fx-background-color: rgba(70, 20, 25, 0.85); -fx-text-fill: #fca5a5; -fx-border-color: #ef4444; "
-                    + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 7 14; -fx-cursor: hand;");
+                    + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-padding: 7 14; -fx-cursor: hand;");
             btnEliminaModal.setOnAction(e -> {
                 popup.close();
                 onEliminaNotifica.accept(n);
@@ -271,7 +264,7 @@ public final class AvvisiStaffView {
         if (onNavigaSezione != null) {
             if (titLower.contains("ordine") || msgLower.contains("ordine")) {
                 Button btnVai = new Button("🛵 Vai a Gestione Ordini ➔");
-                btnVai.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand;");
+                btnVai.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand;");
                 btnVai.setOnAction(e -> {
                     popup.close();
                     onNavigaSezione.accept("Ordini");
@@ -279,7 +272,7 @@ public final class AvvisiStaffView {
                 footer.getChildren().add(btnVai);
             } else if (titLower.contains("emergenza") || msgLower.contains("emergenza")) {
                 Button btnVai = new Button("🚨 Vai a Turni & Emergenze ➔");
-                btnVai.setStyle("-fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand; -fx-border-color: #ef4444;");
+                btnVai.setStyle("-fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand; -fx-border-color: #ef4444;");
                 btnVai.setOnAction(e -> {
                     popup.close();
                     onNavigaSezione.accept("Turni");
@@ -287,7 +280,7 @@ public final class AvvisiStaffView {
                 footer.getChildren().add(btnVai);
             } else if (titLower.contains("gusto") || msgLower.contains("gusto")) {
                 Button btnVai = new Button("🎨 Vai a Gusti su Misura ➔");
-                btnVai.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand;");
+                btnVai.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand;");
                 btnVai.setOnAction(e -> {
                     popup.close();
                     onNavigaSezione.accept("Magazzino");
@@ -295,7 +288,7 @@ public final class AvvisiStaffView {
                 footer.getChildren().add(btnVai);
             } else if (titLower.contains("recension") || msgLower.contains("recension")) {
                 Button btnVai = new Button("⭐ Vai a Recensioni ➔");
-                btnVai.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand;");
+                btnVai.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 8; -fx-padding: 7 14; -fx-cursor: hand;");
                 btnVai.setOnAction(e -> {
                     popup.close();
                     onNavigaSezione.accept("Recensioni");
@@ -305,7 +298,7 @@ public final class AvvisiStaffView {
         }
 
         Button btnChiudi = new Button("Chiudi");
-        btnChiudi.setStyle("-fx-background-color: rgba(38, 35, 40, 0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 8; -fx-padding: 7 16; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
+        btnChiudi.setStyle("-fx-background-color: rgba(38, 35, 40, 0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 8; -fx-padding: 7 16; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
         btnChiudi.setOnAction(e -> popup.close());
 
         footer.getChildren().add(btnChiudi);

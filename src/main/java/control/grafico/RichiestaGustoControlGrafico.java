@@ -16,7 +16,7 @@ import javafx.scene.control.TextField;
 /**
  * Controller Grafico dedicato al Caso d'Uso "Richiesta Gusto Personalizzato" (Gusto su Misura).
  * Separa la gestione del modulo di proposta creativa del cliente dal controller del Menu e Carrello,
- * mantenendo zero istruzioni estetiche (BCE).
+ * mantenendo zero istruzioni estetiche.
  */
 public class RichiestaGustoControlGrafico {
 

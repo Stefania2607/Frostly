@@ -14,7 +14,6 @@ import java.sql.Statement;
 public final class SchemaDatabase {
 
     private SchemaDatabase() {
-        // Utility class
     }
 
     public static void inizializzaSchemaEDati(Connection conn, boolean isMySql) throws SQLException {
@@ -22,6 +21,7 @@ public final class SchemaDatabase {
             creaTabelle(stmt);
             migraMenuGustiSeNecessario(stmt);
             migraIngredientiSeNecessario(stmt);
+            migraOrdiniClientiSeNecessario(stmt, isMySql);
             popolaDatiIniziali(conn, stmt, isMySql);
         }
     }
@@ -67,10 +67,10 @@ public final class SchemaDatabase {
                 + "email_cliente VARCHAR(64) NOT NULL, "
                 + "gusto_principale VARCHAR(128), "
                 + "peso_kg DOUBLE NOT NULL, "
-                + "data_ritiro VARCHAR(128) NOT NULL, "
+                + "data_ritiro VARCHAR(512) NOT NULL, "
                 + "stato VARCHAR(20) NOT NULL, "
                 + "prezzo_totale DOUBLE NOT NULL, "
-                + "descrizione_dettagliata VARCHAR(1000) NOT NULL)");
+                + "descrizione_dettagliata VARCHAR(2000) NOT NULL)");
 
         stmt.execute("CREATE TABLE IF NOT EXISTS notifiche_utenti ("
                 + "email_destinatario VARCHAR(64) NOT NULL, "
@@ -151,6 +151,18 @@ public final class SchemaDatabase {
         }
         if (!haCategoria) {
             stmt.execute("ALTER TABLE ingredienti ADD COLUMN categoria VARCHAR(50) NOT NULL DEFAULT 'Laboratorio & Basi'");
+        }
+    }
+
+    private static void migraOrdiniClientiSeNecessario(Statement stmt, boolean isMySql) {
+        if (!isMySql) {
+            return;
+        }
+        try {
+            stmt.execute("ALTER TABLE ordini_clienti MODIFY COLUMN data_ritiro VARCHAR(512) NOT NULL");
+            stmt.execute("ALTER TABLE ordini_clienti MODIFY COLUMN descrizione_dettagliata VARCHAR(2000) NOT NULL");
+        } catch (SQLException ignored) {
+            // Se gia' compatibile o non applicabile, prosegue senza bloccare l'avvio
         }
     }
 

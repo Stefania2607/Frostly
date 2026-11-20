@@ -12,6 +12,7 @@ public class OrdineBean {
 
     private String codiceOrdine;
     private String emailCliente;
+    private String nomeCliente;
     private String nomeGusto;
     private double pesoKg;
     private String dataRitiro;
@@ -23,7 +24,6 @@ public class OrdineBean {
     private final List<VaschettaItemBean> vaschette = new ArrayList<>();
 
     public OrdineBean() {
-        // Costruttore vuoto JavaBean
     }
 
     public List<VaschettaItemBean> getVaschette() {
@@ -61,6 +61,14 @@ public class OrdineBean {
 
     public void setEmailCliente(String emailCliente) {
         this.emailCliente = emailCliente;
+    }
+
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
     }
 
     public String getNomeGusto() {

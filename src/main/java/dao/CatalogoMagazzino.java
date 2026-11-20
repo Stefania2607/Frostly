@@ -34,7 +34,6 @@ public final class CatalogoMagazzino {
     private static final List<ElementoMagazzino> ELEMENTI = creaCatalogoMagazzino();
 
     private CatalogoMagazzino() {
-        // Utility class
     }
 
     public static List<ElementoMagazzino> getElementi() {

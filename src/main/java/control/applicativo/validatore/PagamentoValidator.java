@@ -11,13 +11,11 @@ import java.time.YearMonth;
 
 /**
  * Validatore specializzato per la conformita' dei dati di pagamento con carta
- * e delle opzioni di consegna (Single Responsibility Principle).
- * Ispirato alle best practice di validazione software (es. RouteX / MastercardValidator).
+ * e delle opzioni di consegna.
  */
 public final class PagamentoValidator {
 
     private PagamentoValidator() {
-        // Utility class
     }
 
     /**
@@ -45,13 +43,30 @@ public final class PagamentoValidator {
         return carta;
     }
 
+    private static final String PATTERN_TOPONIMI_ITALIANI =
+            "^(?i)(via|viale|piazza|piazzale|corso|largo|vicolo|lungotevere|lungomare|strada|salita|discesa|"
+            + "circonvallazione|borgo|contrada|localit[aà]|monte|ponte|traversa|rampa|clivo|passeggiata|parco)\\.?\\s+.*";
+
     private static void validaTitolare(String titolare) throws InvalidCardException {
-        if (titolare == null || titolare.trim().length() < 2) {
-            throw new InvalidCardException("Inserisci il nome e cognome dell'intestatario della carta.");
+        if (titolare == null || titolare.trim().isEmpty()) {
+            throw new InvalidCardException("Inserisci nome e cognome dell'intestatario della carta.");
         }
-        String t = titolare.trim();
-        if (!t.matches("^[A-Za-zÀ-ÖØ-öø-ÿ'\\-\\s]{2,60}$")) {
-            throw new InvalidCardException("Il nome dell'intestatario contiene caratteri non consentiti.");
+        String t = titolare.trim().replaceAll("\\s+", " ");
+        if (!t.matches("^[A-Za-zÀ-ÖØ-öø-ÿ'\\-\\s]{5,60}$")) {
+            throw new InvalidCardException("Nome e cognome intestatario non validi: usare solo lettere (es. Mario Rossi).");
+        }
+        String[] parole = t.split(" ");
+        if (parole.length < 2) {
+            throw new InvalidCardException("Inserisci sia il Nome che il Cognome dell'intestatario (es. Mario Rossi).");
+        }
+        for (String parola : parole) {
+            String soloLettere = parola.replaceAll("['\\-]", "");
+            if (soloLettere.length() < 2) {
+                throw new InvalidCardException("Nome e cognome devono contenere parole valide di almeno 2 lettere (es. Mario Rossi).");
+            }
+            if (soloLettere.matches("^(?i)([a-zà-öø-ÿ])\\1{2,}$")) {
+                throw new InvalidCardException("Il nominativo inserito non sembra verosimile.");
+            }
         }
     }
 
@@ -61,12 +76,30 @@ public final class PagamentoValidator {
         }
         String pulito = rawNumero.replaceAll("[\\s\\-]+", "");
         if (!pulito.matches("^\\d{15,16}$")) {
-            throw new InvalidCardException("Il numero della carta deve essere composto da 16 cifre numeriche.");
+            throw new InvalidCardException("Il numero della carta deve essere composto da 16 cifre numeriche (15 per American Express).");
+        }
+        if (pulito.matches("^(\\d)\\1+$")) {
+            throw new InvalidCardException("Numero di carta non verosimile (cifre tutte identiche).");
+        }
+        if (!haCircuitoRiconosciuto(pulito)) {
+            throw new InvalidCardException("Circuito carta non riconosciuto (supportati: Visa, Mastercard, American Express, Maestro/Discover).");
         }
         if (!verificaAlgoritmoLuhn(pulito)) {
-            throw new InvalidCardException("Numero di carta non valido (fallito algoritmo di checksum Luhn).");
+            throw new InvalidCardException("Numero di carta non valido (controllo di verosimiglianza Luhn fallito).");
         }
         return pulito;
+    }
+
+    private static boolean haCircuitoRiconosciuto(String numero) {
+        if (numero.startsWith("4") && numero.length() == 16) return true; // Visa
+        if ((numero.startsWith("34") || numero.startsWith("37")) && numero.length() == 15) return true; // Amex
+        if (numero.startsWith("6") && numero.length() == 16) return true; // Discover/Maestro
+        if (numero.length() == 16) {
+            int p2 = Integer.parseInt(numero.substring(0, 2));
+            int p4 = Integer.parseInt(numero.substring(0, 4));
+            if ((p2 >= 51 && p2 <= 55) || (p4 >= 2221 && p4 <= 2720)) return true; // Mastercard
+        }
+        return false;
     }
 
     private static int[] validaScadenza(String scadenzaRaw) throws InvalidCardException {
@@ -102,6 +135,9 @@ public final class PagamentoValidator {
         if (scadenzaYm.isBefore(oggiYm)) {
             throw new InvalidCardException(String.format("La carta è scaduta nel mese %02d/%d.", mese, anno));
         }
+        if (scadenzaYm.isAfter(oggiYm.plusYears(15))) {
+            throw new InvalidCardException("Data di scadenza non verosimile (oltre 15 anni nel futuro).");
+        }
 
         return new int[]{mese, anno};
     }
@@ -114,8 +150,11 @@ public final class PagamentoValidator {
         boolean isAmex = (numeroCartaPulito != null && (numeroCartaPulito.startsWith("34") || numeroCartaPulito.startsWith("37")));
         int lungAttesa = isAmex ? 4 : 3;
 
-        if (!cvv.matches("^\\d{" + lungAttesa + "}$") && !cvv.matches("^\\d{3}$")) {
+        if (!cvv.matches("^\\d{" + lungAttesa + "}$")) {
             throw new InvalidCardException("Il codice CVV deve contenere esattamente " + lungAttesa + " cifre numeriche.");
+        }
+        if (cvv.matches("^0+$")) {
+            throw new InvalidCardException("Il codice di sicurezza CVV inserito non è valido.");
         }
     }
 
@@ -146,23 +185,65 @@ public final class PagamentoValidator {
     }
 
     /**
-     * Valida i dati di recapito o ritiro.
+     * Valida i dati di recapito o ritiro (indirizzo italiano realistico, civico obbligatorio, telefono italiano valido).
      */
     public static void validaDatiConsegna(DatiConsegnaBean dati) throws DatiNonValidiException {
         if (dati == null) {
             throw new DatiNonValidiException("Dati di consegna non specificati.");
         }
         if (dati.getTipoConsegna() == DatiConsegnaBean.TipoConsegna.DOMICILIO) {
-            if (dati.getIndirizzo() == null || dati.getIndirizzo().trim().length() < 5) {
-                throw new DatiNonValidiException("Inserisci un indirizzo di consegna valido (Via/Piazza e civico).");
-            }
-            if (dati.getTelefono() == null || dati.getTelefono().replaceAll("[^0-9]", "").length() < 6) {
-                throw new DatiNonValidiException("Inserisci un numero di telefono valido per il corriere del delivery.");
-            }
+            validaIndirizzoItaliano(dati.getIndirizzo());
+            validaTelefonoItaliano(dati.getTelefono());
         } else {
             if (dati.getOrarioRichiesto() == null || dati.getOrarioRichiesto().isBlank()) {
                 throw new DatiNonValidiException("Seleziona l'orario desiderato per il ritiro in gelateria.");
             }
+            String nom = dati.getNominativoRitiro() != null ? dati.getNominativoRitiro().trim() : "";
+            if (!nom.isEmpty() && !nom.matches("^[A-Za-zÀ-ÖØ-öø-ÿ'\\-\\s]{2,60}$")) {
+                throw new DatiNonValidiException("Il nominativo per il ritiro contiene caratteri non validi.");
+            }
+        }
+    }
+
+    public static void validaIndirizzoItaliano(String indirizzoRaw) throws DatiNonValidiException {
+        if (indirizzoRaw == null || indirizzoRaw.trim().length() < 6) {
+            throw new DatiNonValidiException("Inserisci un indirizzo completo (es. Via del Corso 124).");
+        }
+        String ind = indirizzoRaw.trim().replaceAll("\\s+", " ");
+        if (!ind.matches(PATTERN_TOPONIMI_ITALIANI)) {
+            throw new DatiNonValidiException("L'indirizzo deve iniziare con un toponimo valido (Via, Viale, Piazza, Corso, Largo, Vicolo, Monte, Strada, ecc.).");
+        }
+        // Rimuove il toponimo iniziale per verificare che ci sia un nome di via reale
+        String resto = ind.replaceFirst("(?i)^[a-zà]+\\.?\\s+", "").trim();
+        if (!resto.matches(".*[A-Za-zÀ-ÖØ-öø-ÿ]{2,}.*")) {
+            throw new DatiNonValidiException("Inserisci il nome completo della via o piazza dopo il toponimo (es. Via Roma 12).");
+        }
+        // Numero civico obbligatorio (almeno un numero intero 1..99999)
+        if (!resto.matches(".*\\b\\d{1,5}(?:/?[A-Za-z])?\\b.*")) {
+            throw new DatiNonValidiException("Il numero civico è obbligatorio nell'indirizzo (es. Via del Corso 124).");
+        }
+    }
+
+    public static void validaTelefonoItaliano(String telefonoRaw) throws DatiNonValidiException {
+        if (telefonoRaw == null || telefonoRaw.isBlank()) {
+            throw new DatiNonValidiException("Il recapito telefonico italiano è obbligatorio per la consegna.");
+        }
+        String pulito = telefonoRaw.trim().replaceAll("[\\s\\-\\.()]+", "");
+        if (pulito.startsWith("+39")) {
+            pulito = pulito.substring(3);
+        } else if (pulito.startsWith("0039")) {
+            pulito = pulito.substring(4);
+        }
+        if (!pulito.matches("^\\d+$")) {
+            throw new DatiNonValidiException("Il numero di telefono deve contenere solo cifre (prefisso +39 facoltativo).");
+        }
+        boolean cellulareValido = pulito.matches("^3[1-9]\\d{7,8}$"); // es. 3331234567 (9-10 cifre)
+        boolean fissoValido = pulito.matches("^0\\d{5,10}$");         // es. 0612345678 (6-11 cifre)
+        if (!cellulareValido && !fissoValido) {
+            throw new DatiNonValidiException("Inserisci un numero di telefono italiano valido (cellulare 3XX XXXXXXX oppure fisso 0X XXXXXXXX).");
+        }
+        if (pulito.matches("^(\\d)\\1+$")) {
+            throw new DatiNonValidiException("Il numero di telefono inserito non è verosimile.");
         }
     }
 }

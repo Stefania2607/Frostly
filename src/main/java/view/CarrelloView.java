@@ -28,7 +28,6 @@ import javafx.stage.Window;
 public final class CarrelloView {
 
     private CarrelloView() {
-        // Classe di utilità View
     }
 
     public static void aggiornaBottoneCarrello(Button btnCarrello, CarrelloBean carrello) {
@@ -41,7 +40,7 @@ public final class CarrelloView {
         if (n > 0) {
             btnCarrello.setStyle("-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 18; -fx-padding: 7 16; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(42,157,143,0.45), 10, 0, 0, 2);");
         } else {
-            btnCarrello.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-background-radius: 18; -fx-padding: 7 16; -fx-cursor: hand;");
+            btnCarrello.setStyle("-fx-background-color: #588157; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 18; -fx-padding: 7 16; -fx-cursor: hand;");
         }
     }
 
@@ -64,9 +63,9 @@ public final class CarrelloView {
             emptyBox.setAlignment(Pos.CENTER);
             emptyBox.setStyle("-fx-padding: 14; -fx-background-color: rgba(28,26,30,0.85); -fx-background-radius: 8; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 8;");
             Label vuoto = new Label("Il tuo carrello è vuoto.");
-            vuoto.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #baa487;");
+            vuoto.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
             Label hint = new Label("Seleziona i prodotti dal menu per aggiungerli al carrello.");
-            hint.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+            hint.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             emptyBox.getChildren().addAll(vuoto, hint);
             boxVaschetteOrdine.getChildren().add(emptyBox);
         } else {
@@ -106,7 +105,7 @@ public final class CarrelloView {
                 }
                 Label lblTitolo = new Label(titolo);
                 lblTitolo.setWrapText(true);
-                lblTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
+                lblTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
                 HBox.setHgrow(lblTitolo, Priority.ALWAYS);
 
                 // Selettore Quantità: tasto [-] e [+] con conteggio centrale
@@ -115,17 +114,17 @@ public final class CarrelloView {
                 boxQta.setStyle("-fx-background-color: rgba(35,32,38,0.85); -fx-border-color: rgba(186,164,135,0.30); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 2 6;");
 
                 Button btnMeno = new Button("−");
-                btnMeno.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 1 7; -fx-background-color: rgba(45,42,48,0.85); -fx-text-fill: #baa487; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 6;");
+                btnMeno.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-padding: 1 7; -fx-background-color: rgba(45,42,48,0.85); -fx-text-fill: #baa487; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 6;");
                 btnMeno.setMinWidth(Region.USE_PREF_SIZE);
                 if (onDecrementaIndice != null) {
                     btnMeno.setOnAction(ev -> onDecrementaIndice.accept(idx));
                 }
 
                 Label lblQta = new Label(String.valueOf(vib.getQuantita()));
-                lblQta.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0; -fx-min-width: 22px; -fx-alignment: center;");
+                lblQta.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0; -fx-min-width: 22px; -fx-alignment: center;");
 
                 Button btnPiu = new Button("+");
-                btnPiu.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 1 7; -fx-background-color: #baa487; -fx-text-fill: #141312; -fx-background-radius: 6; -fx-cursor: hand;");
+                btnPiu.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-padding: 1 7; -fx-background-color: #baa487; -fx-text-fill: #141312; -fx-background-radius: 6; -fx-cursor: hand;");
                 btnPiu.setMinWidth(Region.USE_PREF_SIZE);
                 if (onIncrementaIndice != null) {
                     btnPiu.setOnAction(ev -> onIncrementaIndice.accept(idx));
@@ -144,7 +143,7 @@ public final class CarrelloView {
                 lblP.setMinWidth(Region.USE_PREF_SIZE);
 
                 Button btnCanc = new Button("✕");
-                btnCanc.setStyle("-fx-font-size: 11px; -fx-padding: 4 8; -fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 6;");
+                btnCanc.setStyle("-fx-font-size: 12.5px; -fx-padding: 4 8; -fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 6;");
                 btnCanc.setMinWidth(Region.USE_PREF_SIZE);
                 btnCanc.setOnAction(ev -> onRimuoviIndice.accept(idx));
 
@@ -152,7 +151,7 @@ public final class CarrelloView {
 
                 Label lblDet = new Label(vib.ottieniDescrizione());
                 lblDet.setWrapText(true);
-                lblDet.setStyle("-fx-font-size: 11px; -fx-text-fill: #ded7cd;");
+                lblDet.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
 
                 card.getChildren().addAll(header, lblDet);
                 boxVaschetteOrdine.getChildren().add(card);
@@ -207,7 +206,7 @@ public final class CarrelloView {
         Region spTop = new Region();
         HBox.setHgrow(spTop, Priority.ALWAYS);
         Button btnSvuota = new Button("🗑️ Svuota Carrello");
-        btnSvuota.setStyle("-fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 10; -fx-padding: 5 12; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 10;");
+        btnSvuota.setStyle("-fx-background-color: rgba(70,20,25,0.85); -fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-background-radius: 10; -fx-padding: 5 12; -fx-cursor: hand; -fx-border-color: #ef4444; -fx-border-radius: 10;");
         top.getChildren().addAll(lblTitolo, spTop, btnSvuota);
 
         VBox boxLista = new VBox(8);
@@ -261,7 +260,7 @@ public final class CarrelloView {
         footer.setStyle("-fx-padding: 8 0 0 0;");
 
         Button btnContinua = new Button("⬅ Continua ad Acquistare");
-        btnContinua.setStyle("-fx-background-color: rgba(38,35,40,0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 12; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
+        btnContinua.setStyle("-fx-background-color: rgba(38,35,40,0.85); -fx-text-fill: #ded7cd; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 12; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(186,164,135,0.3);");
         btnContinua.setOnAction(e -> popup.close());
 
         Region spF = new Region();
@@ -288,7 +287,7 @@ public final class CarrelloView {
         popup.showAndWait();
 
         if (procediSuccessivo[0] && onConfermaOrdine != null) {
-            onConfermaOrdine.accept("SUCCESSIVO", "", "");
+            javafx.application.Platform.runLater(() -> onConfermaOrdine.accept("SUCCESSIVO", "", ""));
         }
     }
 }

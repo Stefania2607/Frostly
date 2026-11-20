@@ -807,5 +807,43 @@ class FrostlyTest {
         );
         assertThrows(frostly.exception.DatiNonValidiException.class, () ->
                 payControl.elaboraPagamento(carta, 10.0, consegnaSenzaIndirizzo, "test@test.it"));
+
+        // Indirizzo senza toponimo italiano (Via/Piazza/Monte/Corso...)
+        bean.DatiConsegnaBean consegnaSenzaToponimo = new bean.DatiConsegnaBean(
+                bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Casa Mia 12", "3331234567", "Subito", ""
+        );
+        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
+                payControl.elaboraPagamento(carta, 10.0, consegnaSenzaToponimo, "test@test.it"));
+
+        // Indirizzo senza numero civico
+        bean.DatiConsegnaBean consegnaSenzaCivico = new bean.DatiConsegnaBean(
+                bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Piazza Navona", "3331234567", "Subito", ""
+        );
+        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
+                payControl.elaboraPagamento(carta, 10.0, consegnaSenzaCivico, "test@test.it"));
+
+        // Telefono non italiano
+        bean.DatiConsegnaBean consegnaTelNonItaliano = new bean.DatiConsegnaBean(
+                bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Monte Mario 45", "1234567890", "Subito", ""
+        );
+        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
+                payControl.elaboraPagamento(carta, 10.0, consegnaTelNonItaliano, "test@test.it"));
+
+        // Titolare carta con solo nome (manca cognome)
+        bean.DatiConsegnaBean consegnaOk = new bean.DatiConsegnaBean(
+                bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Monte Mario 45", "+39 333 1234567", "Subito", ""
+        );
+        bean.CartaPagamentoBean cartaSoloNome = new bean.CartaPagamentoBean(
+                "Mario", "4532 0150 1234 5671", "12/28", "789"
+        );
+        assertThrows(frostly.exception.InvalidCardException.class, () ->
+                payControl.elaboraPagamento(cartaSoloNome, 10.0, consegnaOk, "test@test.it"));
+
+        // CVV non valido ("000")
+        bean.CartaPagamentoBean cartaCvvZero = new bean.CartaPagamentoBean(
+                "Mario Rossi", "4532 0150 1234 5671", "12/28", "000"
+        );
+        assertThrows(frostly.exception.InvalidCardException.class, () ->
+                payControl.elaboraPagamento(cartaCvvZero, 10.0, consegnaOk, "test@test.it"));
     }
 }

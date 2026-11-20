@@ -13,7 +13,7 @@ import model.Ricetta;
 
 /**
  * Controller applicativo dedicato esclusivamente alla consultazione e gestione
- * del catalogo menu e dei prodotti in vetrina (Single Responsibility Principle).
+ * del catalogo menu e dei prodotti in vetrina.
  */
 public class GestioneMenuControl {
 
@@ -35,20 +35,124 @@ public class GestioneMenuControl {
 
     public List<GustoBean> visualizzaMenuGusti() {
         List<GustoBean> risultato = new ArrayList<>();
+        List<model.Ingrediente> magazzino = ingredienteDAO != null
+                ? ingredienteDAO.caricaTuttiIngredienti()
+                : java.util.Collections.emptyList();
         for (Gusto g : gustoDAO.caricaTuttiGusti()) {
+            int porzioniDisp = g.isDisponibileOggi() ? calcolaPorzioniDisponibili(g, magazzino) : 0;
+            boolean disponibileReale = g.isDisponibileOggi() && (porzioniDisp != 0);
+            int vaschetteOpezzi = porzioniDisp >= 0 ? porzioniDisp : g.getVaschetteDisponibili();
             GustoBean bean = new GustoBean(
                     g.getNome(),
                     g.getDescrizione(),
                     g.getAllergeni(),
                     g.getPrezzoAlKg(),
-                    g.isDisponibileOggi(),
-                    g.getVaschetteDisponibili());
+                    disponibileReale,
+                    vaschetteOpezzi);
             bean.setCategoria(g.getCategoria());
             bean.setSottocategoria(g.getSottocategoria());
             bean.setImmagineUrl(g.getImmagineUrl());
             risultato.add(bean);
         }
         return risultato;
+    }
+
+    /**
+     * Calcola quante porzioni/pezzi di un prodotto sono ordinabili al momento in base al magazzino.
+     * Restituisce -1 se il prodotto non ha un vincolo di conteggio diretto o non è mappato.
+     */
+    public int calcolaMaxOrdinabile(String nomeProdotto) {
+        if (nomeProdotto == null || nomeProdotto.isBlank() || gustoDAO == null || ingredienteDAO == null) {
+            return -1;
+        }
+        Gusto g = gustoDAO.trovaGustoPerNome(nomeProdotto.trim());
+        if (g == null) {
+            return -1;
+        }
+        if (!g.isDisponibileOggi()) {
+            return 0;
+        }
+        return calcolaPorzioniDisponibili(g, ingredienteDAO.caricaTuttiIngredienti());
+    }
+
+    public int calcolaPorzioniDisponibili(Gusto g, List<model.Ingrediente> magazzino) {
+        if (g == null || magazzino == null || magazzino.isEmpty()) {
+            return -1;
+        }
+        String nome = g.getNome() != null ? g.getNome().trim() : "";
+        if (nome.isEmpty()) {
+            return -1;
+        }
+        String cat = g.getCategoria() != null ? g.getCategoria().trim() : "";
+
+        if ("Gelati".equalsIgnoreCase(cat)) {
+            return haScorteSufficientiPerProdotto(g, magazzino) ? g.getVaschetteDisponibili() : 0;
+        }
+
+        int max = Integer.MAX_VALUE;
+        boolean vincolato = false;
+
+        for (java.util.Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoArticolo(nome, cat).entrySet()) {
+            int p = porzioniDaIngrediente(magazzino, entry.getKey(), entry.getValue());
+            if (p >= 0) {
+                max = Math.min(max, p);
+                vincolato = true;
+            }
+        }
+
+        if (!CorrelazioneMagazzino.isProdottoEspresso(nome, cat)) {
+            model.Ingrediente articolo = CorrelazioneMagazzino.trovaArticoloDiretto(magazzino, nome);
+            if (articolo != null) {
+                int pezzi = (int) Math.floor(Math.max(0.0, articolo.getQuantitaDisponibile()));
+                max = Math.min(max, pezzi);
+                vincolato = true;
+            }
+        }
+        return vincolato ? max : -1;
+    }
+
+    private int porzioniDaIngrediente(List<model.Ingrediente> magazzino, String nomeIngrediente, double consumoPerPorzione) {
+        if (consumoPerPorzione <= 0.0) return -1;
+        for (model.Ingrediente i : magazzino) {
+            if (i.getNome() != null && i.getNome().equalsIgnoreCase(nomeIngrediente)) {
+                return (int) Math.floor(Math.max(0.0, i.getQuantitaDisponibile()) / consumoPerPorzione);
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Verifica automaticamente se in magazzino sono presenti scorte sufficienti
+     * per tutte le materie prime o articoli correlati al prodotto del menu.
+     */
+    public boolean haScorteSufficientiPerProdotto(Gusto g, List<model.Ingrediente> magazzino) {
+        if (g == null || magazzino == null || magazzino.isEmpty()) {
+            return true;
+        }
+        String nome = g.getNome() != null ? g.getNome().trim() : "";
+        if (nome.isEmpty()) {
+            return true;
+        }
+        String cat = g.getCategoria() != null ? g.getCategoria().trim() : "";
+
+        if ("Gelati".equalsIgnoreCase(cat)) {
+            for (java.util.Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaMinimoGustoGelato(nome).entrySet()) {
+                if (!haScortaSePresente(magazzino, entry.getKey(), entry.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return calcolaPorzioniDisponibili(g, magazzino) != 0;
+    }
+
+    private boolean haScortaSePresente(List<model.Ingrediente> magazzino, String nomeIngrediente, double minimo) {
+        for (model.Ingrediente i : magazzino) {
+            if (i.getNome() != null && i.getNome().equalsIgnoreCase(nomeIngrediente)) {
+                return i.getQuantitaDisponibile() >= minimo;
+            }
+        }
+        return true;
     }
 
     public void salvaOAggiornaGustoMenu(String nome, String descrizione, String allergeni,

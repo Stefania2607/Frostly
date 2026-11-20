@@ -2,7 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefWidth="1180" prefHeight="760" stylesheets="@style.css" styleClass="root-dark"
+<BorderPane prefWidth="1220" prefHeight="760" stylesheets="@style_gui2.css" styleClass="root-dark"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="control.grafico.TurniControlGrafico">
 
@@ -11,7 +11,7 @@
             <VBox>
                 <Label text="FROSTLY — AREA PERSONALE STAFF"
                        style="-fx-text-fill: #f5ebe0; -fx-font-family: 'Georgia'; -fx-font-size: 16.5px; -fx-font-weight: bold;"/>
-                <Label fx:id="lblIntestazione" style="-fx-text-fill: #baa487; -fx-font-size: 11.5px;"/>
+                <Label fx:id="lblIntestazione" style="-fx-text-fill: #baa487; -fx-font-size: 13px;"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Esci (Logout)" onAction="#onClickLogout" styleClass="btn-outline"/>
@@ -19,33 +19,35 @@
     </top>
 
     <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-padding: 8 12;">
+        <TabPane fx:id="tabPaneMaestro" side="LEFT" rotateGraphic="false" tabMinWidth="46" tabMaxWidth="46" tabMinHeight="215" tabMaxHeight="215"
+                 tabClosingPolicy="UNAVAILABLE" style="-fx-padding: 8 12;">
 
-            <Tab text="📅 Turni Staff &amp; Calendario">
+            <Tab>
+                <graphic><Label text="📅 Turni &amp; Calendario" styleClass="sidebar-tab-label"/></graphic>
                 <VBox spacing="10" styleClass="dark-card" style="-fx-padding: 14 18;">
                     <HBox alignment="CENTER_LEFT" spacing="12">
                         <Label text="Calendario Turni di Lavoro Settimanali Staff"
                                style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblRiepilogoTurniDipendente"
-                               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
+                               style="-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
                     </HBox>
 
                     <!-- BARRA NAVIGAZIONE SETTIMANE CALENDARIO -->
                     <HBox spacing="10" alignment="CENTER_LEFT" styleClass="luxury-toolbar">
-                        <Button text="◀ Settimana Prec." onAction="#onClickSettimanaPrecedente" styleClass="btn-warm" style="-fx-font-size: 11px; -fx-padding: 4 10;"/>
-                        <Button text="Oggi" onAction="#onClickSettimanaCorrente" styleClass="btn-outline" style="-fx-font-size: 11px; -fx-padding: 4 8;"/>
-                        <Button text="Settimana Succ. ▶" onAction="#onClickSettimanaSuccessiva" styleClass="btn-warm" style="-fx-font-size: 11px; -fx-padding: 4 10;"/>
+                        <Button text="◀ Settimana Prec." onAction="#onClickSettimanaPrecedente" styleClass="btn-warm" style="-fx-font-size: 12.5px; -fx-padding: 4 10;"/>
+                        <Button text="Oggi" onAction="#onClickSettimanaCorrente" styleClass="btn-outline" style="-fx-font-size: 12.5px; -fx-padding: 4 8;"/>
+                        <Button text="Settimana Succ. ▶" onAction="#onClickSettimanaSuccessiva" styleClass="btn-warm" style="-fx-font-size: 12.5px; -fx-padding: 4 10;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblSettimanaAttiva" text="📅 Settimana:"
                                style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Label text="Vai al giorno:" style="-fx-font-size: 11.5px; -fx-text-fill: #baa487; -fx-font-weight: bold;"/>
+                        <Label text="Vai al giorno:" style="-fx-font-size: 13px; -fx-text-fill: #baa487; -fx-font-weight: bold;"/>
                         <DatePicker fx:id="datePickerSettimana" onAction="#onCambioDataPicker" prefWidth="135"/>
                     </HBox>
 
                     <Label text="💡 Clicca su un tuo turno (evidenziato con ⭐) nella tabella per aprire il pop-up e segnalare un'emergenza o richiesta di modifica al Maestro."
-                           style="-fx-font-size: 11.5px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
+                           style="-fx-font-size: 13px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
 
                     <!-- GRIGLIA CALENDARIO TABELLARE SETTIMANALE -->
                     <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS" prefHeight="380">
@@ -58,26 +60,22 @@
                     <TextField fx:id="campoCodiceTurno" visible="false" managed="false"/>
                     <ComboBox fx:id="comboMotivazioneRapida" visible="false" managed="false"/>
                     <TextField fx:id="campoMotivazione" visible="false" managed="false"/>
-
-                    <Separator/>
-
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label text="📢 Comunicazioni di Servizio Ricevute"
-                               style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="🗑️ Elimina Selezionato" onAction="#onClickEliminaAvvisoSelezionato" styleClass="btn-outline"
-                                style="-fx-text-fill: #ef4444; -fx-border-color: rgba(239,68,68,0.5); -fx-font-size: 11px;"/>
-                    </HBox>
-                    <ListView fx:id="listaNotifiche" prefHeight="85"/>
                 </VBox>
             </Tab>
 
-            <Tab text="🍨 Gestione Menu Vetrina">
+            <Tab>
+                <graphic><Label text="🍨 Menu Vetrina" styleClass="sidebar-tab-label"/></graphic>
                 <VBox spacing="6" styleClass="dark-card" style="-fx-padding: 10 14;">
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <HBox fx:id="boxCategorieMenu" spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 4 0;">
+                        <Label text="🍨 CATALOGO PRODOTTI IN VETRINA"
+                               style="-fx-font-family: 'Georgia'; -fx-font-size: 14.5px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
                         <Button text="➕ Nuovo Prodotto" onAction="#onClickNuovoGustoMenu" styleClass="btn-sage" minWidth="-Infinity"/>
                     </HBox>
+                    <ScrollPane fitToHeight="true" vbarPolicy="NEVER" hbarPolicy="AS_NEEDED"
+                                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                        <HBox fx:id="boxCategorieMenu" spacing="6" alignment="CENTER_LEFT" style="-fx-padding: 2 0;"/>
+                    </ScrollPane>
                     <HBox fx:id="boxSottocategorieMenu" spacing="6" alignment="CENTER_LEFT" minHeight="24"/>
                     <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="540" VBox.vgrow="ALWAYS"
                                 style="-fx-background-color: transparent; -fx-background: transparent;">
@@ -86,7 +84,7 @@
 
                     <HBox spacing="6" alignment="CENTER_LEFT" visible="false" managed="false">
                         <Label fx:id="lblCategoriaFormMenu" text="📂 Reparto: 🍨 Gelati" minWidth="-Infinity"
-                               style="-fx-font-weight: bold; -fx-padding: 5 10; -fx-background-color: rgba(35,32,38,0.85); -fx-background-radius: 10; -fx-text-fill: #baa487; -fx-font-size: 11px;"/>
+                               style="-fx-font-weight: bold; -fx-padding: 5 10; -fx-background-color: rgba(35,32,38,0.85); -fx-background-radius: 10; -fx-text-fill: #baa487; -fx-font-size: 12.5px;"/>
                         <ComboBox fx:id="comboCategoriaMenu" visible="false" managed="false"/>
                         <ComboBox fx:id="comboSottocategoriaMenu" visible="false" managed="false"/>
                         <TextField fx:id="campoNomeGustoMenu" promptText="Nome Prodotto" prefWidth="165"/>
@@ -94,8 +92,8 @@
                         <TextField fx:id="campoAllergeniGustoMenu" promptText="Allergeni" prefWidth="140"/>
                         <TextField fx:id="campoDescGustoMenu" promptText="Descrizione artigianale" HBox.hgrow="ALWAYS"/>
                         <Button text="📁 Scegli foto…" minWidth="-Infinity" onAction="#onClickScegliFoto" styleClass="btn-warm"/>
-                        <Label fx:id="lblStatoFotoMenu" text="Nessuna foto" minWidth="-Infinity" style="-fx-font-size: 11px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
-                        <Button fx:id="btnRimuoviFoto" text="✕" minWidth="-Infinity" onAction="#onClickRimuoviFoto" styleClass="btn-outline" style="-fx-padding: 2 7; -fx-font-size: 10.5px;" visible="false" managed="false"/>
+                        <Label fx:id="lblStatoFotoMenu" text="Nessuna foto" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
+                        <Button fx:id="btnRimuoviFoto" text="✕" minWidth="-Infinity" onAction="#onClickRimuoviFoto" styleClass="btn-outline" style="-fx-padding: 2 7; -fx-font-size: 12px;" visible="false" managed="false"/>
                         <TextField fx:id="campoImmagineMenu" visible="false" managed="false"/>
                     </HBox>
                     <HBox spacing="8" alignment="CENTER_LEFT" visible="false" managed="false">
@@ -106,9 +104,8 @@
                     </HBox>
                 </VBox>
             </Tab>
-
-            <!-- ================= TAB: MAGAZZINO STAFF ================= -->
-            <Tab text="📦 Magazzino">
+            <Tab>
+                <graphic><Label text="📦 Magazzino" styleClass="sidebar-tab-label"/></graphic>
                 <VBox spacing="12" styleClass="dark-card" style="-fx-padding: 14 18;">
                     <HBox spacing="12" alignment="CENTER_LEFT">
                         <Label text="Giacenze Prodotti Menu &amp; Materie Prime"
@@ -127,7 +124,7 @@
 
                     <ListView fx:id="listaMagazzino" VBox.vgrow="ALWAYS"/>
                     <Label text="Barra oro/verde = scorta ottimale. Barra rossa = livello sotto soglia minima (da riordinare subito)."
-                           style="-fx-font-size: 11.5px; -fx-text-fill: #baa487;"/>
+                           style="-fx-font-size: 13px; -fx-text-fill: #baa487;"/>
 
                     <HBox spacing="10" alignment="CENTER_LEFT" styleClass="luxury-toolbar">
                         <Label text="Gestione Giacenze:" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;"/>
@@ -151,17 +148,18 @@
                 </VBox>
             </Tab>
 
-            <Tab text="🛵 Ordini Ricevuti">
+            <Tab>
+                <graphic><Label text="🛵 Ordini Ricevuti" styleClass="sidebar-tab-label"/></graphic>
                 <VBox spacing="12" styleClass="dark-card" style="-fx-padding: 20;">
                     <HBox alignment="CENTER_LEFT" spacing="12">
                         <Label text="🛵 Ordini Deliveroo &amp; Take Away da Gestire"
                                style="-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="lblConteggioOrdiniStaff" text="(0 ordini)" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
+                        <Label fx:id="lblConteggioOrdiniStaff" text="(0 ordini)" style="-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
                         <Button text="🔄 Aggiorna Ordini" onAction="#onClickAggiornaOrdiniStaff" styleClass="btn-outline"/>
                     </HBox>
                     <Label text="💡 Clicca '✔ Conferma' per avviare la preparazione o '✕ Disdici' se i gusti sono esauriti."
-                           style="-fx-font-size: 11.5px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
+                           style="-fx-font-size: 13px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
                     <ListView fx:id="listaOrdiniStaff" VBox.vgrow="ALWAYS"/>
                     <HBox spacing="12" alignment="CENTER_RIGHT">
                         <Button text="✕ Disdici Ordine Selezionato" onAction="#onClickDisdiciOrdineStaff" styleClass="btn-danger" style="-fx-font-weight: bold; -fx-padding: 7 14;"/>
@@ -170,12 +168,29 @@
                 </VBox>
             </Tab>
 
+            <Tab>
+                <graphic><Label text="📢 Comunicazioni" styleClass="sidebar-tab-label"/></graphic>
+                <VBox spacing="12" styleClass="dark-card" style="-fx-padding: 18 20;">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="📢 Comunicazioni di Servizio Ricevute"
+                               style="-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="🗑️ Elimina Selezionato" onAction="#onClickEliminaAvvisoSelezionato" styleClass="btn-outline"
+                                style="-fx-text-fill: #ef4444; -fx-border-color: rgba(239,68,68,0.5); -fx-font-weight: bold;"/>
+                    </HBox>
+                    <Label text="💡 Clicca su una comunicazione per visualizzarla per intero o passare direttamente alla sezione collegata."
+                           style="-fx-font-size: 13px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>
+                    <ListView fx:id="listaNotifiche" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </Tab>
+
         </TabPane>
     </center>
 
     <bottom>
-        <HBox style="-fx-padding: 8 24; -fx-background-color: rgba(14, 13, 16, 0.95); -fx-border-color: rgba(186,164,135,0.22) transparent transparent transparent; -fx-border-width: 1;">
-            <Label fx:id="lblEsito" text="Seleziona un turno o un gusto della vetrina con un click."
+        <HBox visible="false" managed="false"
+              style="-fx-padding: 8 24; -fx-background-color: rgba(14, 13, 16, 0.95); -fx-border-color: rgba(186,164,135,0.22) transparent transparent transparent; -fx-border-width: 1;">
+            <Label fx:id="lblEsito" text=""
                    style="-fx-text-fill: #baa487; -fx-font-weight: bold;"/>
         </HBox>
     </bottom>

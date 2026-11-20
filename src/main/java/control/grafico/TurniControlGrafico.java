@@ -106,6 +106,7 @@ public class TurniControlGrafico {
     @FXML private ListView<OrdineBean> listaOrdiniStaff;
     @FXML private Label lblConteggioOrdiniStaff;
     @FXML private ListView<String> listaOrdiniUrgentiTendina;
+    @FXML private VBox boxStatisticheMaestro;
 
     // Campi Sezione Recensioni Staff (Maestro)
     @FXML private VBox boxCardsRecensioniMaestro;
@@ -200,9 +201,6 @@ public class TurniControlGrafico {
             mostraEsito("🚨 NUOVO ORDINE DELIVEROO RICEVUTO! (" + attuali + " in attesa)", false);
         });
     }
-
-    // ================= NAVIGAZIONE DASHBOARD E TENDINA URGENZE =================
-
     @FXML public void onToggleTendinaUrgenze() { emergenzeHelper.toggleTendinaUrgenze(); }
     @FXML public void onClickApriSezioneMenu() { selezionaTab(1); }
     @FXML public void onClickApriSezioneTurni() { selezionaTab(2); }
@@ -223,24 +221,22 @@ public class TurniControlGrafico {
         if (tabPaneMaestro == null || nomeTarget == null) return;
         String search = nomeTarget.toLowerCase();
         for (javafx.scene.control.Tab tab : tabPaneMaestro.getTabs()) {
-            if (tab.getText() != null && tab.getText().toLowerCase().contains(search)) {
+            String titolo = tab.getText();
+            if ((titolo == null || titolo.isBlank()) && tab.getGraphic() instanceof Label lbl) {
+                titolo = lbl.getText();
+            }
+            if (titolo != null && titolo.toLowerCase().contains(search)) {
                 tabPaneMaestro.getSelectionModel().select(tab);
                 break;
             }
         }
     }
-
-    // ================= DELEGA A CATALOGO MENU STAFF =================
-
     @FXML public void onClickScegliFoto() { catalogoMenuHelper.scegliFoto(); }
     @FXML public void onClickRimuoviFoto() { catalogoMenuHelper.rimuoviFoto(); }
     @FXML public void onClickNuovoGustoMenu() { catalogoMenuHelper.preparaNuovoGusto(); }
     @FXML public void onClickSalvaGustoMenu() { catalogoMenuHelper.salvaOAggiornaGusto(); }
     @FXML public void onClickCambiaDisponibilitaGusto() { catalogoMenuHelper.cambiaDisponibilitaGusto(); }
     @FXML public void onClickRimuoviGustoMenu() { catalogoMenuHelper.eliminaGusto(); }
-
-    // ================= DELEGA A MAGAZZINO & GUSTI SU MISURA =================
-
     @FXML public void onClickRegistraRifornimentoManuale() { magazzinoGustiHelper.registraRifornimentoManuale(); }
     @FXML public void onClickRegistraScaricoManuale() { magazzinoGustiHelper.registraScaricoManuale(); }
     @FXML public void onClickAggiungiNuovoIngrediente() { magazzinoGustiHelper.aggiungiNuovoIngrediente(); }
@@ -249,18 +245,12 @@ public class TurniControlGrafico {
     @FXML public void onClickApprovaGusto() { magazzinoGustiHelper.approvaGusto(); }
     @FXML public void onClickRifornisciGusto() { magazzinoGustiHelper.rifornisciEAprovaGusto(); }
     @FXML public void onClickRifiutaGusto() { magazzinoGustiHelper.rifiutaGusto(); }
-
-    // ================= DELEGA A RECENSIONI STAFF (MAESTRO) =================
-
     @FXML public void onClickAggiornaRecensioniStaff() {
         if (recensioniHelper != null) {
             recensioniHelper.aggiornaRecensioniMaestro();
         }
         mostraEsito("Recensioni aggiornate.", false);
     }
-
-    // ================= DELEGA A ORDINI CLIENTI STAFF =================
-
     @FXML
     public void onClickAggiornaOrdiniStaff() {
         aggiornaListe();
@@ -269,15 +259,9 @@ public class TurniControlGrafico {
 
     @FXML public void onClickConfermaOrdineStaff() { ordiniStaffHelper.confermaOrdineSelezionato(); }
     @FXML public void onClickDisdiciOrdineStaff() { ordiniStaffHelper.disdiciOrdineSelezionato(); }
-
-    // ================= DELEGA A GESTIONE DIPENDENTI =================
-
     @FXML public void onClickGeneraPassword() { dipendentiHelper.generaPasswordSicura(); }
     @FXML public void onClickCreaDipendente() { dipendentiHelper.creaDipendente(); }
     @FXML public void onClickEliminaDipendente() { dipendentiHelper.eliminaDipendente(); }
-
-    // ================= DELEGA A TURNI ED EMERGENZE =================
-
     @FXML public void onClickSettimanaPrecedente() { turniStaffHelper.vaiASettimanaPrecedente(); }
     @FXML public void onClickSettimanaSuccessiva() { turniStaffHelper.vaiASettimanaSuccessiva(); }
     @FXML public void onClickSettimanaCorrente() { turniStaffHelper.vaiASettimanaCorrente(); }
@@ -319,6 +303,19 @@ public class TurniControlGrafico {
         new LoginControl().eliminaNotificaUtente(emailUtente, notifica);
         aggiornaListe();
         mostraEsito("✓ Avviso rimosso dal registro cronologico.", false);
+    }
+
+    @FXML
+    public void onClickAggiornaStatistiche() {
+        aggiornaStatistiche();
+        mostraEsito("✓ Statistiche di vendita e magazzino aggiornate.", false);
+    }
+
+    private void aggiornaStatistiche() {
+        if (boxStatisticheMaestro != null) {
+            bean.StatisticheBean stats = new control.applicativo.StatisticheControl().calcolaStatistiche();
+            view.StatisticheMaestroView.renderStatistiche(boxStatisticheMaestro, stats);
+        }
     }
 
     @FXML
@@ -375,5 +372,6 @@ public class TurniControlGrafico {
 
         int totaleUrgenze = emergenzeAttive + scorteUrgenti + ordiniInAttesa;
         emergenzeHelper.aggiornaBadgeUrgenze(totaleUrgenze);
+        aggiornaStatistiche();
     }
 }

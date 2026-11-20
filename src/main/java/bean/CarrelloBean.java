@@ -88,9 +88,6 @@ public class CarrelloBean {
         }
         return Math.round(somma * 100.0) / 100.0;
     }
-
-    // ================= COMPOSIZIONE VASCHETTA CORRENTE =================
-
     public List<GustoBean> getGustiNellaVaschetta() {
         return gustiNellaVaschetta;
     }
@@ -166,9 +163,6 @@ public class CarrelloBean {
         gustiNellaVaschetta.clear();
         return item;
     }
-
-    // ================= DATI CONSEGNA E CHECKOUT =================
-
     public String getModalitaConsegna() {
         return modalitaConsegna;
     }

@@ -1,6 +1,6 @@
 /* ==========================================================================
    FROSTLY — HAUTE GELATERIA & LUXURY TEA SALON
-   Design System: Quiet Luxury (Nero Ossidiana, Grafite Satinato, Oro Champagne)
+   Foglio di stile principale
    ========================================================================== */
 
 /* 1. ROOT BACKGROUND: FOTOGRAFIA SALA DA TÈ & GELATERIA BOUTIQUE */
@@ -10,6 +10,25 @@
     -fx-background-position: center center;
     -fx-background-repeat: no-repeat;
     -fx-font-family: "Georgia", -apple-system, "SF Pro Display", "Avenir Next", "Segoe UI", sans-serif;
+    -fx-font-size: 13.5px;
+}
+
+.root-menu-viola {
+    -fx-background-image: url("bg_menu_viola.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+    -fx-font-family: "Georgia", -apple-system, "SF Pro Display", "Avenir Next", "Segoe UI", sans-serif;
+    -fx-font-size: 13.5px;
+}
+
+.glass-card-viola {
+    -fx-background-color: rgba(22, 16, 28, 0.74);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(196, 164, 212, 0.34);
+    -fx-border-radius: 16;
+    -fx-border-width: 1.2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 26, 0, 0, 8);
 }
 
 /* 2. CARD PANELS: VETRO FUMÉ TRASLUCIDO CON FILETTO ORO CHAMPAGNE */
@@ -22,7 +41,7 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 26, 0, 0, 8);
 }
 
-/* 2b. TILES DASHBOARD (QUIET LUXURY GLASS) */
+/* Tessere dashboard */
 .luxury-tile {
     -fx-background-color: rgba(26, 24, 28, 0.90);
     -fx-background-radius: 14;
@@ -64,10 +83,10 @@
     -fx-border-color: #2b282e;
     -fx-border-radius: 8;
     -fx-border-width: 1;
-    -fx-padding: 7 11;
-    -fx-text-fill: #ede6dc;
-    -fx-prompt-text-fill: #615a63;
-    -fx-font-size: 11.5px;
+    -fx-padding: 8 12;
+    -fx-text-fill: #f5ebe0;
+    -fx-prompt-text-fill: #8c837b;
+    -fx-font-size: 13.5px;
 }
 
 .text-field:focused, .password-field:focused, .luxury-input:focused {
@@ -86,8 +105,8 @@
 
 .combo-box > .list-cell, .luxury-combo > .list-cell {
     -fx-padding: 4 8;
-    -fx-text-fill: #ded7cd;
-    -fx-font-size: 11px;
+    -fx-text-fill: #f5ebe0;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
@@ -98,7 +117,8 @@
 
 .combo-box-popup .list-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #ded7cd;
+    -fx-text-fill: #f5ebe0;
+    -fx-font-size: 13px;
 }
 
 .combo-box-popup .list-cell:filled:hover {
@@ -148,7 +168,7 @@
     -fx-background-color: transparent;
     -fx-padding: 6 10;
     -fx-text-fill: #ede6dc;
-    -fx-font-size: 12px;
+    -fx-font-size: 13.5px;
 }
 
 .list-view .list-cell:filled:selected, .list-view .list-cell:filled:selected:focused {
@@ -184,9 +204,9 @@
 }
 
 .tab-pane .tab .tab-label {
-    -fx-text-fill: #9e9384;
+    -fx-text-fill: #b5a898;
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
+    -fx-font-size: 13.5px;
 }
 
 .tab-pane .tab:selected .tab-label {
@@ -204,9 +224,9 @@
     -fx-text-fill: #141312;
     -fx-font-family: "Georgia", serif;
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
+    -fx-font-size: 13.5px;
     -fx-background-radius: 10;
-    -fx-padding: 8 16;
+    -fx-padding: 9 18;
     -fx-cursor: hand;
 }
 
@@ -216,14 +236,14 @@
 
 .btn-outline, .luxury-outline-btn {
     -fx-background-color: rgba(28, 27, 30, 0.85);
-    -fx-text-fill: #ded7cd;
+    -fx-text-fill: #f5ebe0;
     -fx-border-color: rgba(186, 164, 135, 0.35);
     -fx-border-radius: 10;
     -fx-background-radius: 10;
     -fx-border-width: 1;
     -fx-font-weight: bold;
-    -fx-font-size: 11.5px;
-    -fx-padding: 7 14;
+    -fx-font-size: 13px;
+    -fx-padding: 8 15;
     -fx-cursor: hand;
 }
 
@@ -235,13 +255,13 @@
 
 .btn-warm {
     -fx-background-color: rgba(38, 36, 32, 0.9);
-    -fx-text-fill: #c9b499;
+    -fx-text-fill: #d8c6ad;
     -fx-border-color: rgba(186, 164, 135, 0.45);
     -fx-border-radius: 10;
     -fx-background-radius: 10;
     -fx-font-weight: bold;
-    -fx-font-size: 11.5px;
-    -fx-padding: 7 14;
+    -fx-font-size: 13px;
+    -fx-padding: 8 15;
     -fx-cursor: hand;
 }
 
@@ -257,8 +277,8 @@
     -fx-border-radius: 10;
     -fx-background-radius: 10;
     -fx-font-weight: bold;
-    -fx-font-size: 11.5px;
-    -fx-padding: 7 16;
+    -fx-font-size: 13px;
+    -fx-padding: 8 16;
     -fx-cursor: hand;
 }
 
@@ -273,8 +293,8 @@
     -fx-border-radius: 10;
     -fx-background-radius: 10;
     -fx-font-weight: bold;
-    -fx-font-size: 11.5px;
-    -fx-padding: 7 14;
+    -fx-font-size: 13px;
+    -fx-padding: 8 15;
     -fx-cursor: hand;
 }
 
@@ -284,15 +304,15 @@
 
 .luxury-sub-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: #8f8475;
-    -fx-border-color: #262427;
+    -fx-text-fill: #b5a898;
+    -fx-border-color: rgba(186, 164, 135, 0.30);
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-border-width: 1;
     -fx-font-family: "Georgia", serif;
-    -fx-font-size: 10.5px;
+    -fx-font-size: 12.5px;
     -fx-font-weight: bold;
-    -fx-padding: 6 12;
+    -fx-padding: 7 14;
     -fx-cursor: hand;
 }
 
@@ -319,18 +339,18 @@
 
 .gusto-card-title {
     -fx-font-weight: bold;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 14.5px;
     -fx-text-fill: #f5f0e6;
 }
 
 .gusto-card-desc {
-    -fx-font-size: 10.5px;
-    -fx-text-fill: #a89f92;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #c7beb2;
 }
 
 .gusto-card-price {
     -fx-font-weight: bold;
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
     -fx-text-fill: #baa487;
     -fx-padding: 3 8;
     -fx-background-color: rgba(186, 164, 135, 0.16);
@@ -352,7 +372,7 @@
     -fx-background-color: #baa487;
     -fx-text-fill: #141312;
     -fx-font-weight: bold;
-    -fx-font-size: 11px;
+    -fx-font-size: 12.5px;
     -fx-padding: 3 8;
     -fx-background-radius: 6;
 }
@@ -361,7 +381,7 @@
     -fx-background-color: rgba(36, 66, 52, 0.85);
     -fx-text-fill: #a7f3d0;
     -fx-font-weight: bold;
-    -fx-font-size: 10.5px;
+    -fx-font-size: 12px;
     -fx-padding: 2 7;
     -fx-background-radius: 6;
 }
@@ -379,6 +399,7 @@
 
 .check-box {
     -fx-text-fill: #ded7cd;
+    -fx-font-size: 13px;
 }
 
 .check-box .box {
@@ -393,4 +414,57 @@
 .date-picker .text-field {
     -fx-background-color: rgba(13, 12, 14, 0.9);
     -fx-text-fill: #ede6dc;
+}
+
+/* Grafici statistiche Maestro */
+.chart {
+    -fx-background-color: transparent;
+    -fx-padding: 6;
+}
+
+.chart-plot-background {
+    -fx-background-color: rgba(14, 13, 16, 0.65);
+    -fx-background-radius: 8;
+}
+
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(186, 164, 135, 0.16);
+}
+
+.axis {
+    -fx-tick-label-fill: #ded7cd;
+    -fx-font-size: 11.5px;
+}
+
+.axis-label {
+    -fx-text-fill: #baa487;
+    -fx-font-weight: bold;
+}
+
+.default-color0.chart-bar {
+    -fx-bar-fill: #baa487;
+    -fx-background-radius: 6 6 0 0;
+}
+
+.chart-pie-label {
+    -fx-fill: #f5ebe0;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.chart-pie-label-line {
+    -fx-stroke: rgba(186, 164, 135, 0.55);
+}
+
+.default-color0.chart-pie { -fx-pie-color: #10b981; }
+.default-color1.chart-pie { -fx-pie-color: #f59e0b; }
+.default-color2.chart-pie { -fx-pie-color: #ef4444; }
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #f5ebe0;
+    -fx-font-size: 12px;
 }

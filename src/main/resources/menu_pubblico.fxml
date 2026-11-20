@@ -2,23 +2,33 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane prefWidth="1180" prefHeight="760" stylesheets="@style.css" styleClass="root-dark"
-           style="-fx-padding: 12;"
+<StackPane prefWidth="1180" prefHeight="760" stylesheets="@style.css" styleClass="root-menu-viola"
+           style="-fx-padding: 20;"
            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="control.grafico.LoginControlGrafico">
 
-    <VBox spacing="6" alignment="CENTER" maxWidth="1150" styleClass="glass-card"
+    <VBox spacing="6" alignment="CENTER" maxWidth="1120" styleClass="glass-card-viola"
           style="-fx-padding: 14 18;">
 
-        <HBox spacing="12" alignment="CENTER_LEFT">
-            <Button text="⬅ Torna all'Accesso" onAction="#onClickTornaALogin" styleClass="btn-outline"/>
-            <Label text="FROSTLY — IL NOSTRO MENU D'AUTORE"
-                   style="-fx-font-family: 'Georgia'; -fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
+        <!-- 1. BARRA SUPERIORE: NAVIGAZIONE, TITOLO E REGISTRAZIONE -->
+        <HBox spacing="14" alignment="CENTER_LEFT" style="-fx-padding: 0 0 6 0;">
+            <Button text="⬅ Torna all'Accesso" onAction="#onClickTornaALogin" styleClass="btn-outline"
+                    minWidth="-Infinity" style="-fx-font-weight: bold; -fx-padding: 7 16;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <HBox fx:id="boxCategorie" spacing="6" alignment="CENTER"/>
+            <VBox alignment="CENTER" spacing="1">
+                <Label text="FROSTLY — IL NOSTRO MENU D'AUTORE"
+                       style="-fx-font-family: 'Georgia'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0; -fx-letter-spacing: 1.5px;"/>
+                <Label text="Consultazione libera delle nostre eccellenze artigianali"
+                       style="-fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
+            </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="✨ Crea un Profilo Cliente" onAction="#onClickVaiARegistrazione" styleClass="btn-primary"/>
+            <Button text="✨ Crea un Profilo Cliente" onAction="#onClickVaiARegistrazione" styleClass="btn-primary"
+                    minWidth="-Infinity" style="-fx-font-weight: bold; -fx-padding: 7 16;"/>
         </HBox>
+        <ScrollPane fitToHeight="true" vbarPolicy="NEVER" hbarPolicy="AS_NEEDED"
+                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+            <HBox fx:id="boxCategorie" spacing="8" alignment="CENTER" style="-fx-padding: 2 4;"/>
+        </ScrollPane>
 
         <HBox fx:id="boxSottocategorie" spacing="8" alignment="CENTER" minHeight="26"/>
 

@@ -17,7 +17,6 @@ public class LoginBean {
     private String nomeCompleto;
 
     public LoginBean() {
-        // Costruttore vuoto JavaBean
     }
 
     public LoginBean(String email, String password) throws DatiNonValidiException {

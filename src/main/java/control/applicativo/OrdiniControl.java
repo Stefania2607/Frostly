@@ -173,6 +173,11 @@ public class OrdiniControl {
     public void confermaOrdine(String codiceOrdine, String operatore) throws FrostlyException {
         for (OrdineCliente oc : ordineDAO.caricaTuttiOrdini()) {
             if (oc.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
+                boolean eraDisdetto = oc.getStato() == StatoRichiesta.RIFIUTATA;
+                if (eraDisdetto) {
+                    // Se l'ordine era stato disdetto (e quindi ripristinato in magazzino), riscala le giacenze prima di riaccettarlo
+                    scalaGiacenzeMagazzino(oc);
+                }
                 oc.setStato(StatoRichiesta.APPROVATA);
                 ordineDAO.salvaOrdine(oc);
                 if (oc.getCliente() != null) {
@@ -191,8 +196,12 @@ public class OrdiniControl {
     public void disdiciOrdine(String codiceOrdine, String operatore) throws FrostlyException {
         for (OrdineCliente oc : ordineDAO.caricaTuttiOrdini()) {
             if (oc.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
+                boolean giaDisdetto = oc.getStato() == StatoRichiesta.RIFIUTATA;
                 oc.setStato(StatoRichiesta.RIFIUTATA);
                 ordineDAO.salvaOrdine(oc);
+                if (!giaDisdetto) {
+                    ripristinaGiacenzeMagazzino(oc);
+                }
                 if (oc.getCliente() != null) {
                     notificaDAO.inviaNotifica(new Notifica(
                             oc.getCliente().getEmail(),
@@ -213,6 +222,7 @@ public class OrdiniControl {
                 lista.add(convertiOrdineInBean(oc));
             }
         }
+        java.util.Collections.reverse(lista);
         return lista;
     }
 
@@ -221,13 +231,16 @@ public class OrdiniControl {
         for (OrdineCliente oc : ordineDAO.caricaTuttiOrdini()) {
             lista.add(convertiOrdineInBean(oc));
         }
+        java.util.Collections.reverse(lista);
         return lista;
     }
 
     private OrdineBean convertiOrdineInBean(OrdineCliente oc) {
         OrdineBean b = new OrdineBean();
         b.setCodiceOrdine(oc.getCodiceOrdine());
-        b.setEmailCliente(oc.getCliente() != null ? oc.getCliente().getEmail() : "");
+        String email = oc.getCliente() != null ? oc.getCliente().getEmail() : "";
+        b.setEmailCliente(email);
+        b.setNomeCliente(risolviNomeCliente(oc.getCliente(), email));
         b.setStato(oc.getStato() != null ? oc.getStato().name() : "APPROVATA");
         b.setPrezzoTotale(oc.getPrezzoTotale());
         b.setDescrizioneCompleta(oc.getDescrizioneDettagliata());
@@ -247,154 +260,134 @@ public class OrdiniControl {
         return b;
     }
 
+    private String risolviNomeCliente(Cliente cli, String email) {
+        Cliente target = cli;
+        if ((target == null || "Cliente".equalsIgnoreCase(target.getNome()) || target.getCognome() == null || target.getCognome().contains("@"))
+                && email != null && !email.isBlank() && utenteDAO != null) {
+            Cliente trovato = utenteDAO.trovaClientePerEmail(email);
+            if (trovato != null) {
+                target = trovato;
+            }
+        }
+        if (target != null) {
+            String n = target.getNome() != null ? target.getNome().trim() : "";
+            String c = target.getCognome() != null ? target.getCognome().trim() : "";
+            String completo = (n + " " + c).trim();
+            if (!completo.isEmpty() && !completo.equalsIgnoreCase("Cliente") && !completo.contains("@")) {
+                return completo;
+            }
+        }
+        return (email != null && !email.isBlank()) ? email : "Cliente";
+    }
+
     private String oraCorrente() {
         return "Oggi " + LocalTime.now().format(TIME_FMT);
     }
 
     private void scalaGiacenzeMagazzino(OrdineCliente ordine) throws FrostlyException {
+        applicaMovimentoMagazzino(ordine, false);
+    }
+
+    private void ripristinaGiacenzeMagazzino(OrdineCliente ordine) throws FrostlyException {
+        applicaMovimentoMagazzino(ordine, true);
+    }
+
+    private void applicaMovimentoMagazzino(OrdineCliente ordine, boolean ripristina) throws FrostlyException {
         if (ordine == null || ingredienteDAO == null) return;
 
         if (!ordine.getVaschette().isEmpty()) {
             for (VaschettaOrdinata vo : ordine.getVaschette()) {
                 if (vo.getPesoKg() > 0.0) {
-                    scalaGiacenzeGelato(vo.getGusti(), vo.getPesoKg(), vo.isConPanna(), vo.isConGranellaBronte());
+                    muoviGiacenzeGelato(vo.getGusti(), vo.getPesoKg(), vo.isConPanna(), vo.isConGranellaBronte(), ripristina);
                 } else {
-                    scalaGiacenzaArticoloMenu(vo.getGusti(), vo.getDescrizione());
+                    muoviGiacenzaArticoloMenu(vo.getGusti(), vo.getDescrizione(), 1, ripristina);
+                }
+            }
+        } else if (ordine.getDescrizioneDettagliata() != null && !ordine.getDescrizioneDettagliata().isBlank()) {
+            // Fallback per ordini ricaricati dal DB (senza lista vaschette in memoria): ricostruisce gli articoli dalla descrizione
+            String[] segmenti = ordine.getDescrizioneDettagliata().split("\\|");
+            for (String seg : segmenti) {
+                String s = seg.trim();
+                if (s.isEmpty()) continue;
+                int qty = 1;
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d+)x\\s+(.+)$").matcher(s);
+                if (m.matches()) {
+                    qty = Integer.parseInt(m.group(1));
+                    s = m.group(2).trim();
+                }
+                if (s.toLowerCase().startsWith("vaschetta")) {
+                    double peso = estraiPesoDaDescrizioneVaschetta(s, ordine.getPesoKg());
+                    List<Gusto> gusti = ordine.getGusto() != null ? List.of(ordine.getGusto()) : List.of();
+                    boolean conPanna = s.toLowerCase().contains("panna");
+                    boolean conGranella = s.toLowerCase().contains("granella");
+                    for (int q = 0; q < qty; q++) {
+                        muoviGiacenzeGelato(gusti, peso, conPanna, conGranella, ripristina);
+                    }
+                } else {
+                    muoviGiacenzaArticoloMenu(null, s, qty, ripristina);
                 }
             }
         } else if (ordine.getGusto() != null || ordine.getPesoKg() > 0.0) {
             List<Gusto> gusti = ordine.getGusto() != null ? List.of(ordine.getGusto()) : List.of();
-            scalaGiacenzeGelato(gusti, ordine.getPesoKg(), false, false);
+            muoviGiacenzeGelato(gusti, ordine.getPesoKg(), false, false, ripristina);
         }
     }
 
-    private void scalaGiacenzaArticoloMenu(List<Gusto> gusti, String descrizione) throws FrostlyException {
+    private double estraiPesoDaDescrizioneVaschetta(String desc, double pesoDefault) {
+        String lower = desc.toLowerCase();
+        if (lower.contains("1000g") || lower.contains("1 kg") || lower.contains("1kg")) return 1.0;
+        if (lower.contains("750g")) return 0.75;
+        if (lower.contains("500g")) return 0.50;
+        if (lower.contains("350g")) return 0.35;
+        return pesoDefault > 0.0 ? pesoDefault : 0.50;
+    }
+
+    private void muoviGiacenzaArticoloMenu(List<Gusto> gusti, String descrizione, int quantita, boolean ripristina) throws FrostlyException {
         String nomeProdotto = (gusti != null && !gusti.isEmpty()) ? gusti.get(0).getNome() : null;
+        String categoria = (gusti != null && !gusti.isEmpty()) ? gusti.get(0).getCategoria() : "";
         if (nomeProdotto == null && descrizione != null) {
             int idx = descrizione.indexOf('(');
             nomeProdotto = (idx > 0) ? descrizione.substring(0, idx).trim() : descrizione.trim();
         }
-        if (nomeProdotto == null || nomeProdotto.isEmpty()) return;
+        if (nomeProdotto == null || nomeProdotto.isEmpty() || quantita <= 0) return;
 
-        String lower = nomeProdotto.toLowerCase();
-        boolean isCaffetteria = lower.startsWith("caffe") || lower.startsWith("caffè")
-                || lower.contains("cappuccino") || lower.contains("latte macchiato")
-                || lower.contains("affogato");
-        boolean isCrepe = lower.startsWith("crepe");
+        for (java.util.Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoArticolo(nomeProdotto, categoria).entrySet()) {
+            muoviSePresente(entry.getKey(), entry.getValue() * quantita, ripristina);
+        }
 
-        if (isCaffetteria) {
-            if (lower.contains("ginseng")) {
-                consumaSePresente("Caffe al Ginseng Solubile", 0.015);
-            } else if (lower.contains("orzo")) {
-                consumaSePresente("Orzo Solubile Tostato", 0.015);
-            } else {
-                consumaSePresente("Caffe in Grani 100% Arabica", 0.008);
-            }
-
-            if (lower.contains("cappuccino")) {
-                consumaSePresente("Latte Fresco Alta Qualita", 0.12);
-            } else if (lower.contains("latte macchiato")) {
-                consumaSePresente("Latte Fresco Alta Qualita", 0.18);
-            } else if (lower.contains("macchiato")) {
-                consumaSePresente("Latte Fresco Alta Qualita", 0.03);
-            } else if (lower.contains("affogato")) {
-                consumaSePresente("Latte Fresco Alta Qualita", 0.05);
-            }
-
-            if (lower.contains("marocchino")) {
-                consumaSePresente("Cacao Amaro Monorigine", 0.005);
-            } else if (lower.contains("corretto")) {
-                consumaSePresente("Liquori per Caffe Corretto (Grappa e Sambuca)", 0.02);
-            }
-        } else if (isCrepe) {
-            // Crepes artigianali espresse preparate da materie prime coincidenti del laboratorio
-            consumaSePresente("Farina per Crepes e Dolci", 0.08);
-            consumaSePresente("Latte Fresco Alta Qualita", 0.10);
-            consumaSePresente("Uova Fresche da Allevamento", 1.0);
-            consumaSePresente("Burro Fresco di Latteria", 0.02);
-            consumaSePresente("Zucchero Semolato Italiano", 0.01);
-            if (lower.contains("nutella") || lower.contains("stelle")) {
-                consumaSePresente("Nutella Ferrero", 0.05);
-            } else if (lower.contains("pistacchio")) {
-                consumaSePresente("Pasta Pistacchio di Bronte DOP", 0.04);
-                consumaSePresente("Granella di Pistacchio di Bronte DOP", 0.01);
-            } else if (lower.contains("albicocc") || lower.contains("marmellata")) {
-                consumaSePresente("Confettura Extra di Albicocche", 0.04);
-            } else if (lower.contains("visciol") || lower.contains("frutti di bosco") || lower.contains("fragol")) {
-                consumaSePresente("Confettura di Frutti di Bosco", 0.04);
-            }
-        } else {
+        if (!CorrelazioneMagazzino.isProdottoEspresso(nomeProdotto, categoria)) {
             Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeProdotto);
             if (ing == null) {
-                for (Ingrediente i : ingredienteDAO.caricaTuttiIngredienti()) {
-                    if (nomeProdotto.equalsIgnoreCase(i.getNome())
-                            || nomeProdotto.toLowerCase().startsWith(i.getNome().toLowerCase())
-                            || i.getNome().toLowerCase().startsWith(nomeProdotto.toLowerCase())) {
-                        ing = i;
-                        break;
-                    }
-                }
+                ing = CorrelazioneMagazzino.trovaArticoloDiretto(ingredienteDAO.caricaTuttiIngredienti(), nomeProdotto);
             }
             if (ing != null) {
-                ing.consuma(1.0);
+                if (ripristina) {
+                    ing.rifornisci(1.0 * quantita);
+                } else {
+                    ing.consuma(1.0 * quantita);
+                }
                 ingredienteDAO.aggiornaIngrediente(ing);
             }
-
-            if (lower.startsWith("cioccolata calda")) {
-                consumaSePresente("Latte Fresco Alta Qualita", 0.15);
-            }
         }
     }
 
-    private void scalaGiacenzeGelato(List<Gusto> gusti, double pesoKg, boolean conPanna, boolean conGranella)
+    private void muoviGiacenzeGelato(List<Gusto> gusti, double pesoKg, boolean conPanna, boolean conGranella, boolean ripristina)
             throws FrostlyException {
-        if (pesoKg <= 0.0) return;
-
-        consumaSePresente("Latte Fresco Alta Qualita", Math.round(pesoKg * 0.40 * 100.0) / 100.0);
-        consumaSePresente("Panna Fresca d'Alpeggio", Math.round(pesoKg * 0.20 * 100.0) / 100.0);
-        consumaSePresente("Zucchero Semolato Italiano", Math.round(pesoKg * 0.15 * 100.0) / 100.0);
-
-        if (gusti != null && !gusti.isEmpty()) {
-            double quotaPerGusto = pesoKg / gusti.size();
-            for (Gusto g : gusti) {
-                String nome = g.getNome().toLowerCase();
-                if (nome.contains("pistacchio")) {
-                    consumaSePresente("Pasta Pistacchio di Bronte DOP", Math.round(quotaPerGusto * 0.25 * 100.0) / 100.0);
-                } else if (nome.contains("nocciola")) {
-                    consumaSePresente("Nocciola Piemonte IGP", Math.round(quotaPerGusto * 0.25 * 100.0) / 100.0);
-                } else if (nome.contains("fondente") || nome.contains("cioccolat")) {
-                    consumaSePresente("Cioccolato Fondente Ecuador 75%", Math.round(quotaPerGusto * 0.25 * 100.0) / 100.0);
-                } else if (nome.contains("mango")) {
-                    consumaSePresente("Polpa di Mango Alphonso", Math.round(quotaPerGusto * 0.35 * 100.0) / 100.0);
-                } else if (nome.contains("fragol")) {
-                    consumaSePresente("Fragole Fresche di Bosco", Math.round(quotaPerGusto * 0.35 * 100.0) / 100.0);
-                } else if (nome.contains("limon")) {
-                    consumaSePresente("Limoni di Sorrento IGP", Math.round(quotaPerGusto * 0.30 * 100.0) / 100.0);
-                } else if (nome.contains("caff")) {
-                    consumaSePresente("Caffe in Grani 100% Arabica", Math.round(quotaPerGusto * 0.15 * 100.0) / 100.0);
-                } else if (nome.contains("mandorl") || nome.contains("amarandola")) {
-                    consumaSePresente("Mandorle di Avola", Math.round(quotaPerGusto * 0.20 * 100.0) / 100.0);
-                } else if (nome.contains("nutella")) {
-                    consumaSePresente("Nutella Ferrero", Math.round(quotaPerGusto * 0.20 * 100.0) / 100.0);
-                } else if (nome.contains("cacao")) {
-                    consumaSePresente("Cacao Amaro Monorigine", Math.round(quotaPerGusto * 0.20 * 100.0) / 100.0);
-                }
-            }
-        }
-
-        if (conPanna) {
-            consumaSePresente("Panna Fresca d'Alpeggio", 0.10);
-        }
-        if (conGranella) {
-            consumaSePresente("Granella di Pistacchio di Bronte DOP", 0.05);
+        for (java.util.Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoVaschettaGelato(
+                gusti, pesoKg, conPanna, conGranella).entrySet()) {
+            muoviSePresente(entry.getKey(), entry.getValue(), ripristina);
         }
     }
 
-    private void consumaSePresente(String nomeIngrediente, double quantita) throws FrostlyException {
+    private void muoviSePresente(String nomeIngrediente, double quantita, boolean ripristina) throws FrostlyException {
         if (quantita <= 0.0 || ingredienteDAO == null) return;
         Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeIngrediente);
         if (ing != null) {
-            ing.consuma(quantita);
+            if (ripristina) {
+                ing.rifornisci(quantita);
+            } else {
+                ing.consuma(quantita);
+            }
             ingredienteDAO.aggiornaIngrediente(ing);
         }
     }
