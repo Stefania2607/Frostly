@@ -9,13 +9,11 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * Gestore della connessione JDBC realizzato con pattern GoF Singleton.
- * Ha la singola responsabilita' di aprire e fornire l'unica connessione JDBC all'applicazione.
+ * Gestore della connessione JDBC verso MySQL (Singleton).
  * La creazione e migrazione dello schema sono delegate a {@link SchemaDatabase}.
  */
 public class ConnectionManager {
 
-    private static final String FALLBACK_SQLITE_URL = "jdbc:sqlite:frostly_db.sqlite";
     private static ConnectionManager instance;
     private Connection connection;
 
@@ -55,21 +53,17 @@ public class ConnectionManager {
         String user = props.getProperty("db.user");
         String pwd = props.getProperty("db.password");
 
+        if (url == null || url.trim().isEmpty()) {
+            throw new FrostlyException("Configurazione database mancante: impostare 'db.url' in db.properties.");
+        }
+
         try {
-            if (url != null && !url.isEmpty()) {
-                this.connection = DriverManager.getConnection(url, user, pwd);
-                SchemaDatabase.inizializzaSchemaEDati(this.connection, true);
-            } else {
-                this.connection = DriverManager.getConnection(FALLBACK_SQLITE_URL);
-                SchemaDatabase.inizializzaSchemaEDati(this.connection, false);
-            }
+            this.connection = DriverManager.getConnection(url, user, pwd);
+            SchemaDatabase.inizializzaSchemaEDati(this.connection);
         } catch (SQLException mysqlEx) {
-            try {
-                this.connection = DriverManager.getConnection(FALLBACK_SQLITE_URL);
-                SchemaDatabase.inizializzaSchemaEDati(this.connection, false);
-            } catch (SQLException sqliteEx) {
-                throw new FrostlyException("Errore durante l'apertura dell'unica connessione JDBC.", sqliteEx);
-            }
+            throw new FrostlyException(
+                    "Impossibile connettersi al database MySQL configurato (" + url + "): " + mysqlEx.getMessage(),
+                    mysqlEx);
         }
     }
 }

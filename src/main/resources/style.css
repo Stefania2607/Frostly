@@ -1,9 +1,5 @@
-/* ==========================================================================
-   FROSTLY — HAUTE GELATERIA & LUXURY TEA SALON
-   Foglio di stile principale
-   ========================================================================== */
+/* Foglio di stile principale GUI 1 */
 
-/* 1. ROOT BACKGROUND: FOTOGRAFIA SALA DA TÈ & GELATERIA BOUTIQUE */
 .root, .root-light, .root-dark, .luxury-root-dark {
     -fx-background-image: url("bg_frostly.jpg");
     -fx-background-size: cover;

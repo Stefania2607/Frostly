@@ -10,7 +10,7 @@ import model.Notifica;
  */
 public class NotificaDAOMemory implements NotificaDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public List<Notifica> caricaNotifichePerUtente(String emailDestinatario) {

@@ -16,7 +16,7 @@ import model.Ingrediente;
  */
 public class IngredienteDAODbms implements IngredienteDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public List<Ingrediente> caricaTuttiIngredienti() {
@@ -32,7 +32,6 @@ public class IngredienteDAODbms implements IngredienteDAO {
 
     @Override
     public void aggiornaIngrediente(Ingrediente ingrediente) {
-        cache.aggiornaIngrediente(ingrediente);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String sql = "UPDATE ingredienti SET quantita_disponibile = ?, categoria = ? WHERE nome = ?";
@@ -53,6 +52,7 @@ public class IngredienteDAODbms implements IngredienteDAO {
                     }
                 }
             }
+            cache.aggiornaIngrediente(ingrediente);
         } catch (FrostlyException | SQLException ignored) {
         }
     }
@@ -64,7 +64,6 @@ public class IngredienteDAODbms implements IngredienteDAO {
 
     @Override
     public void eliminaIngrediente(String nome) {
-        cache.eliminaIngrediente(nome);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String sql = "DELETE FROM ingredienti WHERE nome = ?";
@@ -72,6 +71,7 @@ public class IngredienteDAODbms implements IngredienteDAO {
                 stmt.setString(1, nome);
                 stmt.executeUpdate();
             }
+            cache.eliminaIngrediente(nome);
         } catch (FrostlyException | SQLException ignored) {
         }
     }

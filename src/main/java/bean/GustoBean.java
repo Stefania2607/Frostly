@@ -16,7 +16,6 @@ public class GustoBean {
     private String immagineUrl = "";
 
     public GustoBean() {
-        // Costruttore vuoto standard JavaBean
     }
 
     public GustoBean(String nome, String descrizione, String allergeni, double prezzoAlKg,

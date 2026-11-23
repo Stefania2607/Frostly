@@ -1,21 +1,15 @@
 package bean;
 
-import frostly.exception.DatiNonValidiException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Bean che modella il Carrello della spesa del Cliente e lo stato della Vaschetta
- * attualmente in fase di composizione durante la sessione d'ordine.
- * Incapsula la lista degli articoli selezionati dal menu (Vaschette, Crepes con Topping/Granella,
- * Panna d'asporto, Bevande, Caffetteria, Dolci), il calcolo dinamico dei prezzi e la
- * costruzione dell'OrdineBean al momento del checkout.
+ * Bean per lo stato del carrello e della vaschetta in composizione.
  */
 public class CarrelloBean {
 
-    private final List<VaschettaItemBean> articoli = new ArrayList<>();
-    private final List<GustoBean> gustiNellaVaschetta = new ArrayList<>();
+    private List<VaschettaItemBean> articoli = new ArrayList<>();
+    private List<GustoBean> gustiNellaVaschetta = new ArrayList<>();
     private double pesoVaschettaKg = 0.50;
     private int maxGustiVaschetta = 4;
 
@@ -23,146 +17,41 @@ public class CarrelloBean {
     private String fasciaOraria = "Subito (~25-35 min)";
     private String indirizzoONote = "";
 
-    public void aggiungiArticolo(VaschettaItemBean articolo) {
-        if (articolo == null) return;
-        // Se un articolo identico dal menu (pesoKg <= 0) è già presente nel carrello, incrementa la quantità
-        if (articolo.ottieniPesoKg() <= 0.0) {
-            for (VaschettaItemBean esistente : articoli) {
-                if (esistente.ottieniPesoKg() <= 0.0
-                        && esistente.ottieniDescrizione().equalsIgnoreCase(articolo.ottieniDescrizione())
-                        && Math.abs(esistente.getPrezzoUnitario() - articolo.getPrezzoUnitario()) < 0.001) {
-                    esistente.incrementaQuantita();
-                    return;
-                }
-            }
-        }
-        articoli.add(articolo);
-    }
-
-    public void incrementaArticolo(int indice) {
-        if (indice >= 0 && indice < articoli.size()) {
-            articoli.get(indice).incrementaQuantita();
-        }
-    }
-
-    public void decrementaArticolo(int indice) {
-        if (indice >= 0 && indice < articoli.size()) {
-            VaschettaItemBean item = articoli.get(indice);
-            item.decrementaQuantita();
-            if (item.getQuantita() <= 0) {
-                articoli.remove(indice);
-            }
-        }
-    }
-
-    public void rimuoviArticolo(int indice) {
-        if (indice >= 0 && indice < articoli.size()) {
-            articoli.remove(indice);
-        }
-    }
-
-    public void svuota() {
-        articoli.clear();
-    }
-
-    public boolean isVuoto() {
-        return articoli.isEmpty();
-    }
-
-    public int getNumeroArticoli() {
-        int n = 0;
-        for (VaschettaItemBean item : articoli) {
-            n += item.getQuantita();
-        }
-        return n;
+    public CarrelloBean() {
     }
 
     public List<VaschettaItemBean> getArticoli() {
-        return Collections.unmodifiableList(articoli);
+        return articoli;
     }
 
-    public double calcolaTotale() {
-        double somma = 0.0;
-        for (VaschettaItemBean item : articoli) {
-            somma += item.ottieniPrezzo();
-        }
-        return Math.round(somma * 100.0) / 100.0;
+    public void setArticoli(List<VaschettaItemBean> articoli) {
+        this.articoli = (articoli != null) ? new ArrayList<>(articoli) : new ArrayList<>();
     }
+
     public List<GustoBean> getGustiNellaVaschetta() {
         return gustiNellaVaschetta;
+    }
+
+    public void setGustiNellaVaschetta(List<GustoBean> gustiNellaVaschetta) {
+        this.gustiNellaVaschetta = (gustiNellaVaschetta != null) ? new ArrayList<>(gustiNellaVaschetta) : new ArrayList<>();
     }
 
     public double getPesoVaschettaKg() {
         return pesoVaschettaKg;
     }
 
+    public void setPesoVaschettaKg(double pesoVaschettaKg) {
+        this.pesoVaschettaKg = pesoVaschettaKg;
+    }
+
     public int getMaxGustiVaschetta() {
         return maxGustiVaschetta;
     }
 
-    public void impostaFormatoVaschetta(double pesoKg, int maxGusti) {
-        this.pesoVaschettaKg = pesoKg;
-        this.maxGustiVaschetta = maxGusti;
-        while (gustiNellaVaschetta.size() > maxGustiVaschetta) {
-            gustiNellaVaschetta.remove(gustiNellaVaschetta.size() - 1);
-        }
+    public void setMaxGustiVaschetta(int maxGustiVaschetta) {
+        this.maxGustiVaschetta = maxGustiVaschetta;
     }
 
-    public void svuotaVaschettaInComposizione() {
-        gustiNellaVaschetta.clear();
-    }
-
-    public double calcolaPrezzoVaschettaInComposizione(boolean conPanna, boolean conGranella) {
-        if (gustiNellaVaschetta.isEmpty()) {
-            if (!conPanna) {
-                return 0.0;
-            }
-            double p = Math.round(12.0 * pesoVaschettaKg * 100.0) / 100.0;
-            return conGranella ? p + 3.50 : p;
-        }
-        double sommaPrezziAlKg = 0.0;
-        for (GustoBean g : gustiNellaVaschetta) {
-            sommaPrezziAlKg += g.getPrezzoAlKg();
-        }
-        double mediaKg = sommaPrezziAlKg / gustiNellaVaschetta.size();
-        double prezzo = Math.round(mediaKg * pesoVaschettaKg * 100.0) / 100.0;
-        if (conPanna) prezzo += 2.50;
-        if (conGranella) prezzo += 3.50;
-        return prezzo;
-    }
-
-    public VaschettaItemBean aggiungiVaschettaInComposizioneAlCarrello(boolean conPanna, boolean conGranella)
-            throws DatiNonValidiException {
-        if (gustiNellaVaschetta.isEmpty() && !conPanna) {
-            throw new DatiNonValidiException("Seleziona almeno un gusto dalla carta oppure la panna fresca d'alpeggio!");
-        }
-        List<String> nomi = new ArrayList<>();
-        double prezzo = calcolaPrezzoVaschettaInComposizione(conPanna, conGranella);
-        int grammi = (int) (pesoVaschettaKg * 1000);
-        String desc;
-
-        if (gustiNellaVaschetta.isEmpty()) {
-            desc = "Vaschetta Panna Montata Fresca d'Alpeggio (" + grammi + "g)"
-                    + (conGranella ? " + Granella di Bronte DOP" : "");
-        } else {
-            StringBuilder sbGusti = new StringBuilder();
-            for (int i = 0; i < gustiNellaVaschetta.size(); i++) {
-                GustoBean g = gustiNellaVaschetta.get(i);
-                nomi.add(g.getNome());
-                if (i > 0) sbGusti.append(", ");
-                sbGusti.append(g.getNome());
-            }
-            StringBuilder sb = new StringBuilder("Vaschetta " + grammi + "g (" + sbGusti + ")");
-            if (conPanna) sb.append(" + Panna");
-            if (conGranella) sb.append(" + Granella");
-            desc = sb.toString();
-        }
-
-        VaschettaItemBean item = new VaschettaItemBean(pesoVaschettaKg, nomi, conPanna, conGranella, desc, prezzo);
-        articoli.add(item);
-        gustiNellaVaschetta.clear();
-        return item;
-    }
     public String getModalitaConsegna() {
         return modalitaConsegna;
     }
@@ -185,33 +74,5 @@ public class CarrelloBean {
 
     public void setIndirizzoONote(String indirizzoONote) {
         this.indirizzoONote = indirizzoONote;
-    }
-
-    /**
-     * Costruisce l'OrdineBean completo a partire dal contenuto del carrello,
-     * pronto per essere inviato al Controller Applicativo (OrdiniControl).
-     */
-    public OrdineBean costruisciOrdineBean(String emailCliente) throws DatiNonValidiException {
-        if (articoli.isEmpty()) {
-            throw new DatiNonValidiException("Il carrello è vuoto! Aggiungi almeno un prodotto dal menu.");
-        }
-        String tipo = (modalitaConsegna != null && !modalitaConsegna.isEmpty())
-                ? modalitaConsegna : "🛵 Consegna a Domicilio";
-        String orario = (fasciaOraria != null && !fasciaOraria.isEmpty())
-                ? fasciaOraria : "Subito (~25-35 min)";
-        String note = (indirizzoONote != null) ? indirizzoONote.trim() : "";
-
-        String riepilogoConsegna = tipo + " (" + orario + ")"
-                + (note.isEmpty() ? "" : " • Indirizzo/Note: " + note);
-
-        OrdineBean ordineBean = new OrdineBean();
-        ordineBean.setEmailCliente(emailCliente);
-        ordineBean.setDataRitiro(riepilogoConsegna);
-        for (VaschettaItemBean item : articoli) {
-            for (int q = 0; q < item.getQuantita(); q++) {
-                ordineBean.aggiungiVaschetta(item.creaCopiaSingola());
-            }
-        }
-        return ordineBean;
     }
 }

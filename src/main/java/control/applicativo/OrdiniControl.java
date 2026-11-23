@@ -10,10 +10,14 @@ import dao.OrdineDAO;
 import dao.UtenteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
+import frostly.exception.IngredienteEsauritoException;
+import frostly.exception.RisorsaNonTrovataException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Cliente;
 import model.ConGranellaBronteDecorator;
 import model.ConPannaMontataDecorator;
@@ -69,7 +73,7 @@ public class OrdiniControl {
             if (nomePulito.isEmpty()) continue;
             Gusto g = gustoDAO.trovaGustoPerNome(nomePulito);
             if (g == null) {
-                throw new DatiNonValidiException("Gusto '" + nomePulito + "' non trovato nel menu.");
+                throw new RisorsaNonTrovataException("Gusto '" + nomePulito + "' non trovato nel menu.");
             }
             if (!g.isDisponibileOggi()) {
                 throw new DatiNonValidiException("Il gusto '" + g.getNome() + "' e' attualmente esaurito.");
@@ -79,10 +83,23 @@ public class OrdiniControl {
         return lista;
     }
 
+    /**
+     * Verifica in sola lettura che tutti i gusti e le scorte di magazzino richieste
+     * dall'ordine siano disponibili prima di autorizzare il pagamento o scalare il magazzino.
+     */
+    public void verificaDisponibilitaOrdine(OrdineBean beanInput) throws FrostlyException {
+        Cliente cliente = utenteDAO.trovaClientePerEmail(beanInput.getEmailCliente());
+        if (cliente == null) {
+            throw new RisorsaNonTrovataException("Cliente selezionato non trovato.");
+        }
+        OrdineCliente ordineSimulato = costruisciOrdineCliente("VERIFICA", cliente, beanInput, false);
+        verificaDisponibilitaScorte(ordineSimulato);
+    }
+
     public OrdineBean effettuaPreOrdine(OrdineBean beanInput) throws FrostlyException {
         Cliente cliente = utenteDAO.trovaClientePerEmail(beanInput.getEmailCliente());
         if (cliente == null) {
-            throw new DatiNonValidiException("Cliente selezionato non valido.");
+            throw new RisorsaNonTrovataException("Cliente selezionato non trovato.");
         }
 
         int maxNum = 0;
@@ -98,51 +115,9 @@ public class OrdiniControl {
             }
         }
         String codiceOrdine = String.format("ORD-%02d", Math.max(maxNum + 1, tuttiOrdini.size() + 1));
-        OrdineCliente nuovoOrdine;
+        OrdineCliente nuovoOrdine = costruisciOrdineCliente(codiceOrdine, cliente, beanInput, true);
 
-        if (!beanInput.getVaschette().isEmpty()) {
-            List<VaschettaOrdinata> listaVo = new ArrayList<>();
-            for (VaschettaItemBean vib : beanInput.getVaschette()) {
-                List<Gusto> gustiVaschetta = validaERisolviGusti(vib.ottieniGusti());
-                if (gustiVaschetta.isEmpty() && !vib.haPanna() && (vib.ottieniDescrizione() == null || vib.ottieniDescrizione().isEmpty())) {
-                    throw new DatiNonValidiException("Ciascun articolo deve contenere almeno un gusto, la panna o un prodotto del menu.");
-                }
-                VaschettaOrdinata vo = new VaschettaOrdinata(gustiVaschetta, vib.ottieniPesoKg(),
-                        vib.haPanna(), vib.haGranellaBronte(), vib.ottieniDescrizione(), vib.ottieniPrezzo());
-                listaVo.add(vo);
-            }
-            nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, listaVo, beanInput.getDataRitiro());
-            beanInput.setDescrizioneCompleta(nuovoOrdine.getDescrizioneDettagliata());
-            beanInput.setPrezzoTotale(nuovoOrdine.getPrezzoTotale());
-        } else {
-            String testoGusti = beanInput.getNomeGusto();
-            List<Gusto> listaGusti = new ArrayList<>();
-            if (testoGusti != null && !testoGusti.trim().isEmpty()) {
-                List<String> nomiSingoli = List.of(testoGusti.split(","));
-                listaGusti = validaERisolviGusti(nomiSingoli);
-            }
-            if (listaGusti.isEmpty() && !beanInput.isConPanna()) {
-                throw new DatiNonValidiException("Selezionare almeno un gusto o la panna montata fresca.");
-            }
-
-            VaschettaComponent decorata = new VaschettaBase(listaGusti, beanInput.getPesoKg());
-            if (beanInput.isConPanna() && !listaGusti.isEmpty()) {
-                decorata = new ConPannaMontataDecorator(decorata);
-            }
-            if (beanInput.isConGranellaBronte()) {
-                decorata = new ConGranellaBronteDecorator(decorata);
-            }
-
-            Gusto principale = listaGusti.isEmpty() ? null : listaGusti.get(0);
-            nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, principale,
-                    beanInput.getPesoKg(), beanInput.getDataRitiro());
-            nuovoOrdine.setPrezzoTotale(decorata.calcolaPrezzoFinale());
-            nuovoOrdine.setDescrizioneDettagliata(decorata.getDescrizioneCompleta());
-
-            beanInput.setDescrizioneCompleta(decorata.getDescrizioneCompleta());
-            beanInput.setPrezzoTotale(decorata.calcolaPrezzoFinale());
-        }
-
+        // Verifica atomica di tutte le scorte prima di effettuare qualsiasi modifica
         scalaGiacenzeMagazzino(nuovoOrdine);
 
         ordineDAO.salvaOrdine(nuovoOrdine);
@@ -170,6 +145,56 @@ public class OrdiniControl {
         return beanInput;
     }
 
+    private OrdineCliente costruisciOrdineCliente(String codiceOrdine, Cliente cliente,
+                                                  OrdineBean beanInput, boolean aggiornaBean) throws FrostlyException {
+        OrdineCliente nuovoOrdine;
+        if (!beanInput.getVaschette().isEmpty()) {
+            List<VaschettaOrdinata> listaVo = new ArrayList<>();
+            for (VaschettaItemBean vib : beanInput.getVaschette()) {
+                List<Gusto> gustiVaschetta = validaERisolviGusti(vib.ottieniGusti());
+                if (gustiVaschetta.isEmpty() && !vib.haPanna() && (vib.ottieniDescrizione() == null || vib.ottieniDescrizione().isEmpty())) {
+                    throw new DatiNonValidiException("Ciascun articolo deve contenere almeno un gusto, la panna o un prodotto del menu.");
+                }
+                VaschettaOrdinata vo = new VaschettaOrdinata(gustiVaschetta, vib.ottieniPesoKg(),
+                        vib.haPanna(), vib.haGranellaBronte(), vib.ottieniDescrizione(), vib.ottieniPrezzo());
+                listaVo.add(vo);
+            }
+            nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, listaVo, beanInput.getDataRitiro());
+            if (aggiornaBean) {
+                beanInput.setDescrizioneCompleta(nuovoOrdine.getDescrizioneDettagliata());
+                beanInput.setPrezzoTotale(nuovoOrdine.getPrezzoTotale());
+            }
+        } else {
+            List<String> nomiGusti = beanInput.getNomiGusti();
+            List<Gusto> listaGusti = (nomiGusti != null && !nomiGusti.isEmpty())
+                    ? validaERisolviGusti(nomiGusti)
+                    : new ArrayList<>();
+            if (listaGusti.isEmpty() && !beanInput.isConPanna()) {
+                throw new DatiNonValidiException("Selezionare almeno un gusto o la panna montata fresca.");
+            }
+
+            VaschettaComponent decorata = new VaschettaBase(listaGusti, beanInput.getPesoKg());
+            if (beanInput.isConPanna() && !listaGusti.isEmpty()) {
+                decorata = new ConPannaMontataDecorator(decorata);
+            }
+            if (beanInput.isConGranellaBronte()) {
+                decorata = new ConGranellaBronteDecorator(decorata);
+            }
+
+            Gusto principale = listaGusti.isEmpty() ? null : listaGusti.get(0);
+            nuovoOrdine = new OrdineCliente(codiceOrdine, cliente, principale,
+                    beanInput.getPesoKg(), beanInput.getDataRitiro());
+            nuovoOrdine.setPrezzoTotale(decorata.calcolaPrezzoFinale());
+            nuovoOrdine.setDescrizioneDettagliata(decorata.getDescrizioneCompleta());
+
+            if (aggiornaBean) {
+                beanInput.setDescrizioneCompleta(decorata.getDescrizioneCompleta());
+                beanInput.setPrezzoTotale(decorata.calcolaPrezzoFinale());
+            }
+        }
+        return nuovoOrdine;
+    }
+
     public void confermaOrdine(String codiceOrdine, String operatore) throws FrostlyException {
         for (OrdineCliente oc : ordineDAO.caricaTuttiOrdini()) {
             if (oc.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
@@ -190,7 +215,7 @@ public class OrdiniControl {
                 return;
             }
         }
-        throw new DatiNonValidiException("Ordine " + codiceOrdine + " non trovato.");
+        throw new RisorsaNonTrovataException("Ordine " + codiceOrdine + " non trovato.");
     }
 
     public void disdiciOrdine(String codiceOrdine, String operatore) throws FrostlyException {
@@ -212,7 +237,7 @@ public class OrdiniControl {
                 return;
             }
         }
-        throw new DatiNonValidiException("Ordine " + codiceOrdine + " non trovato.");
+        throw new RisorsaNonTrovataException("Ordine " + codiceOrdine + " non trovato.");
     }
 
     public List<OrdineBean> visualizzaOrdiniCliente(String emailCliente) {
@@ -284,6 +309,19 @@ public class OrdiniControl {
         return "Oggi " + LocalTime.now().format(TIME_FMT);
     }
 
+    private void verificaDisponibilitaScorte(OrdineCliente ordine) throws FrostlyException {
+        if (ordine == null || ingredienteDAO == null) return;
+        Map<Ingrediente, Double> consumiTotali = calcolaConsumiAggregati(ordine);
+        for (Map.Entry<Ingrediente, Double> entry : consumiTotali.entrySet()) {
+            Ingrediente ing = entry.getKey();
+            double richiesto = entry.getValue();
+            if (!ing.haScortaSufficiente(richiesto)) {
+                double mancante = richiesto - ing.getQuantitaDisponibile();
+                throw new IngredienteEsauritoException(ing.getNome(), mancante);
+            }
+        }
+    }
+
     private void scalaGiacenzeMagazzino(OrdineCliente ordine) throws FrostlyException {
         applicaMovimentoMagazzino(ordine, false);
     }
@@ -295,16 +333,46 @@ public class OrdiniControl {
     private void applicaMovimentoMagazzino(OrdineCliente ordine, boolean ripristina) throws FrostlyException {
         if (ordine == null || ingredienteDAO == null) return;
 
+        Map<Ingrediente, Double> consumiTotali = calcolaConsumiAggregati(ordine);
+
+        // In caso di scarico, controlla prima tutte le giacenze in blocco per evitare scarichi parziali
+        if (!ripristina) {
+            for (Map.Entry<Ingrediente, Double> entry : consumiTotali.entrySet()) {
+                Ingrediente ing = entry.getKey();
+                double richiesto = entry.getValue();
+                if (!ing.haScortaSufficiente(richiesto)) {
+                    double mancante = richiesto - ing.getQuantitaDisponibile();
+                    throw new IngredienteEsauritoException(ing.getNome(), mancante);
+                }
+            }
+        }
+
+        for (Map.Entry<Ingrediente, Double> entry : consumiTotali.entrySet()) {
+            Ingrediente ing = entry.getKey();
+            double quantita = entry.getValue();
+            if (quantita <= 0.0) continue;
+            if (ripristina) {
+                ing.rifornisci(quantita);
+            } else {
+                ing.consuma(quantita);
+            }
+            ingredienteDAO.aggiornaIngrediente(ing);
+        }
+    }
+
+    private Map<Ingrediente, Double> calcolaConsumiAggregati(OrdineCliente ordine) {
+        Map<Ingrediente, Double> totali = new LinkedHashMap<>();
+        if (ordine == null || ingredienteDAO == null) return totali;
+
         if (!ordine.getVaschette().isEmpty()) {
             for (VaschettaOrdinata vo : ordine.getVaschette()) {
                 if (vo.getPesoKg() > 0.0) {
-                    muoviGiacenzeGelato(vo.getGusti(), vo.getPesoKg(), vo.isConPanna(), vo.isConGranellaBronte(), ripristina);
+                    accumulaConsumiGelato(totali, vo.getGusti(), vo.getPesoKg(), vo.isConPanna(), vo.isConGranellaBronte());
                 } else {
-                    muoviGiacenzaArticoloMenu(vo.getGusti(), vo.getDescrizione(), 1, ripristina);
+                    accumulaConsumiArticoloMenu(totali, vo.getGusti(), vo.getDescrizione(), 1);
                 }
             }
         } else if (ordine.getDescrizioneDettagliata() != null && !ordine.getDescrizioneDettagliata().isBlank()) {
-            // Fallback per ordini ricaricati dal DB (senza lista vaschette in memoria): ricostruisce gli articoli dalla descrizione
             String[] segmenti = ordine.getDescrizioneDettagliata().split("\\|");
             for (String seg : segmenti) {
                 String s = seg.trim();
@@ -321,16 +389,17 @@ public class OrdiniControl {
                     boolean conPanna = s.toLowerCase().contains("panna");
                     boolean conGranella = s.toLowerCase().contains("granella");
                     for (int q = 0; q < qty; q++) {
-                        muoviGiacenzeGelato(gusti, peso, conPanna, conGranella, ripristina);
+                        accumulaConsumiGelato(totali, gusti, peso, conPanna, conGranella);
                     }
                 } else {
-                    muoviGiacenzaArticoloMenu(null, s, qty, ripristina);
+                    accumulaConsumiArticoloMenu(totali, null, s, qty);
                 }
             }
         } else if (ordine.getGusto() != null || ordine.getPesoKg() > 0.0) {
             List<Gusto> gusti = ordine.getGusto() != null ? List.of(ordine.getGusto()) : List.of();
-            muoviGiacenzeGelato(gusti, ordine.getPesoKg(), false, false, ripristina);
+            accumulaConsumiGelato(totali, gusti, ordine.getPesoKg(), false, false);
         }
+        return totali;
     }
 
     private double estraiPesoDaDescrizioneVaschetta(String desc, double pesoDefault) {
@@ -342,7 +411,8 @@ public class OrdiniControl {
         return pesoDefault > 0.0 ? pesoDefault : 0.50;
     }
 
-    private void muoviGiacenzaArticoloMenu(List<Gusto> gusti, String descrizione, int quantita, boolean ripristina) throws FrostlyException {
+    private void accumulaConsumiArticoloMenu(Map<Ingrediente, Double> totali, List<Gusto> gusti,
+                                             String descrizione, int quantita) {
         String nomeProdotto = (gusti != null && !gusti.isEmpty()) ? gusti.get(0).getNome() : null;
         String categoria = (gusti != null && !gusti.isEmpty()) ? gusti.get(0).getCategoria() : "";
         if (nomeProdotto == null && descrizione != null) {
@@ -351,8 +421,8 @@ public class OrdiniControl {
         }
         if (nomeProdotto == null || nomeProdotto.isEmpty() || quantita <= 0) return;
 
-        for (java.util.Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoArticolo(nomeProdotto, categoria).entrySet()) {
-            muoviSePresente(entry.getKey(), entry.getValue() * quantita, ripristina);
+        for (Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoArticolo(nomeProdotto, categoria).entrySet()) {
+            aggiungiSePresente(totali, entry.getKey(), entry.getValue() * quantita);
         }
 
         if (!CorrelazioneMagazzino.isProdottoEspresso(nomeProdotto, categoria)) {
@@ -361,34 +431,24 @@ public class OrdiniControl {
                 ing = CorrelazioneMagazzino.trovaArticoloDiretto(ingredienteDAO.caricaTuttiIngredienti(), nomeProdotto);
             }
             if (ing != null) {
-                if (ripristina) {
-                    ing.rifornisci(1.0 * quantita);
-                } else {
-                    ing.consuma(1.0 * quantita);
-                }
-                ingredienteDAO.aggiornaIngrediente(ing);
+                totali.merge(ing, 1.0 * quantita, Double::sum);
             }
         }
     }
 
-    private void muoviGiacenzeGelato(List<Gusto> gusti, double pesoKg, boolean conPanna, boolean conGranella, boolean ripristina)
-            throws FrostlyException {
-        for (java.util.Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoVaschettaGelato(
+    private void accumulaConsumiGelato(Map<Ingrediente, Double> totali, List<Gusto> gusti,
+                                       double pesoKg, boolean conPanna, boolean conGranella) {
+        for (Map.Entry<String, Double> entry : CorrelazioneMagazzino.calcolaConsumoVaschettaGelato(
                 gusti, pesoKg, conPanna, conGranella).entrySet()) {
-            muoviSePresente(entry.getKey(), entry.getValue(), ripristina);
+            aggiungiSePresente(totali, entry.getKey(), entry.getValue());
         }
     }
 
-    private void muoviSePresente(String nomeIngrediente, double quantita, boolean ripristina) throws FrostlyException {
+    private void aggiungiSePresente(Map<Ingrediente, Double> totali, String nomeIngrediente, double quantita) {
         if (quantita <= 0.0 || ingredienteDAO == null) return;
         Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeIngrediente);
         if (ing != null) {
-            if (ripristina) {
-                ing.rifornisci(quantita);
-            } else {
-                ing.consuma(quantita);
-            }
-            ingredienteDAO.aggiornaIngrediente(ing);
+            totali.merge(ing, quantita, Double::sum);
         }
     }
 }

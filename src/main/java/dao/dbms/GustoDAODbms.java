@@ -16,7 +16,7 @@ import model.Gusto;
  */
 public class GustoDAODbms implements GustoDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public List<Gusto> caricaTuttiGusti() {
@@ -32,7 +32,6 @@ public class GustoDAODbms implements GustoDAO {
 
     @Override
     public void salvaGustoMenu(Gusto gusto) throws FrostlyException {
-        cache.salvaGustoMenu(gusto);
         Connection conn = ConnectionManager.getInstance().getConnection();
         String del = "DELETE FROM menu_gusti WHERE nome_gusto = ?";
         String ins = "INSERT INTO menu_gusti (nome_gusto, descrizione, allergeni, prezzo_al_kg, disponibile, categoria, sottocategoria, immagine_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -50,6 +49,7 @@ public class GustoDAODbms implements GustoDAO {
             iStmt.setString(7, gusto.getSottocategoria());
             iStmt.setString(8, gusto.getImmagineUrl() == null ? "" : gusto.getImmagineUrl());
             iStmt.executeUpdate();
+            cache.salvaGustoMenu(gusto);
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nel salvataggio del gusto nel menu su database.", e);
         }
@@ -57,12 +57,12 @@ public class GustoDAODbms implements GustoDAO {
 
     @Override
     public void rimuoviGustoMenu(String nomeGusto) throws FrostlyException {
-        cache.rimuoviGustoMenu(nomeGusto);
         Connection conn = ConnectionManager.getInstance().getConnection();
         String del = "DELETE FROM menu_gusti WHERE nome_gusto = ?";
         try (PreparedStatement dStmt = conn.prepareStatement(del)) {
             dStmt.setString(1, nomeGusto);
             dStmt.executeUpdate();
+            cache.rimuoviGustoMenu(nomeGusto);
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nella rimozione del gusto dal menu su database.", e);
         }

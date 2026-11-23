@@ -91,7 +91,6 @@ public final class StaffMenuEditorView {
         final String[] urlFotoCorrente = { !isNuovo && prodottoIniziale.getImmagineUrl() != null ? prodottoIniziale.getImmagineUrl() : "" };
         final boolean[] disponibileCorrente = { isNuovo || prodottoIniziale.isDisponibileOggi() };
 
-        // Sezione superiore: Anteprima Foto a sinistra + Reparto e Stato a destra
         HBox boxSuperiore = new HBox(16);
         boxSuperiore.setAlignment(Pos.CENTER_LEFT);
         boxSuperiore.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 12;");
@@ -174,7 +173,6 @@ public final class StaffMenuEditorView {
         controlliDestraFoto.getChildren().addAll(lblFotoInfo, bottoniFoto, rigaReparto, btnToggleDisp);
         boxSuperiore.getChildren().addAll(contenitoreAnteprima, controlliDestraFoto);
 
-        // Campi del modulo
         TextField txtNome = new TextField(isNuovo ? "" : prodottoIniziale.getNome());
         txtNome.setPromptText("Es. Pistacchio di Bronte DOP, Crepe alla Nutella...");
         txtNome.textProperty().addListener((obs, o, n) -> {
@@ -213,7 +211,6 @@ public final class StaffMenuEditorView {
             if (n != null && !n.trim().isEmpty()) txtDesc.setStyle("");
         });
 
-        // Barra pulsanti in basso
         HBox footer = new HBox(10);
         footer.setAlignment(Pos.CENTER_LEFT);
 
@@ -351,7 +348,6 @@ public final class StaffMenuEditorView {
                 + "-fx-border-width: 1.5; -fx-border-radius: 14; -fx-background-radius: 14;");
         root.setPrefWidth(460);
 
-        // Header con icona avviso circolare ed eleganza tipografica
         HBox headerBox = new HBox(14);
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -370,7 +366,6 @@ public final class StaffMenuEditorView {
 
         headerBox.getChildren().addAll(iconBadge, titleBox);
 
-        // Card centrale esplicativa
         VBox cardInfo = new VBox(8);
         cardInfo.setStyle("-fx-background-color: #faf4ed; -fx-border-color: #e8ddd0; -fx-border-radius: 12; "
                 + "-fx-background-radius: 12; -fx-padding: 14 16;");
@@ -381,7 +376,6 @@ public final class StaffMenuEditorView {
 
         cardInfo.getChildren().add(lblMsg);
 
-        // Footer pulsante Ho Capito
         HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_RIGHT);
         footer.setStyle("-fx-padding: 4 0 0 0;");

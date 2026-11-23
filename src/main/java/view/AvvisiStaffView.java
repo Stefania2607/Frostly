@@ -86,7 +86,6 @@ public final class AvvisiStaffView {
                     + "-fx-border-width: 1.0; -fx-border-radius: 12; -fx-background-radius: 12;");
         }
 
-        // Determina icona, categoria e badge a partire dal titolo e dal messaggio
         String tit = n.getTitolo() != null ? n.getTitolo() : "Avviso";
         String titLower = tit.toLowerCase();
         String msgLower = n.getMessaggio() != null ? n.getMessaggio().toLowerCase() : "";
@@ -117,7 +116,6 @@ public final class AvvisiStaffView {
             badgeStyle = "-fx-background-color: rgba(25, 45, 65, 0.90); -fx-text-fill: #93c5fd; -fx-border-color: #3b82f6;";
         }
 
-        // 1. RIGA INTESTAZIONE: Categoria, Timestamp e Badge Nuovo
         HBox rigaTop = new HBox(8);
         rigaTop.setAlignment(Pos.CENTER_LEFT);
 
@@ -197,7 +195,6 @@ public final class AvvisiStaffView {
         root.setPrefWidth(600);
         root.setPrefHeight(440);
 
-        // Header popup
         HBox top = new HBox(12);
         top.setAlignment(Pos.CENTER_LEFT);
 
@@ -226,7 +223,6 @@ public final class AvvisiStaffView {
 
         top.getChildren().addAll(lblIcon, vTop);
 
-        // Box Contenuto Completo
         VBox boxCorpo = new VBox(8);
         boxCorpo.setStyle("-fx-background-color: rgba(26, 24, 28, 0.90); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14 16;");
         VBox.setVgrow(boxCorpo, Priority.ALWAYS);
@@ -242,7 +238,6 @@ public final class AvvisiStaffView {
 
         boxCorpo.getChildren().add(scroll);
 
-        // Footer con azioni rapide
         HBox footer = new HBox(10);
         footer.setAlignment(Pos.CENTER_RIGHT);
 

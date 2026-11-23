@@ -8,6 +8,7 @@ import dao.RichiestaGustoDAO;
 import dao.UtenteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
+import frostly.exception.RisorsaNonTrovataException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -48,10 +49,10 @@ public class RichiestaGustoControl {
         Ingrediente ingrediente = ingredienteDAO.trovaIngredientePerNome(beanInput.getNomeIngredientePrincipale());
 
         if (cliente == null) {
-            throw new DatiNonValidiException("Cliente non trovato: " + beanInput.getEmailCliente());
+            throw new RisorsaNonTrovataException("Cliente non trovato: " + beanInput.getEmailCliente());
         }
         if (ingrediente == null) {
-            throw new DatiNonValidiException("Ingrediente non presente in catalogo: " + beanInput.getNomeIngredientePrincipale());
+            throw new RisorsaNonTrovataException("Ingrediente non presente in catalogo: " + beanInput.getNomeIngredientePrincipale());
         }
 
         String nuovoCodice = String.format("REQ-%02d", esistenti.size() + 1);
@@ -169,13 +170,13 @@ public class RichiestaGustoControl {
         return risultato;
     }
 
-    private RichiestaGustoPersonalizzato trovaRichiestaEntity(String codiceRichiesta) throws DatiNonValidiException {
+    private RichiestaGustoPersonalizzato trovaRichiestaEntity(String codiceRichiesta) throws RisorsaNonTrovataException {
         for (RichiestaGustoPersonalizzato r : richiestaGustoDAO.caricaTutteRichiesteGusto()) {
             if (r.getCodiceRichiesta().equalsIgnoreCase(codiceRichiesta)) {
                 return r;
             }
         }
-        throw new DatiNonValidiException("Richiesta gusto non trovata: " + codiceRichiesta);
+        throw new RisorsaNonTrovataException("Richiesta gusto non trovata: " + codiceRichiesta);
     }
 
     private RichiestaGustoBean convertiInBean(RichiestaGustoPersonalizzato r) {

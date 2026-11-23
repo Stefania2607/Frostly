@@ -38,7 +38,6 @@ public class TurniControlGrafico {
     @FXML private Label lblEsito;
     @FXML private ListView<NotificaBean> listaNotifiche;
 
-    // Turni ed Emergenze
     @FXML private VBox boxCalendarioTurni;
     @FXML private javafx.scene.control.DatePicker datePickerSettimana;
     @FXML private Label lblSettimanaAttiva;
@@ -62,14 +61,12 @@ public class TurniControlGrafico {
     @FXML private TextField campoEmailSostituto;
     @FXML private TextField campoNotaMaestro;
 
-    // Gestione Dipendenti Staff
     @FXML private ListView<String> listaDipendentiStaff;
     @FXML private TextField campoNomeNuovoDip;
     @FXML private TextField campoCognomeNuovoDip;
     @FXML private TextField campoEmailNuovoDip;
     @FXML private TextField campoPasswordNuovoDip;
 
-    // Campi delegati a CatalogoMenuStaffControlGrafico
     @FXML private Label lblCategoriaFormMenu;
     @FXML private ComboBox<String> comboCategoriaMenu;
     @FXML private ComboBox<String> comboSottocategoriaMenu;
@@ -85,7 +82,6 @@ public class TurniControlGrafico {
     @FXML private FlowPane grigliaMenuGestione;
     @FXML private ListView<String> listaMenuGestione;
 
-    // Campi delegati a MagazzinoGustiStaffControlGrafico
     @FXML private ListView<IngredienteBean> listaMagazzino;
     @FXML private Label lblRiepilogoMagazzino;
     @FXML private ComboBox<String> comboCategoriaMagazzino;
@@ -102,17 +98,14 @@ public class TurniControlGrafico {
     @FXML private TextField campoCodRichiesta;
     @FXML private TextField campoRispostaGusto;
 
-    // Campi delegati a OrdiniStaffControlGrafico
     @FXML private ListView<OrdineBean> listaOrdiniStaff;
     @FXML private Label lblConteggioOrdiniStaff;
     @FXML private ListView<String> listaOrdiniUrgentiTendina;
     @FXML private VBox boxStatisticheMaestro;
 
-    // Campi Sezione Recensioni Staff (Maestro)
     @FXML private VBox boxCardsRecensioniMaestro;
     @FXML private Label lblRiepilogoRecensioniMaestro;
 
-    // Controller dedicati (SRP)
     private CatalogoMenuStaffControlGrafico catalogoMenuHelper;
     private MagazzinoGustiStaffControlGrafico magazzinoGustiHelper;
     private OrdiniStaffControlGrafico ordiniStaffHelper;

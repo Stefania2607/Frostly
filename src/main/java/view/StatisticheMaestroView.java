@@ -30,7 +30,6 @@ public final class StatisticheMaestroView {
         }
         contenitore.getChildren().clear();
 
-        // Riga KPI in alto
         HBox rigaKpi = new HBox(14);
         int totMag = stats.getIngredientiOk() + stats.getIngredientiSottoSoglia() + stats.getIngredientiEsauriti();
         int percOk = totMag > 0 ? (int) Math.round((stats.getIngredientiOk() * 100.0) / totMag) : 100;
@@ -56,7 +55,6 @@ public final class StatisticheMaestroView {
         HBox.setHgrow(kpiMag, Priority.ALWAYS);
         rigaKpi.getChildren().addAll(kpiIncasso, kpiMedio, kpiOrdini, kpiMag);
 
-        // Riga grafici affiancati
         HBox rigaGrafici = new HBox(16);
         VBox.setVgrow(rigaGrafici, Priority.ALWAYS);
 
@@ -66,7 +64,6 @@ public final class StatisticheMaestroView {
         HBox.setHgrow(boxPie, Priority.ALWAYS);
         rigaGrafici.getChildren().addAll(boxBar, boxPie);
 
-        // Barra sintesi canali consegna
         HBox barraCanali = creaBarraCanaliConsegna(stats);
 
         contenitore.getChildren().addAll(rigaKpi, rigaGrafici, barraCanali);

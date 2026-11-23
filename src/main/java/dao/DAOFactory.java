@@ -5,6 +5,7 @@ import dao.dbms.GustoDAODbms;
 import dao.dbms.IngredienteDAODbms;
 import dao.dbms.NotificaDAODbms;
 import dao.dbms.OrdineDAODbms;
+import dao.dbms.PagamentoDAODbms;
 import dao.dbms.RecensioneDAODbms;
 import dao.dbms.RichiestaGustoDAODbms;
 import dao.dbms.UtenteDAODbms;
@@ -13,6 +14,7 @@ import dao.memoria.GustoDAOMemory;
 import dao.memoria.IngredienteDAOMemory;
 import dao.memoria.NotificaDAOMemory;
 import dao.memoria.OrdineDAOMemory;
+import dao.memoria.PagamentoDAOMemory;
 import dao.memoria.RecensioneDAOMemory;
 import dao.memoria.RichiestaGustoDAOMemory;
 import dao.memoria.UtenteDAOMemory;
@@ -96,5 +98,9 @@ public final class DAOFactory {
 
     public static RecensioneDAO getRecensioneDAO() {
         return isModalitaDemo() ? new RecensioneDAOMemory() : new RecensioneDAODbms();
+    }
+
+    public static PagamentoDAO getPagamentoDAO() {
+        return isModalitaDemo() ? new PagamentoDAOMemory() : new PagamentoDAODbms();
     }
 }

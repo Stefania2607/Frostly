@@ -5,7 +5,7 @@ package model;
  */
 public class ConPannaMontataDecorator extends ExtraVaschettaDecorator {
 
-    private static final double SUPPLEMENTO_PANNA = 2.50;
+    public static final double SUPPLEMENTO_PANNA = 2.50;
 
     public ConPannaMontataDecorator(VaschettaComponent componenteDecorato) {
         super(componenteDecorato);

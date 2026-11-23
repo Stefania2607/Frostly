@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Singola sorgente di verita' (Single Source of Truth) per il catalogo prodotti demo di Frostly.
- * Utilizzato sia per il popolamento iniziale del database relazionale (DBMS/SQLite)
+ * Utilizzato sia per il popolamento iniziale del database relazionale (MySQL)
  * sia per l'inizializzazione dell'archivio in-memory (DEMO), eliminando ogni duplicazione.
  */
 public final class CatalogoDemo {

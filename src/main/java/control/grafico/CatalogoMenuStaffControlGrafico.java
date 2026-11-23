@@ -2,6 +2,7 @@ package control.grafico;
 
 import bean.GustoBean;
 import control.applicativo.GestioneMenuControl;
+import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import java.io.File;
 import java.io.IOException;
@@ -357,15 +358,31 @@ public class CatalogoMenuStaffControlGrafico {
         String sottoDaSalvare = (sottocategoriaCorrenteSelezionata != null && !sottocategoriaCorrenteSelezionata.trim().isEmpty())
                 ? sottocategoriaCorrenteSelezionata : sottocategoriaPredefinita(catDaSalvare);
 
+        String prezzoTesto = campoPrezzoGustoMenu != null ? campoPrezzoGustoMenu.getText() : null;
+        double prezzo;
+        try {
+            prezzo = Double.parseDouble(prezzoTesto.trim().replace(",", "."));
+        } catch (NumberFormatException | NullPointerException e) {
+            throw new DatiNonValidiException("Inserisci un prezzo valido (es. 2.50 o 24.0).");
+        }
+
+        String imgUrl = campoImmagineMenu == null ? "" : campoImmagineMenu.getText().trim();
+        if (!imgUrl.isEmpty()
+                && !imgUrl.matches("(?i)^(https?|file)://.+")
+                && !imgUrl.startsWith("immagini_menu/")
+                && !imgUrl.matches("^[A-Za-z0-9._-]+$")) {
+            throw new DatiNonValidiException("La foto deve essere un file locale (immagini_menu/...) o un link http:// o https://");
+        }
+
         new GestioneMenuControl().salvaOAggiornaGustoMenu(
                 campoNomeGustoMenu.getText(),
                 campoDescGustoMenu.getText(),
                 campoAllergeniGustoMenu.getText(),
-                campoPrezzoGustoMenu.getText(),
+                prezzo,
                 disponibile,
                 catDaSalvare,
                 sottoDaSalvare,
-                campoImmagineMenu == null ? "" : campoImmagineMenu.getText());
+                imgUrl);
         notificaEsito.accept("✅ Menu aggiornato con successo: '" + campoNomeGustoMenu.getText() + "' salvato!", false);
         onAggiornaGlobale.run();
     }

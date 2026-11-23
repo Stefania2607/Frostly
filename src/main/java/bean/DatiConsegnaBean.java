@@ -1,9 +1,15 @@
 package bean;
 
+import frostly.exception.DatiNonValidiException;
+
 /**
- * Bean per il trasporto dei dati di consegna a domicilio o ritiro in gelateria.
+ * Bean per il trasporto e la validazione sintattica dei dati di consegna o ritiro.
  */
 public class DatiConsegnaBean {
+
+    private static final String PATTERN_TOPONIMI_ITALIANI =
+            "^(?i)(via|viale|piazza|piazzale|corso|largo|vicolo|lungotevere|lungomare|strada|salita|discesa|"
+            + "circonvallazione|borgo|contrada|localit[aà]|monte|ponte|traversa|rampa|clivo|passeggiata|parco)\\.?\\s+.*";
 
     public enum TipoConsegna {
         DOMICILIO("🛵 Consegna a Domicilio"),
@@ -44,6 +50,61 @@ public class DatiConsegnaBean {
         this.telefono = telefono;
         this.orarioRichiesto = orario;
         this.noteCitofono = note;
+    }
+
+    public void validaSintassi() throws DatiNonValidiException {
+        if (this.tipoConsegna == TipoConsegna.DOMICILIO) {
+            validaIndirizzoItaliano(this.indirizzo);
+            validaTelefonoItaliano(this.telefono);
+        } else {
+            if (this.orarioRichiesto == null || this.orarioRichiesto.isBlank()) {
+                throw new DatiNonValidiException("Seleziona l'orario desiderato per il ritiro in gelateria.");
+            }
+            String nom = this.nominativoRitiro != null ? this.nominativoRitiro.trim() : "";
+            if (!nom.isEmpty() && !nom.matches("^[A-Za-zÀ-ÖØ-öø-ÿ'\\-\\s]{2,60}$")) {
+                throw new DatiNonValidiException("Il nominativo per il ritiro contiene caratteri non validi.");
+            }
+        }
+    }
+
+    public static void validaIndirizzoItaliano(String indirizzoRaw) throws DatiNonValidiException {
+        if (indirizzoRaw == null || indirizzoRaw.trim().length() < 6) {
+            throw new DatiNonValidiException("Inserisci un indirizzo completo (es. Via del Corso 124).");
+        }
+        String ind = indirizzoRaw.trim().replaceAll("\\s+", " ");
+        if (!ind.matches(PATTERN_TOPONIMI_ITALIANI)) {
+            throw new DatiNonValidiException("L'indirizzo deve iniziare con un toponimo valido (Via, Viale, Piazza, Corso, Largo, Vicolo, Monte, Strada, ecc.).");
+        }
+        String resto = ind.replaceFirst("(?i)^[a-zà]+\\.?\\s+", "").trim();
+        if (!resto.matches(".*[A-Za-zÀ-ÖØ-öø-ÿ]{2,}.*")) {
+            throw new DatiNonValidiException("Inserisci il nome completo della via o piazza dopo il toponimo (es. Via Roma 12).");
+        }
+        if (!resto.matches(".*\\b\\d{1,5}(?:/?[A-Za-z])?\\b.*")) {
+            throw new DatiNonValidiException("Il numero civico è obbligatorio nell'indirizzo (es. Via del Corso 124).");
+        }
+    }
+
+    public static void validaTelefonoItaliano(String telefonoRaw) throws DatiNonValidiException {
+        if (telefonoRaw == null || telefonoRaw.isBlank()) {
+            throw new DatiNonValidiException("Il recapito telefonico italiano è obbligatorio per la consegna.");
+        }
+        String pulito = telefonoRaw.trim().replaceAll("[\\s\\-\\.()]+", "");
+        if (pulito.startsWith("+39")) {
+            pulito = pulito.substring(3);
+        } else if (pulito.startsWith("0039")) {
+            pulito = pulito.substring(4);
+        }
+        if (!pulito.matches("^\\d+$")) {
+            throw new DatiNonValidiException("Il numero di telefono deve contenere solo cifre (prefisso +39 facoltativo).");
+        }
+        boolean cellulareValido = pulito.matches("^3[1-9]\\d{7,8}$");
+        boolean fissoValido = pulito.matches("^0\\d{5,10}$");
+        if (!cellulareValido && !fissoValido) {
+            throw new DatiNonValidiException("Inserisci un numero di telefono italiano valido (cellulare 3XX XXXXXXX oppure fisso 0X XXXXXXXX).");
+        }
+        if (pulito.matches("^(\\d)\\1+$")) {
+            throw new DatiNonValidiException("Il numero di telefono inserito non è verosimile.");
+        }
     }
 
     public String costruisciStringaRiepilogoConsegna() {

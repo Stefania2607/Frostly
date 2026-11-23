@@ -11,7 +11,7 @@ import model.RichiestaGustoPersonalizzato;
  */
 public class RichiestaGustoDAOMemory implements RichiestaGustoDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public List<RichiestaGustoPersonalizzato> caricaTutteRichiesteGusto() {

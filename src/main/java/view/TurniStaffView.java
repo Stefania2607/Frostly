@@ -114,7 +114,6 @@ public final class TurniStaffView {
             griglia.getColumnConstraints().add(colGiorno);
         }
 
-        // Cella Angolo (0, 0)
         VBox cellaAngolo = new VBox(2);
         cellaAngolo.setAlignment(Pos.CENTER);
         cellaAngolo.setStyle("-fx-background-color: rgba(35, 32, 38, 0.95); -fx-background-radius: 8; -fx-padding: 8 6; -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 8;");
@@ -125,7 +124,6 @@ public final class TurniStaffView {
         cellaAngolo.getChildren().addAll(lblAngolo1, lblAngolo2);
         griglia.add(cellaAngolo, 0, 0);
 
-        // Intestazioni Colonne Giorni (Lunedì .. Domenica)
         for (int g = 0; g < 7; g++) {
             LocalDate dataGiorno = lunediSettimana.plusDays(g);
             boolean isOggi = dataGiorno.equals(oggi);
@@ -147,7 +145,6 @@ public final class TurniStaffView {
             griglia.add(headerGiorno, g + 1, 0);
         }
 
-        // Righe Fasce Orarie (0..4)
         for (int f = 0; f < FASCE_ORARIE.length; f++) {
             String oraInizio = FASCE_ORARIE[f][0];
             String oraFine = FASCE_ORARIE[f][1];
@@ -155,7 +152,6 @@ public final class TurniStaffView {
             String descFascia = FASCE_ORARIE[f][3];
             boolean soloWeekend = "WEEKEND".equals(FASCE_ORARIE[f][4]);
 
-            // Intestazione Sinistra della Fascia Oraria
             VBox boxFascia = new VBox(3);
             boxFascia.setAlignment(Pos.CENTER_LEFT);
             String bgFascia = "rgba(26, 24, 28, 0.90)";
@@ -172,7 +168,6 @@ public final class TurniStaffView {
             boxFascia.getChildren().addAll(lblRange, lblDesc);
             griglia.add(boxFascia, 0, f + 1);
 
-            // Celle di intersezione (Giorno g × Fascia f)
             for (int g = 0; g < 7; g++) {
                 boolean isWeekend = (g >= 5);
                 LocalDate dataGiorno = lunediSettimana.plusDays(g);
@@ -427,7 +422,6 @@ public final class TurniStaffView {
         lblSottotitolo.setStyle("-fx-background-color: rgba(35,32,38,0.90); -fx-text-fill: #baa487; -fx-font-weight: bold; "
                 + "-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-radius: 8; -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 8;");
 
-        // Sezione 1: Dipendenti già inseriti in questo incrocio
         Label lblPresenti = new Label("👥 Personale assegnato in questo incrocio:");
         lblPresenti.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
 
@@ -536,7 +530,6 @@ public final class TurniStaffView {
 
         Separator sep = new Separator();
 
-        // Sezione 2: Aggiungi un nuovo dipendente in questo incrocio
         VBox boxAggiungi = new VBox(8);
         boxAggiungi.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12;");
 

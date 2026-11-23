@@ -11,7 +11,7 @@ import model.Ingrediente;
  */
 public class IngredienteDAOMemory implements IngredienteDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public List<Ingrediente> caricaTuttiIngredienti() {

@@ -5,6 +5,7 @@ import dao.DAOFactory;
 import dao.RecensioneDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
+import frostly.exception.OperazioneNonAutorizzataException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class RecensioniControl {
             throw new DatiNonValidiException("Dati recensione non validi.");
         }
         if (bean.getAutoreEmail() == null || bean.getAutoreEmail().trim().isEmpty()) {
-            throw new DatiNonValidiException("Per pubblicare una recensione è necessario essere autenticati.");
+            throw new OperazioneNonAutorizzataException("Per pubblicare una recensione è necessario essere autenticati.");
         }
         if (bean.getVotoStelle() < 1 || bean.getVotoStelle() > 5) {
             throw new DatiNonValidiException("La valutazione deve essere compresa tra 1 e 5 stelle.");

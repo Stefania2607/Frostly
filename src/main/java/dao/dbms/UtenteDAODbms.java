@@ -19,7 +19,7 @@ import model.MaestroGelataio;
  */
 public class UtenteDAODbms implements UtenteDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public MaestroGelataio getMaestroGelataio() {
@@ -53,7 +53,6 @@ public class UtenteDAODbms implements UtenteDAO {
 
     @Override
     public void eliminaDipendente(String email) throws FrostlyException {
-        cache.eliminaDipendente(email);
         Connection conn = ConnectionManager.getInstance().getConnection();
         try {
             try (PreparedStatement s1 = conn.prepareStatement("DELETE FROM emergenze WHERE email_richiedente = ?")) {
@@ -68,6 +67,7 @@ public class UtenteDAODbms implements UtenteDAO {
                 stmt.setString(1, email);
                 stmt.executeUpdate();
             }
+            cache.eliminaDipendente(email);
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nell'eliminazione del dipendente da database.", e);
         }
@@ -77,7 +77,6 @@ public class UtenteDAODbms implements UtenteDAO {
     public void registraNuovoUtente(String nome, String cognome, String email, String password, String ruolo)
             throws FrostlyException {
         sincronizzaUtentiDaDatabase();
-        cache.registraNuovoUtente(nome, cognome, email, password, ruolo);
 
         Connection conn = ConnectionManager.getInstance().getConnection();
         String insertSql = "INSERT INTO utenti (email, nome, cognome, password, ruolo) VALUES (?, ?, ?, ?, ?)";
@@ -91,6 +90,7 @@ public class UtenteDAODbms implements UtenteDAO {
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nella registrazione dell'utente su database.", e);
         }
+        cache.registraNuovoUtente(nome, cognome, email, password, ruolo);
     }
 
     private void sincronizzaUtentiDaDatabase() {

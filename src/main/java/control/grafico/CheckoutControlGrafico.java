@@ -10,7 +10,6 @@ import control.applicativo.GestioneMenuControl;
 import control.applicativo.OrdiniControl;
 import control.applicativo.PagamentoControl;
 import control.applicativo.ScontrinoDigitaleService;
-import control.applicativo.validatore.PagamentoValidator;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import frostly.exception.IngredienteEsauritoException;
@@ -84,28 +83,28 @@ public class CheckoutControlGrafico {
                             return;
                         }
                     }
-                    carrello.incrementaArticolo(idx);
+                    GestoreCarrello.incrementaArticolo(carrello, idx);
                     onAggiornaStatoCarrello.run();
                 },
                 idx -> {
-                    carrello.decrementaArticolo(idx);
+                    GestoreCarrello.decrementaArticolo(carrello, idx);
                     onAggiornaStatoCarrello.run();
                 },
                 idx -> {
-                    carrello.rimuoviArticolo(idx);
+                    GestoreCarrello.rimuoviArticolo(carrello, idx);
                     onAggiornaStatoCarrello.run();
                 },
                 () -> {
-                    carrello.svuota();
+                    GestoreCarrello.svuota(carrello);
                     onAggiornaStatoCarrello.run();
                 },
                 (tipo, orario, note) -> avviaFlussoConsegnaEPagamento(tipo, owner));
     }
 
     public void avviaFlussoConsegnaEPagamento(String tipoSelezionato, Window owner) {
-        if (carrello.isVuoto()) {
+        if (GestoreCarrello.isVuoto(carrello)) {
             onAggiungiVaschettaSePronta.run();
-            if (carrello.isVuoto()) {
+            if (GestoreCarrello.isVuoto(carrello)) {
                 mostraEsito.accept("⚠️ Aggiungi almeno un prodotto o una vaschetta al carrello prima del checkout.", true);
                 return;
             }
@@ -119,12 +118,12 @@ public class CheckoutControlGrafico {
     private void apriSceltaConsegna(DatiConsegnaBean datiIniziali, boolean apriDirettamenteForm, Window owner) {
         CheckoutConsegnaView.apriPopupSceltaConsegna(
                 owner,
-                carrello.calcolaTotale(),
+                GestoreCarrello.calcolaTotale(carrello),
                 datiIniziali,
                 apriDirettamenteForm,
                 bean -> {
                     try {
-                        PagamentoValidator.validaDatiConsegna(bean);
+                        bean.validaSintassi();
                     } catch (DatiNonValidiException ex) {
                         throw new IllegalArgumentException(ex.getMessage(), ex);
                     }
@@ -137,7 +136,7 @@ public class CheckoutControlGrafico {
     private void avviaFlussoPagamento(DatiConsegnaBean datiConfermati, Window owner) {
         PagamentoOnlineView.apriPopupPagamento(
                 owner,
-                carrello.calcolaTotale(),
+                GestoreCarrello.calcolaTotale(carrello),
                 datiConfermati,
                 cartaBean -> elaboraPagamentoEOrdine(cartaBean, datiConfermati, owner),
                 () -> apriSceltaConsegna(datiConfermati, true, owner)
@@ -146,11 +145,36 @@ public class CheckoutControlGrafico {
 
     private void elaboraPagamentoEOrdine(bean.CartaPagamentoBean cartaBean, DatiConsegnaBean datiConfermati, Window owner) {
         try {
-            PagamentoControl payCtrl = new PagamentoControl();
+            // Validazione sintattica sul livello di presentazione/Bean prima di invocare i controller applicativi
+            datiConfermati.validaSintassi();
+            cartaBean.validaSintassi();
+
             String emailCliente = SessionManager.getInstance().getEmailUtenteLoggato();
+            OrdiniControl ordiniControl = new OrdiniControl();
+
+            // Pre-verifica atomica di gusti e scorte PRIMA di autorizzare o salvare il pagamento
+            carrello.setModalitaConsegna(datiConfermati.getTipoConsegna().getLabel());
+            carrello.setFasciaOraria(datiConfermati.getOrarioRichiesto());
+            carrello.setIndirizzoONote(datiConfermati.costruisciStringaRiepilogoConsegna());
+            OrdineBean ordineVerifica = GestoreCarrello.costruisciOrdineBean(carrello, emailCliente);
+            try {
+                ordiniControl.verificaDisponibilitaOrdine(ordineVerifica);
+            } catch (FrostlyException exDisponibilita) {
+                onAggiornaCatalogo.run();
+                String msgCliente = (exDisponibilita instanceof IngredienteEsauritoException)
+                        ? "Ci dispiace, uno o più prodotti del tuo carrello non sono più disponibili nella quantità richiesta. "
+                          + "Nessun addebito è stato effettuato: riduci la quantità nel carrello o scegli un'altra specialità."
+                        : ("Ordine non completato (nessun addebito effettuato): " + exDisponibilita.getMessage());
+                EsitoPagamentoBean esitoAnnullato = new EsitoPagamentoBean(
+                        false, "", msgCliente, GestoreCarrello.calcolaTotale(carrello), "", "", "");
+                Platform.runLater(() -> RicevutaPagamentoView.mostraRicevuta(owner, esitoAnnullato, null, null));
+                return;
+            }
+
+            PagamentoControl payCtrl = new PagamentoControl();
             EsitoPagamentoBean esito = payCtrl.elaboraPagamento(
                     cartaBean,
-                    carrello.calcolaTotale(),
+                    GestoreCarrello.calcolaTotale(carrello),
                     datiConfermati,
                     emailCliente
             );
@@ -167,7 +191,7 @@ public class CheckoutControlGrafico {
                               + "Nessun addebito è stato effettuato: riduci la quantità nel carrello o scegli un'altra specialità."
                             : ("Ordine non completato (nessun addebito effettuato): " + exOrdine.getMessage());
                     EsitoPagamentoBean esitoAnnullato = new EsitoPagamentoBean(
-                            false, "", msgCliente, carrello.calcolaTotale(), "", "", "");
+                            false, "", msgCliente, GestoreCarrello.calcolaTotale(carrello), "", "", "");
                     Platform.runLater(() -> RicevutaPagamentoView.mostraRicevuta(owner, esitoAnnullato, null, null));
                 }
             } else {
@@ -175,7 +199,7 @@ public class CheckoutControlGrafico {
             }
         } catch (PagamentoException e) {
             EsitoPagamentoBean esitoRifiutato = new EsitoPagamentoBean(
-                    false, "", e.getMessage(), carrello.calcolaTotale(), "", "", "");
+                    false, "", e.getMessage(), GestoreCarrello.calcolaTotale(carrello), "", "", "");
             Platform.runLater(() -> RicevutaPagamentoView.mostraRicevuta(owner, esitoRifiutato, null, null));
         } catch (FrostlyException e) {
             throw new IllegalArgumentException(e.getMessage(), e);
@@ -190,7 +214,7 @@ public class CheckoutControlGrafico {
 
         String email = SessionManager.getInstance().getEmailUtenteLoggato();
         String nomeCliente = SessionManager.getInstance().getNomeUtenteLoggato();
-        OrdineBean bean = carrello.costruisciOrdineBean(email);
+        OrdineBean bean = GestoreCarrello.costruisciOrdineBean(carrello, email);
         OrdineBean confermato = new OrdiniControl().effettuaPreOrdine(bean);
 
         ScontrinoBean scontrino = new ScontrinoBean();

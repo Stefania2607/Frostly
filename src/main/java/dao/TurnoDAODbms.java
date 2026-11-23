@@ -12,14 +12,14 @@ import model.StatoTurno;
 import model.Turno;
 
 /**
- * Prima versione persistente di TurnoDAO: salva e recupera l'Entity Turno su DBMS (SQLite JDBC)
- * usando l'unica connessione aperta da ConnectionManager.
+ * Implementazione DBMS di TurnoDAO su database MySQL tramite ConnectionManager.
  */
 public class TurnoDAODbms implements TurnoDAO {
 
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
+
     @Override
     public void salvaTurno(Turno turno) throws FrostlyException {
-        ArchivioMemoria.getInstance().salvaTurno(turno);
         Connection conn = ConnectionManager.getInstance().getConnection();
         String deleteSql = "DELETE FROM turni WHERE codice_turno = ?";
         String insertSql = "INSERT INTO turni (codice_turno, data_turno, ora_inizio, ora_fine, email_dipendente, stato) "
@@ -36,6 +36,7 @@ public class TurnoDAODbms implements TurnoDAO {
             insStmt.setString(5, turno.getDipendenteAssegnato().getEmail());
             insStmt.setString(6, turno.getStato().name());
             insStmt.executeUpdate();
+            cache.salvaTurno(turno);
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nel salvataggio del turno.", e);
         }
@@ -51,7 +52,7 @@ public class TurnoDAODbms implements TurnoDAO {
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 String emailDip = rs.getString("email_dipendente");
-                Dipendente dip = ArchivioMemoria.getInstance().trovaDipendentePerEmail(emailDip);
+                Dipendente dip = cache.trovaDipendentePerEmail(emailDip);
                 if (dip != null) {
                     Turno t = new Turno(
                             rs.getString("codice_turno"),
@@ -61,6 +62,7 @@ public class TurnoDAODbms implements TurnoDAO {
                             dip);
                     t.setStato(StatoTurno.valueOf(rs.getString("stato")));
                     dalDb.add(t);
+                    cache.salvaTurno(t);
                 }
             }
         } catch (SQLException e) {
@@ -71,7 +73,6 @@ public class TurnoDAODbms implements TurnoDAO {
 
     @Override
     public void eliminaTurno(String codiceTurno) throws FrostlyException {
-        ArchivioMemoria.getInstance().eliminaTurno(codiceTurno);
         Connection conn = ConnectionManager.getInstance().getConnection();
         try {
             try (PreparedStatement delEm = conn.prepareStatement("DELETE FROM emergenze WHERE codice_turno = ?")) {
@@ -82,6 +83,7 @@ public class TurnoDAODbms implements TurnoDAO {
                 delT.setString(1, codiceTurno);
                 delT.executeUpdate();
             }
+            cache.eliminaTurno(codiceTurno);
         } catch (SQLException e) {
             throw new FrostlyException("Errore JDBC nell'eliminazione del turno.", e);
         }

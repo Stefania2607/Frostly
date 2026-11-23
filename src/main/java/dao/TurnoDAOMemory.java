@@ -12,16 +12,16 @@ public class TurnoDAOMemory implements TurnoDAO {
 
     @Override
     public void salvaTurno(Turno turno) throws FrostlyException {
-        ArchivioMemoria.getInstance().salvaTurno(turno);
+        ArchivioMemoria.getDemoInstance().salvaTurno(turno);
     }
 
     @Override
     public List<Turno> caricaTuttiTurni() throws FrostlyException {
-        return ArchivioMemoria.getInstance().getTurni();
+        return ArchivioMemoria.getDemoInstance().getTurni();
     }
 
     @Override
     public void eliminaTurno(String codiceTurno) throws FrostlyException {
-        ArchivioMemoria.getInstance().eliminaTurno(codiceTurno);
+        ArchivioMemoria.getDemoInstance().eliminaTurno(codiceTurno);
     }
 }

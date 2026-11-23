@@ -20,9 +20,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
- * View dedicata alla scelta della modalità di consegna e compilazione dei relativi dati:
- * - Step 1: Due grandi pulsanti/card affiancate ("🛵 Consegna a Domicilio" vs "🛍️ Ritiro al Banco").
- * - Step 2: Form specifico con i dati del delivery (indirizzo, telefono rider, note) oppure del ritiro (orario banco, nome).
+ * Finestra di checkout per scegliere tra consegna a domicilio e ritiro al banco
+ * e inserire i relativi dati di recapito.
  */
 public final class CheckoutConsegnaView {
 
@@ -92,7 +91,6 @@ public final class CheckoutConsegnaView {
                     indietro
             );
         } else {
-            // Mostra prima la schermata dei due bottoni affiancati
             mostraSchermataDueBottoni(
                     popup,
                     owner,
@@ -129,7 +127,6 @@ public final class CheckoutConsegnaView {
                 + "-fx-border-color: rgba(186,164,135,0.40); -fx-border-width: 1.2;");
         root.setPrefWidth(680);
 
-        // Header
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -155,11 +152,9 @@ public final class CheckoutConsegnaView {
         Label lblIstruzione = new Label("Clicca sulla modalità desiderata per proseguire:");
         lblIstruzione.setStyle("-fx-font-size: 14px; -fx-text-fill: #ded7cd;");
 
-        // Due Bottoni Affiancati (HBox)
         HBox boxDueBottoni = new HBox(18);
         boxDueBottoni.setAlignment(Pos.CENTER);
 
-        // Bottone Sinistro: Consegna a Domicilio
         VBox cardDelivery = creaCardBottone(
                 "🛵",
                 "Consegna a Domicilio",
@@ -169,7 +164,6 @@ public final class CheckoutConsegnaView {
         );
         HBox.setHgrow(cardDelivery, Priority.ALWAYS);
 
-        // Bottone Destro: Ritiro al Banco
         VBox cardBanco = creaCardBottone(
                 "🛍️",
                 "Ritiro al Banco",
@@ -181,7 +175,6 @@ public final class CheckoutConsegnaView {
 
         boxDueBottoni.getChildren().addAll(cardDelivery, cardBanco);
 
-        // Footer con tasto Indietro al carrello
         HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_LEFT);
 
@@ -255,7 +248,6 @@ public final class CheckoutConsegnaView {
 
         card.getChildren().addAll(lblEmoji, lblBadge, lblTit, lblDesc, btnAzione);
 
-        // Effetti Hover
         card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: linear-gradient(to bottom, #2e2935, #1d1922); "
                 + "-fx-border-color: #baa487; -fx-border-radius: 14; -fx-background-radius: 14; "
                 + "-fx-padding: 24 18; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.3), 12, 0, 0, 3);"));
@@ -285,7 +277,6 @@ public final class CheckoutConsegnaView {
                 + "-fx-border-color: rgba(186,164,135,0.40); -fx-border-width: 1.2;");
         root.setPrefWidth(680);
 
-        // Header Form
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -312,7 +303,6 @@ public final class CheckoutConsegnaView {
 
         header.getChildren().addAll(lblBadge, titleBox, spH, lblTotale);
 
-        // Area Form specifica
         VBox cardForm = new VBox(10);
         cardForm.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-border-color: rgba(186,164,135,0.25); "
                 + "-fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 16 18;");
@@ -400,14 +390,12 @@ public final class CheckoutConsegnaView {
             cardForm.getChildren().addAll(lblOraTit, comboOraBanco, lblNomeTit, txtNomeRitiro, lblNoteTit, txtNoteBanco);
         }
 
-        // Messaggio di Errore
         Label lblErrore = new Label();
         lblErrore.setWrapText(true);
         lblErrore.setVisible(false);
         lblErrore.setStyle("-fx-text-fill: #ff8a80; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 10; "
                 + "-fx-background-color: rgba(188,71,73,0.22); -fx-border-color: rgba(255,138,128,0.4); -fx-border-radius: 6; -fx-background-radius: 6;");
 
-        // Footer Pulsanti
         HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_RIGHT);
 

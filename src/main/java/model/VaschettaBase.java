@@ -8,6 +8,16 @@ import java.util.List;
  */
 public class VaschettaBase implements VaschettaComponent {
 
+    public static final double PREZZO_SOLA_PANNA_AL_KG = 12.0;
+    public static final double PESO_350G = 0.35;
+    public static final double PESO_500G = 0.50;
+    public static final double PESO_750G = 0.75;
+    public static final double PESO_1000G = 1.00;
+    public static final int MAX_GUSTI_350G = 3;
+    public static final int MAX_GUSTI_500G = 4;
+    public static final int MAX_GUSTI_750G = 5;
+    public static final int MAX_GUSTI_1000G = 6;
+
     private final List<Gusto> gusti;
     private final double pesoKg;
 

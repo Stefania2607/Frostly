@@ -13,7 +13,6 @@ public class IngredienteBean {
     private String categoria;
 
     public IngredienteBean() {
-        // Costruttore vuoto standard JavaBean
     }
 
     public IngredienteBean(String nome, double quantitaDisponibile, double sogliaMinima,

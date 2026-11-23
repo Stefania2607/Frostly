@@ -11,7 +11,7 @@ import model.Emergenza;
  */
 public class EmergenzaDAOMemory implements EmergenzaDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public List<Emergenza> caricaTutteEmergenze() {

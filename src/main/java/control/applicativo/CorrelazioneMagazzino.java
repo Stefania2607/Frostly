@@ -18,8 +18,7 @@ public final class CorrelazioneMagazzino {
     }
 
     /**
-     * Restituisce la mappa (nomeIngrediente -> consumo per singola porzione) per un prodotto del menu
-     * (Caffetteria, Crepes, Cioccolate calde). Per gli articoli venduti a pezzo diretto
+     * Restituisce la mappa per un prodotto del menu. Per gli articoli venduti a pezzo diretto
      * (Crostate, Biscotti, Bevande, Tisane, Panna) usa {@link #trovaArticoloDiretto}.
      */
     public static Map<String, Double> calcolaConsumoArticolo(String nomeProdotto, String categoria) {

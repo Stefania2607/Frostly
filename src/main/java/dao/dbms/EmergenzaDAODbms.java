@@ -16,7 +16,7 @@ import model.Emergenza;
  */
 public class EmergenzaDAODbms implements EmergenzaDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public List<Emergenza> caricaTutteEmergenze() {
@@ -26,7 +26,6 @@ public class EmergenzaDAODbms implements EmergenzaDAO {
 
     @Override
     public void salvaEmergenza(Emergenza emergenza) {
-        cache.salvaEmergenza(emergenza);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String del = "DELETE FROM emergenze WHERE codice_emergenza = ?";
@@ -45,8 +44,8 @@ public class EmergenzaDAODbms implements EmergenzaDAO {
                 iStmt.setString(7, emergenza.getNotaRisposta());
                 iStmt.executeUpdate();
             }
+            cache.salvaEmergenza(emergenza);
         } catch (FrostlyException | SQLException ignored) {
-            // Mantiene in cache
         }
     }
 

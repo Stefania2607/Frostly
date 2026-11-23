@@ -43,7 +43,6 @@ public final class RecensioniView {
                 + "-fx-border-color: rgba(186, 164, 135, 0.28); -fx-border-radius: 12; -fx-border-width: 1; "
                 + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 8, 0, 0, 2);");
 
-        // Intestazione: Nome Autore + Stelle + Data
         HBox header = new HBox(8);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -64,17 +63,14 @@ public final class RecensioniView {
 
         header.getChildren().addAll(lblAvatar, lblNome, lblStelle, spacer, lblData);
 
-        // Titolo
         Label lblTitolo = new Label(r.getTitolo());
         lblTitolo.setWrapText(true);
         lblTitolo.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
 
-        // Commento
         Label lblCommento = new Label(r.getCommento());
         lblCommento.setWrapText(true);
         lblCommento.setStyle("-fx-font-size: 13.5px; -fx-text-fill: #ded7cd; -fx-line-spacing: 2.2;");
 
-        // Barra Interazioni (Mi Piace / Rispondi)
         HBox rigaInterazioni = new HBox(10);
         rigaInterazioni.setAlignment(Pos.CENTER_LEFT);
 
@@ -107,7 +103,6 @@ public final class RecensioniView {
 
         card.getChildren().addAll(header, lblTitolo, lblCommento, rigaInterazioni);
 
-        // Eventuale Risposta Ufficiale del Maestro Gelataio
         if (r.haRispostaMaestro()) {
             VBox boxRisposta = new VBox(4);
             boxRisposta.setStyle("-fx-background-color: rgba(38, 33, 44, 0.85); -fx-border-color: #baa487; -fx-border-width: 1 1 1 3; "
@@ -155,7 +150,6 @@ public final class RecensioniView {
         Label lblTitolo = new Label("👨‍🍳 RISPOSTA DEL MAESTRO GELATAIO");
         lblTitolo.setStyle("-fx-font-family: 'Cinzel', 'Playfair Display', 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #f5ebe0;");
 
-        // Anteprima della recensione del cliente
         VBox boxPreview = new VBox(6);
         boxPreview.setStyle("-fx-background-color: rgba(26,24,28,0.85); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 10; "
                 + "-fx-background-radius: 10; -fx-padding: 12 16;");
@@ -177,7 +171,6 @@ public final class RecensioniView {
 
         boxPreview.getChildren().addAll(rigaAutore, lblTitRec, lblCommRec);
 
-        // Campo di testo per la risposta
         Label lblGuidaRisposta = new Label("Scrivi la risposta pubblica ufficiale del Maestro (visibile a tutti i clienti):");
         lblGuidaRisposta.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;");
 
@@ -192,7 +185,6 @@ public final class RecensioniView {
             txtRisposta.setText("Gentile " + recensione.getAutoreNome() + ", ti ringraziamo di cuore! ");
         }
 
-        // Footer pulsanti
         HBox footer = new HBox(10);
         footer.setAlignment(Pos.CENTER_RIGHT);
 
@@ -239,7 +231,6 @@ public final class RecensioniView {
         Label lblSotto = new Label("La parola ai veri amanti del gelato artigianale dal 1984");
         lblSotto.setStyle("-fx-font-size: 13.5px; -fx-text-fill: #baa487;");
 
-        // Banner per non loggati
         HBox bannerCrea = new HBox(12);
         bannerCrea.setAlignment(Pos.CENTER_LEFT);
         bannerCrea.setStyle("-fx-background-color: rgba(28,25,33,0.85); -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 10; "
@@ -265,7 +256,6 @@ public final class RecensioniView {
         });
         bannerCrea.getChildren().addAll(testiBanner, btnAccedi);
 
-        // Contenitore Recensioni
         VBox listaCards = new VBox(10);
         listaCards.setStyle("-fx-padding: 4 2;");
 
@@ -320,7 +310,6 @@ public final class RecensioniView {
                 + "-fx-border-width: 1.5; -fx-border-radius: 12; -fx-background-radius: 12;");
         root.setPrefWidth(480);
 
-        // Header con badge icona ed eleganza tipografica
         HBox headerBox = new HBox(14);
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -338,7 +327,6 @@ public final class RecensioniView {
 
         headerBox.getChildren().addAll(iconBadge, titleBox);
 
-        // Card centrale esplicativa
         VBox cardInfo = new VBox(8);
         cardInfo.setStyle("-fx-background-color: rgba(28,25,33,0.85); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 10; "
                 + "-fx-background-radius: 10; -fx-padding: 14 16;");
@@ -353,7 +341,6 @@ public final class RecensioniView {
 
         cardInfo.getChildren().addAll(lblMessaggio, lblTip);
 
-        // Footer pulsanti azione
         HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_RIGHT);
         footer.setStyle("-fx-padding: 4 0 0 0;");

@@ -19,14 +19,14 @@ import model.StatoRichiesta;
 import model.Turno;
 
 /**
- * Archivio dati centrale in memoria per Frostly (Singleton).
- * Custodisce le collezioni di entita' in RAM condivise tra la modalita' DEMO
- * e la cache di sincronizzazione della modalita' DBMS.
- * I gusti e prodotti iniziali vengono popolati direttamente da {@link CatalogoDemo}.
+ * Archivio dati in memoria per Frostly.
+ * Mantiene due istanze distinte: una per lo storage DEMO (pre-popolata)
+ * e una separata per la cache JDBC della modalita' FULL (sincronizzata dal database).
  */
 public class ArchivioMemoria {
 
-    private static ArchivioMemoria instance;
+    private static ArchivioMemoria demoInstance;
+    private static ArchivioMemoria jdbcCacheInstance;
 
     private MaestroGelataio maestro;
     private final List<Dipendente> dipendenti;
@@ -40,7 +40,7 @@ public class ArchivioMemoria {
     private final List<Notifica> notifiche;
     private final List<Recensione> recensioni;
 
-    protected ArchivioMemoria() {
+    protected ArchivioMemoria(boolean popolaDemo) {
         this.maestro = new MaestroGelataio("Stefania", "Guga", "maestro@frostly.it", "admin123");
         this.dipendenti = new ArrayList<>();
         this.clienti = new ArrayList<>();
@@ -52,14 +52,27 @@ public class ArchivioMemoria {
         this.ordini = new ArrayList<>();
         this.notifiche = new ArrayList<>();
         this.recensioni = new ArrayList<>();
-        popolaDatiIniziali();
+        if (popolaDemo) {
+            popolaDatiIniziali();
+        }
+    }
+
+    public static synchronized ArchivioMemoria getDemoInstance() {
+        if (demoInstance == null) {
+            demoInstance = new ArchivioMemoria(true);
+        }
+        return demoInstance;
+    }
+
+    public static synchronized ArchivioMemoria getJdbcCacheInstance() {
+        if (jdbcCacheInstance == null) {
+            jdbcCacheInstance = new ArchivioMemoria(false);
+        }
+        return jdbcCacheInstance;
     }
 
     public static synchronized ArchivioMemoria getInstance() {
-        if (instance == null) {
-            instance = new ArchivioMemoria();
-        }
-        return instance;
+        return getDemoInstance();
     }
 
     private void popolaDatiIniziali() {

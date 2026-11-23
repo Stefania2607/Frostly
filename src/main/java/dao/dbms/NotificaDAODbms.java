@@ -16,7 +16,7 @@ import model.Notifica;
  */
 public class NotificaDAODbms implements NotificaDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public List<Notifica> caricaNotifichePerUtente(String emailDestinatario) {
@@ -26,7 +26,6 @@ public class NotificaDAODbms implements NotificaDAO {
 
     @Override
     public void inviaNotifica(Notifica notifica) {
-        cache.inviaNotifica(notifica);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String ins = "INSERT INTO notifiche_utenti (email_destinatario, titolo, messaggio, timestamp_notifica) VALUES (?, ?, ?, ?)";
@@ -37,13 +36,13 @@ public class NotificaDAODbms implements NotificaDAO {
                 iStmt.setString(4, notifica.getTimestamp());
                 iStmt.executeUpdate();
             }
+            cache.inviaNotifica(notifica);
         } catch (FrostlyException | SQLException ignored) {
         }
     }
 
     @Override
     public void eliminaNotifica(String emailDestinatario, String titolo, String timestamp) {
-        cache.eliminaNotifica(emailDestinatario, titolo, timestamp);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String del = "DELETE FROM notifiche_utenti WHERE email_destinatario = ? AND titolo = ? AND timestamp_notifica = ?";
@@ -53,6 +52,7 @@ public class NotificaDAODbms implements NotificaDAO {
                 dStmt.setString(3, timestamp != null ? timestamp : "");
                 dStmt.executeUpdate();
             }
+            cache.eliminaNotifica(emailDestinatario, titolo, timestamp);
         } catch (FrostlyException | SQLException ignored) {
         }
     }

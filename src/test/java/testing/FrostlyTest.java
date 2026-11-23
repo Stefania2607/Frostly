@@ -13,14 +13,22 @@ import control.applicativo.MagazzinoControl;
 import control.applicativo.OrdiniControl;
 import control.applicativo.RecensioniControl;
 import control.applicativo.RichiestaGustoControl;
+import control.grafico.GestoreCarrello;
+import dao.ArchivioMemoria;
 import dao.DAOFactory;
+import dao.PagamentoDAO;
 import dao.TurnoDAO;
 import dao.TurnoDAODbms;
 import dao.TurnoDAOFileSystem;
 import dao.TurnoDAOMemory;
+import dao.dbms.PagamentoDAODbms;
+import dao.memoria.PagamentoDAOMemory;
+import frostly.exception.CredenzialiErrateException;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import frostly.exception.IngredienteEsauritoException;
+import frostly.exception.OperazioneNonAutorizzataException;
+import frostly.exception.RisorsaNonTrovataException;
 import frostly.exception.TurnoNonDisponibileException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,13 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * ------------------------------------------------------------
- *  Test Class : <FrostlyTest>
- *  Author     : Stefania Guga
- *  Description: Suite di Test JUnit 5 per il progetto Frostly (ISPW - Tor Vergata).
- *               Verifica Login, Registrazione (Sign Up), Factory Persistenza (DEMO vs FULL),
- *               Conflitti Turni, Magazzino/Rifornimento e GoF Decorator Pre-Ordini.
- * ------------------------------------------------------------
+ * Suite di test JUnit 5 per il progetto Frostly.
  */
 class FrostlyTest {
 
@@ -66,7 +68,7 @@ class FrostlyTest {
         assertEquals(LoginControl.RUOLO_MAESTRO, autenticato.getRuoloAutenticato());
 
         LoginBean beanErrato = new LoginBean("maestro@frostly.it", "passwordSbagliata");
-        assertThrows(DatiNonValidiException.class, () -> loginControl.autenticaUtente(beanErrato));
+        assertThrows(CredenzialiErrateException.class, () -> loginControl.autenticaUtente(beanErrato));
 
         assertThrows(DatiNonValidiException.class, () -> new LoginBean("emailSenzaChiocciola", "admin123"));
     }
@@ -293,20 +295,20 @@ class FrostlyTest {
 
         String descCrepe = view.CrepeConfiguratoreView.formattaDescrizioneCrepe(
                 "Crepe Crema Pan di Stelle", "Topping Cioccolato Fondente", "Granella di Pistacchio");
-        carrello.aggiungiArticolo(new VaschettaItemBean(0.0,
+        GestoreCarrello.aggiungiArticolo(carrello, new VaschettaItemBean(0.0,
                 List.of("Crepe Crema Pan di Stelle"),
                 false, false, descCrepe, prezzoCrepe));
         // Panna 200g = 4.50
-        carrello.aggiungiArticolo(new VaschettaItemBean(0.20, List.of(),
+        GestoreCarrello.aggiungiArticolo(carrello, new VaschettaItemBean(0.20, List.of(),
                 true, false, "Panna Montata Fresca d'Alpeggio (200g)", 4.50));
         // Fanta 33cl = 3.00
-        carrello.aggiungiArticolo(new VaschettaItemBean(0.0, List.of("Fanta 33cl"),
+        GestoreCarrello.aggiungiArticolo(carrello, new VaschettaItemBean(0.0, List.of("Fanta 33cl"),
                 false, false, "Fanta 33cl", 3.00));
 
-        assertEquals(3, carrello.getNumeroArticoli());
-        assertEquals(14.00, carrello.calcolaTotale(), 0.01);
+        assertEquals(3, GestoreCarrello.getNumeroArticoli(carrello));
+        assertEquals(14.00, GestoreCarrello.calcolaTotale(carrello), 0.01);
 
-        OrdineBean ordineMisto = carrello.costruisciOrdineBean("elena@cliente.it");
+        OrdineBean ordineMisto = GestoreCarrello.costruisciOrdineBean(carrello, "elena@cliente.it");
         OrdineBean confermato = new OrdiniControl().effettuaPreOrdine(ordineMisto);
         assertEquals(14.00, confermato.getPrezzoTotale(), 0.01);
         assertTrue(confermato.getDescrizioneCompleta().contains("Crepe Crema Pan di Stelle"));
@@ -616,36 +618,36 @@ class FrostlyTest {
         VaschettaItemBean tisana = new VaschettaItemBean(0.0, List.of("Tisana Zenzero e Limone"), false, false,
                 "Tisana Zenzero e Limone", 2.50);
 
-        carrello.aggiungiArticolo(acqua);
-        carrello.aggiungiArticolo(tisana);
+        GestoreCarrello.aggiungiArticolo(carrello, acqua);
+        GestoreCarrello.aggiungiArticolo(carrello, tisana);
 
-        assertEquals(2, carrello.getNumeroArticoli());
-        assertEquals(4.00, carrello.calcolaTotale(), 0.001);
+        assertEquals(2, GestoreCarrello.getNumeroArticoli(carrello));
+        assertEquals(4.00, GestoreCarrello.calcolaTotale(carrello), 0.001);
 
         // 2. Incremento quantità per l'acqua (da 1 a 3) tramite tasto +
-        carrello.incrementaArticolo(0);
+        GestoreCarrello.incrementaArticolo(carrello, 0);
         assertEquals(2, carrello.getArticoli().get(0).getQuantita());
         assertEquals(3.00, carrello.getArticoli().get(0).ottieniPrezzo(), 0.001);
-        assertEquals(5.50, carrello.calcolaTotale(), 0.001);
+        assertEquals(5.50, GestoreCarrello.calcolaTotale(carrello), 0.001);
 
-        carrello.incrementaArticolo(0);
+        GestoreCarrello.incrementaArticolo(carrello, 0);
         assertEquals(3, carrello.getArticoli().get(0).getQuantita());
         assertEquals(4.50, carrello.getArticoli().get(0).ottieniPrezzo(), 0.001);
-        assertEquals(7.00, carrello.calcolaTotale(), 0.001);
-        assertEquals(4, carrello.getNumeroArticoli()); // 3 acque + 1 tisana
+        assertEquals(7.00, GestoreCarrello.calcolaTotale(carrello), 0.001);
+        assertEquals(4, GestoreCarrello.getNumeroArticoli(carrello)); // 3 acque + 1 tisana
 
         // 3. Decremento quantità per l'acqua (da 3 a 2) tramite tasto -
-        carrello.decrementaArticolo(0);
+        GestoreCarrello.decrementaArticolo(carrello, 0);
         assertEquals(2, carrello.getArticoli().get(0).getQuantita());
         assertEquals(3.00, carrello.getArticoli().get(0).ottieniPrezzo(), 0.001);
-        assertEquals(5.50, carrello.calcolaTotale(), 0.001);
+        assertEquals(5.50, GestoreCarrello.calcolaTotale(carrello), 0.001);
 
         // 4. Invio dell'ordine con 2 acque e 1 tisana
         double qtaAcquaMagPrima = magControl.visualizzaMagazzino().stream()
                 .filter(i -> "Acqua Naturale 500ml".equals(i.getNome()))
                 .findFirst().orElseThrow().getQuantitaDisponibile();
 
-        OrdineBean ordineBean = carrello.costruisciOrdineBean("elena@cliente.it");
+        OrdineBean ordineBean = GestoreCarrello.costruisciOrdineBean(carrello, "elena@cliente.it");
         assertEquals(3, ordineBean.getVaschette().size()); // 2 acque + 1 tisana
         ordiniControl.effettuaPreOrdine(ordineBean);
 
@@ -657,15 +659,15 @@ class FrostlyTest {
         assertEquals(qtaAcquaMagPrima - 2.0, qtaAcquaMagDopo, 0.001);
 
         // 5. Decremento fino a rimozione
-        carrello.decrementaArticolo(1); // Tisana da 1 a 0 -> rimossa
+        GestoreCarrello.decrementaArticolo(carrello, 1); // Tisana da 1 a 0 -> rimossa
         assertEquals(1, carrello.getArticoli().size()); // Solo acqua rimasta
-        assertEquals(2, carrello.getNumeroArticoli()); // 2 acque
+        assertEquals(2, GestoreCarrello.getNumeroArticoli(carrello)); // 2 acque
 
-        carrello.decrementaArticolo(0); // Acqua da 2 a 1
+        GestoreCarrello.decrementaArticolo(carrello, 0); // Acqua da 2 a 1
         assertEquals(1, carrello.getArticoli().get(0).getQuantita());
-        carrello.decrementaArticolo(0); // Acqua da 1 a 0 -> rimossa
-        assertTrue(carrello.isVuoto());
-        assertEquals(0, carrello.getNumeroArticoli());
+        GestoreCarrello.decrementaArticolo(carrello, 0); // Acqua da 1 a 0 -> rimossa
+        assertTrue(GestoreCarrello.isVuoto(carrello));
+        assertEquals(0, GestoreCarrello.getNumeroArticoli(carrello));
     }
 
     /**
@@ -707,7 +709,17 @@ class FrostlyTest {
      */
     @Test
     void testPagamentoOnlineConCartaValida() throws FrostlyException {
-        control.applicativo.PagamentoControl payControl = new control.applicativo.PagamentoControl(new dao.memoria.PagamentoDAOMemory());
+        // Verifica che DAOFactory selezioni PagamentoDAOMemory in DEMO e PagamentoDAODbms in FULL
+        SessionManager.getInstance().setModalita(ModalitaEsecuzione.DEMO);
+        PagamentoDAO daoDemo = DAOFactory.getPagamentoDAO();
+        assertTrue(daoDemo instanceof PagamentoDAOMemory);
+
+        SessionManager.getInstance().setModalita(ModalitaEsecuzione.FULL);
+        PagamentoDAO daoFull = DAOFactory.getPagamentoDAO();
+        assertTrue(daoFull instanceof PagamentoDAODbms);
+
+        SessionManager.getInstance().setModalita(ModalitaEsecuzione.DEMO);
+        control.applicativo.PagamentoControl payControl = new control.applicativo.PagamentoControl();
 
         bean.CartaPagamentoBean carta = new bean.CartaPagamentoBean(
                 "Mario Rossi",
@@ -715,6 +727,7 @@ class FrostlyTest {
                 "12/28",
                 "789"
         );
+        carta.validaSintassi();
 
         bean.DatiConsegnaBean consegna = new bean.DatiConsegnaBean(
                 bean.DatiConsegnaBean.TipoConsegna.DOMICILIO,
@@ -723,6 +736,7 @@ class FrostlyTest {
                 "Subito (~25-35 min)",
                 "Citofono 4B"
         );
+        consegna.validaSintassi();
 
         bean.EsitoPagamentoBean esito = payControl.elaboraPagamento(carta, 28.50, consegna, "mario@cliente.it");
         assertTrue(esito.isSuccesso());
@@ -760,90 +774,101 @@ class FrostlyTest {
     }
 
     /**
-     * Test Case 19 - Servizio Pagamento Online: Rifiuto CVV non valido o Numero non conforme a Luhn.
+     * Test Case 19 - Validazione sintattica CartaPagamentoBean: CVV non valido o Numero non conforme a Luhn.
      */
     @Test
     void testPagamentoOnlineRifiutoCvvENumeroInvalido() {
-        control.applicativo.PagamentoControl payControl = new control.applicativo.PagamentoControl(new dao.memoria.PagamentoDAOMemory());
-        bean.DatiConsegnaBean consegna = new bean.DatiConsegnaBean(
-                bean.DatiConsegnaBean.TipoConsegna.ASPORTO, "", "", "Subito", ""
-        );
-
-        // CVV con 2 cifre
         bean.CartaPagamentoBean cartaCvvErrato = new bean.CartaPagamentoBean(
-                "Mario Rossi", "4532 0150 1234 5678", "12/28", "12"
+                "Mario Rossi", "4532 0150 1234 5671", "12/28", "12"
         );
-        assertThrows(frostly.exception.InvalidCardException.class, () ->
-                payControl.elaboraPagamento(cartaCvvErrato, 10.0, consegna, "test@test.it"));
+        assertThrows(frostly.exception.InvalidCardException.class, cartaCvvErrato::validaSintassi);
 
-        // Numero con cifre a caso che fallisce Luhn
         bean.CartaPagamentoBean cartaLuhnErrato = new bean.CartaPagamentoBean(
                 "Mario Rossi", "4111 1111 1111 1112", "12/28", "123"
         );
-        assertThrows(frostly.exception.InvalidCardException.class, () ->
-                payControl.elaboraPagamento(cartaLuhnErrato, 10.0, consegna, "test@test.it"));
+        assertThrows(frostly.exception.InvalidCardException.class, cartaLuhnErrato::validaSintassi);
     }
 
     /**
-     * Test Case 20 - Validazione Dati Delivery: Indirizzo e Telefono obbligatori per Consegna a Domicilio.
+     * Test Case 20 - Validazione sintattica DatiConsegnaBean e CartaPagamentoBean.
      */
     @Test
     void testValidazioneDatiConsegnaDomicilio() {
-        control.applicativo.PagamentoControl payControl = new control.applicativo.PagamentoControl(new dao.memoria.PagamentoDAOMemory());
-        bean.CartaPagamentoBean carta = new bean.CartaPagamentoBean(
-                "Mario Rossi", "4532 0150 1234 5671", "12/28", "789"
-        );
-
-        // Telefono mancante
         bean.DatiConsegnaBean consegnaSenzaTel = new bean.DatiConsegnaBean(
                 bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Via Roma 10", "", "Subito", ""
         );
-        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
-                payControl.elaboraPagamento(carta, 10.0, consegnaSenzaTel, "test@test.it"));
+        assertThrows(DatiNonValidiException.class, consegnaSenzaTel::validaSintassi);
 
-        // Indirizzo troppo breve / mancante
         bean.DatiConsegnaBean consegnaSenzaIndirizzo = new bean.DatiConsegnaBean(
                 bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Via", "3331234567", "Subito", ""
         );
-        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
-                payControl.elaboraPagamento(carta, 10.0, consegnaSenzaIndirizzo, "test@test.it"));
+        assertThrows(DatiNonValidiException.class, consegnaSenzaIndirizzo::validaSintassi);
 
-        // Indirizzo senza toponimo italiano (Via/Piazza/Monte/Corso...)
         bean.DatiConsegnaBean consegnaSenzaToponimo = new bean.DatiConsegnaBean(
                 bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Casa Mia 12", "3331234567", "Subito", ""
         );
-        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
-                payControl.elaboraPagamento(carta, 10.0, consegnaSenzaToponimo, "test@test.it"));
+        assertThrows(DatiNonValidiException.class, consegnaSenzaToponimo::validaSintassi);
 
-        // Indirizzo senza numero civico
         bean.DatiConsegnaBean consegnaSenzaCivico = new bean.DatiConsegnaBean(
                 bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Piazza Navona", "3331234567", "Subito", ""
         );
-        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
-                payControl.elaboraPagamento(carta, 10.0, consegnaSenzaCivico, "test@test.it"));
+        assertThrows(DatiNonValidiException.class, consegnaSenzaCivico::validaSintassi);
 
-        // Telefono non italiano
         bean.DatiConsegnaBean consegnaTelNonItaliano = new bean.DatiConsegnaBean(
                 bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Monte Mario 45", "1234567890", "Subito", ""
         );
-        assertThrows(frostly.exception.DatiNonValidiException.class, () ->
-                payControl.elaboraPagamento(carta, 10.0, consegnaTelNonItaliano, "test@test.it"));
+        assertThrows(DatiNonValidiException.class, consegnaTelNonItaliano::validaSintassi);
 
-        // Titolare carta con solo nome (manca cognome)
-        bean.DatiConsegnaBean consegnaOk = new bean.DatiConsegnaBean(
-                bean.DatiConsegnaBean.TipoConsegna.DOMICILIO, "Monte Mario 45", "+39 333 1234567", "Subito", ""
-        );
         bean.CartaPagamentoBean cartaSoloNome = new bean.CartaPagamentoBean(
                 "Mario", "4532 0150 1234 5671", "12/28", "789"
         );
-        assertThrows(frostly.exception.InvalidCardException.class, () ->
-                payControl.elaboraPagamento(cartaSoloNome, 10.0, consegnaOk, "test@test.it"));
+        assertThrows(frostly.exception.InvalidCardException.class, cartaSoloNome::validaSintassi);
 
-        // CVV non valido ("000")
         bean.CartaPagamentoBean cartaCvvZero = new bean.CartaPagamentoBean(
                 "Mario Rossi", "4532 0150 1234 5671", "12/28", "000"
         );
-        assertThrows(frostly.exception.InvalidCardException.class, () ->
-                payControl.elaboraPagamento(cartaCvvZero, 10.0, consegnaOk, "test@test.it"));
+        assertThrows(frostly.exception.InvalidCardException.class, cartaCvvZero::validaSintassi);
+    }
+
+    /**
+     * Test Case 21 - Checkout atomico, separazione storage DEMO vs cache JDBC ed eccezioni specifiche.
+     */
+    @Test
+    void testCheckoutAtomicoArchiviSeparatiEdEccezioniSpecifiche() throws FrostlyException {
+        // 1. Storage DEMO e cache JDBC devono essere due istanze completamente separate
+        org.junit.jupiter.api.Assertions.assertNotSame(
+                ArchivioMemoria.getDemoInstance(), ArchivioMemoria.getJdbcCacheInstance());
+
+        // 2. Checkout atomico: se l'articolo 2 non ha scorte, l'articolo 1 NON deve essere scalato
+        OrdiniControl ordiniControl = new OrdiniControl();
+        MagazzinoControl magControl = new MagazzinoControl();
+
+        double acquaPrima = magControl.visualizzaMagazzino().stream()
+                .filter(i -> "Acqua Naturale 500ml".equals(i.getNome()))
+                .findFirst().orElseThrow().getQuantitaDisponibile();
+
+        OrdineBean ordineParziale = new OrdineBean();
+        ordineParziale.setEmailCliente("elena@cliente.it");
+        ordineParziale.setDataRitiro("Oggi 19:00");
+        ordineParziale.aggiungiVaschetta(new VaschettaItemBean(0.0, List.of("Acqua Naturale 500ml"),
+                false, false, "Acqua Naturale 500ml", 1.50));
+        // Aggiunge 500 bottiglie di Fanta per forzare IngredienteEsauritoException sul secondo articolo
+        for (int i = 0; i < 500; i++) {
+            ordineParziale.aggiungiVaschetta(new VaschettaItemBean(0.0, List.of("Fanta 33cl"),
+                    false, false, "Fanta 33cl", 3.00));
+        }
+
+        assertThrows(IngredienteEsauritoException.class, () -> ordiniControl.verificaDisponibilitaOrdine(ordineParziale));
+        assertThrows(IngredienteEsauritoException.class, () -> ordiniControl.effettuaPreOrdine(ordineParziale));
+
+        double acquaDopo = magControl.visualizzaMagazzino().stream()
+                .filter(i -> "Acqua Naturale 500ml".equals(i.getNome()))
+                .findFirst().orElseThrow().getQuantitaDisponibile();
+        assertEquals(acquaPrima, acquaDopo, 0.001);
+
+        // 3. Eccezioni specifiche: RisorsaNonTrovataException e OperazioneNonAutorizzataException
+        assertThrows(RisorsaNonTrovataException.class, () -> ordiniControl.confermaOrdine("ORD-INESISTENTE", "Maestro"));
+        SessionManager.getInstance().logout();
+        assertThrows(OperazioneNonAutorizzataException.class, () -> new LoginControl().eliminaProfiloDipendente("mario@frostly.it"));
     }
 }

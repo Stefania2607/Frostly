@@ -20,7 +20,6 @@ public class RecensioneBean {
     private int miPiace;
 
     public RecensioneBean() {
-        // Costruttore vuoto per binding
     }
 
     public RecensioneBean(String autoreEmail,

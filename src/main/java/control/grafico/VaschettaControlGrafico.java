@@ -10,6 +10,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import model.ConGranellaBronteDecorator;
+import model.ConPannaMontataDecorator;
+import model.VaschettaBase;
 import view.VaschettaView;
 
 /**
@@ -60,17 +63,34 @@ public class VaschettaControlGrafico {
     }
 
     public void inizializza() {
+        // Popola etichette di formati e supplementi dinamicamente dalle costanti di dominio
+        if (btnFormato350 != null) {
+            btnFormato350.setText("350g (" + VaschettaBase.MAX_GUSTI_350G + " gusti)");
+        }
+        if (btnFormato500 != null) {
+            btnFormato500.setText("500g (" + VaschettaBase.MAX_GUSTI_500G + " gusti)");
+        }
+        if (btnFormato750 != null) {
+            btnFormato750.setText("750g (" + VaschettaBase.MAX_GUSTI_750G + " gusti)");
+        }
+        if (btnFormato1000 != null) {
+            btnFormato1000.setText("1 Kg (" + VaschettaBase.MAX_GUSTI_1000G + " gusti)");
+        }
         if (checkPanna != null) {
+            checkPanna.setText(String.format(Locale.US, "☁️ +Panna Montata Fresca (+%.2f€)",
+                    ConPannaMontataDecorator.SUPPLEMENTO_PANNA));
             checkPanna.setOnAction(e -> aggiornaVaschettaGrafica());
         }
         if (checkGranella != null) {
+            checkGranella.setText(String.format(Locale.US, "✨ +Granella di Pistacchio (+%.2f€)",
+                    ConGranellaBronteDecorator.SUPPLEMENTO_GRANELLA));
             checkGranella.setOnAction(e -> aggiornaVaschettaGrafica());
         }
-        selezionaFormato(0.50, 4);
+        selezionaFormato(VaschettaBase.PESO_500G, VaschettaBase.MAX_GUSTI_500G);
     }
 
     public void selezionaFormato(double pesoKg, int maxGusti) {
-        carrello.impostaFormatoVaschetta(pesoKg, maxGusti);
+        GestoreCarrello.impostaFormatoVaschetta(carrello, pesoKg, maxGusti);
         VaschettaView.evidenziaPulsanteFormato(btnFormato350, pesoKg == 0.35);
         VaschettaView.evidenziaPulsanteFormato(btnFormato500, pesoKg == 0.50);
         VaschettaView.evidenziaPulsanteFormato(btnFormato750, pesoKg == 0.75);
@@ -102,7 +122,7 @@ public class VaschettaControlGrafico {
     }
 
     public void svuotaVaschetta() {
-        carrello.svuotaVaschettaInComposizione();
+        GestoreCarrello.svuotaVaschettaInComposizione(carrello);
         aggiornaVaschettaGrafica();
         if (onStatoCambiato != null) {
             onStatoCambiato.run();
@@ -114,7 +134,7 @@ public class VaschettaControlGrafico {
         boolean conPanna = checkPanna != null && checkPanna.isSelected();
         boolean conGranella = checkGranella != null && checkGranella.isSelected();
         try {
-            carrello.aggiungiVaschettaInComposizioneAlCarrello(conPanna, conGranella);
+            GestoreCarrello.aggiungiVaschettaInComposizioneAlCarrello(carrello, conPanna, conGranella);
             resetSelettoriExtra();
             aggiornaVaschettaGrafica();
             if (onStatoCambiato != null) {
@@ -163,7 +183,7 @@ public class VaschettaControlGrafico {
         }
 
         if (lblPrezzoVaschettaCorrente != null) {
-            double prezzo = carrello.calcolaPrezzoVaschettaInComposizione(conPanna, conGranella);
+            double prezzo = GestoreCarrello.calcolaPrezzoVaschettaInComposizione(carrello, conPanna, conGranella);
             lblPrezzoVaschettaCorrente.setText(String.format(Locale.US, "EUR %.2f", prezzo));
         }
     }

@@ -18,10 +18,9 @@ import model.Recensione;
  */
 public class RecensioneDAODbms implements RecensioneDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     public RecensioneDAODbms() {
-        // Costruttore standard senza eccezioni
     }
 
     @Override
@@ -64,7 +63,6 @@ public class RecensioneDAODbms implements RecensioneDAO {
         if (r.getCodiceRecensione() == null || r.getCodiceRecensione().isEmpty()) {
             r.setCodiceRecensione("REC-" + System.currentTimeMillis());
         }
-        cache.salvaRecensione(r);
 
         String sql = "INSERT INTO recensioni (codice_recensione, autore_email, autore_nome, voto_stelle, "
                 + "titolo, commento, data_ora, risposta_maestro, data_risposta, mi_piace) "
@@ -82,6 +80,7 @@ public class RecensioneDAODbms implements RecensioneDAO {
             ps.setString(9, r.getDataRisposta());
             ps.setInt(10, r.getMiPiace());
             ps.executeUpdate();
+            cache.salvaRecensione(r);
             return r;
         } catch (SQLException e) {
             throw new FrostlyException("Impossibile salvare la recensione nel database.", e);
@@ -90,8 +89,6 @@ public class RecensioneDAODbms implements RecensioneDAO {
 
     @Override
     public void aggiornaRispostaMaestro(String codiceRecensione, String rispostaMaestro, String dataRisposta) throws FrostlyException {
-        cache.rispondiRecensione(codiceRecensione, rispostaMaestro, dataRisposta);
-
         String sql = "UPDATE recensioni SET risposta_maestro = ?, data_risposta = ? WHERE codice_recensione = ?";
         Connection conn = ConnectionManager.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -99,6 +96,7 @@ public class RecensioneDAODbms implements RecensioneDAO {
             ps.setString(2, dataRisposta);
             ps.setString(3, codiceRecensione);
             ps.executeUpdate();
+            cache.rispondiRecensione(codiceRecensione, rispostaMaestro, dataRisposta);
         } catch (SQLException e) {
             throw new FrostlyException("Impossibile salvare la risposta del Maestro nel database.", e);
         }
@@ -106,13 +104,12 @@ public class RecensioneDAODbms implements RecensioneDAO {
 
     @Override
     public void incrementaMiPiace(String codiceRecensione) throws FrostlyException {
-        cache.incrementaMiPiaceRecensione(codiceRecensione);
-
         String sql = "UPDATE recensioni SET mi_piace = mi_piace + 1 WHERE codice_recensione = ?";
         Connection conn = ConnectionManager.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, codiceRecensione);
             ps.executeUpdate();
+            cache.incrementaMiPiaceRecensione(codiceRecensione);
         } catch (SQLException e) {
             throw new FrostlyException("Impossibile aggiornare i mi piace nel database.", e);
         }

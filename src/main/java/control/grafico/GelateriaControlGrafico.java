@@ -48,12 +48,10 @@ public class GelateriaControlGrafico {
     @FXML private Label lblEsito;
     @FXML private Button btnApriCarrello;
 
-    // Navigazione Categorie e Griglia Prodotti
     @FXML private HBox boxCategorieCliente;
     @FXML private VBox boxGustiDisponibili;
     @FXML private VBox boxSezioneVaschetta;
 
-    // Pannello Destro: Composizione Vaschetta
     @FXML private Button btnFormato350;
     @FXML private Button btnFormato500;
     @FXML private Button btnFormato750;
@@ -64,18 +62,15 @@ public class GelateriaControlGrafico {
     @FXML private CheckBox checkGranella;
     @FXML private Label lblPrezzoVaschettaCorrente;
 
-    // Storico Ordini e Notifiche
     @FXML private ListView<OrdineBean> listaMieiOrdini;
     @FXML private ListView<String> listaNotificheCliente;
 
-    // Sezione Recensioni Clienti
     @FXML private ComboBox<String> comboVotoRecensione;
     @FXML private TextField campoTitoloRecensione;
     @FXML private javafx.scene.control.TextArea campoCommentoRecensione;
     @FXML private VBox boxCardsRecensioniCliente;
     @FXML private Label lblMediaRecensioniCliente;
 
-    // Campi Tab "Gusto su Misura" (compatibilita')
     @FXML private TextField campoNomeGustoCustom;
     @FXML private TextField campoDescrizioneCustom;
     @FXML private ComboBox<String> comboIngredienteCustom;
@@ -232,10 +227,10 @@ public class GelateriaControlGrafico {
         vaschettaHelper.aggiungiORimuoviGusto(g);
     }
 
-    @FXML public void onClickFormato350() { vaschettaHelper.selezionaFormato(0.35, 3); }
-    @FXML public void onClickFormato500() { vaschettaHelper.selezionaFormato(0.50, 4); }
-    @FXML public void onClickFormato750() { vaschettaHelper.selezionaFormato(0.75, 5); }
-    @FXML public void onClickFormato1000() { vaschettaHelper.selezionaFormato(1.00, 6); }
+    @FXML public void onClickFormato350() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_350G, model.VaschettaBase.MAX_GUSTI_350G); }
+    @FXML public void onClickFormato500() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_500G, model.VaschettaBase.MAX_GUSTI_500G); }
+    @FXML public void onClickFormato750() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_750G, model.VaschettaBase.MAX_GUSTI_750G); }
+    @FXML public void onClickFormato1000() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_1000G, model.VaschettaBase.MAX_GUSTI_1000G); }
 
     @FXML
     public void onClickSvuotaVaschetta() {
@@ -256,7 +251,7 @@ public class GelateriaControlGrafico {
         if (checkoutHelper != null && !checkoutHelper.verificaLimiteDisponibilitaPerProdotto(g.getNome())) {
             return;
         }
-        carrello.aggiungiArticolo(new VaschettaItemBean(0.0, List.of(g.getNome()), false, false,
+        GestoreCarrello.aggiungiArticolo(carrello, new VaschettaItemBean(0.0, List.of(g.getNome()), false, false,
                 g.getNome() + " (" + g.getDescrizione() + ")", g.getPrezzoAlKg()));
         aggiornaStatoCarrello();
         mostraEsito("🛒 '" + g.getNome() + "' aggiunto al carrello! Clicca sul tasto '🛒 Vedi Carrello' per il riepilogo.", false);
@@ -312,7 +307,7 @@ public class GelateriaControlGrafico {
         double prezzo = CrepeConfiguratoreView.calcolaPrezzoCrepe(crepeSelezionata.getPrezzoAlKg(), top, gran);
         String desc = CrepeConfiguratoreView.formattaDescrizioneCrepe(crepeSelezionata.getNome(), top, gran);
 
-        carrello.aggiungiArticolo(new VaschettaItemBean(0.0, List.of(crepeSelezionata.getNome()), false, false, desc, prezzo));
+        GestoreCarrello.aggiungiArticolo(carrello, new VaschettaItemBean(0.0, List.of(crepeSelezionata.getNome()), false, false, desc, prezzo));
 
         crepeSelezionata = null;
         mostraPannelloToppingCrepe = false;
@@ -352,8 +347,8 @@ public class GelateriaControlGrafico {
     }
 
     private void pulisciDopoOrdineCompletato() {
-        carrello.svuota();
-        carrello.svuotaVaschettaInComposizione();
+        GestoreCarrello.svuota(carrello);
+        GestoreCarrello.svuotaVaschettaInComposizione(carrello);
         vaschettaHelper.resetSelettoriExtra();
         vaschettaHelper.aggiornaVaschettaGrafica();
         aggiornaVistaCliente();

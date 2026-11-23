@@ -16,7 +16,7 @@ import model.RichiestaGustoPersonalizzato;
  */
 public class RichiestaGustoDAODbms implements RichiestaGustoDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public List<RichiestaGustoPersonalizzato> caricaTutteRichiesteGusto() {
@@ -26,7 +26,6 @@ public class RichiestaGustoDAODbms implements RichiestaGustoDAO {
 
     @Override
     public void salvaRichiestaGusto(RichiestaGustoPersonalizzato richiesta) {
-        cache.salvaRichiestaGusto(richiesta);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String del = "DELETE FROM richieste_gusto WHERE codice_richiesta = ?";
@@ -47,8 +46,8 @@ public class RichiestaGustoDAODbms implements RichiestaGustoDAO {
                 iStmt.setString(9, richiesta.getRispostaMaestro() != null ? richiesta.getRispostaMaestro() : "");
                 iStmt.executeUpdate();
             }
+            cache.salvaRichiestaGusto(richiesta);
         } catch (FrostlyException | SQLException ignored) {
-            // Mantiene in memoria
         }
     }
 

@@ -25,14 +25,12 @@ public class RecensioniControlGrafico {
     private final BiConsumer<String, Boolean> onEsito;
     private final Runnable onStatoAggiornato;
 
-    // Campi Form Scrittura Recensione (Cliente)
     private ComboBox<String> comboVotoRecensione;
     private TextField campoTitoloRecensione;
     private TextArea campoCommentoRecensione;
     private VBox boxCardsRecensioniCliente;
     private Label lblMediaRecensioniCliente;
 
-    // Campi Sezione Staff (Maestro)
     private VBox boxCardsRecensioniMaestro;
     private Label lblRiepilogoRecensioniMaestro;
 

@@ -14,7 +14,7 @@ public class RecensioneDAOMemory implements RecensioneDAO {
     private final ArchivioMemoria archivio;
 
     public RecensioneDAOMemory() {
-        this.archivio = ArchivioMemoria.getInstance();
+        this.archivio = ArchivioMemoria.getDemoInstance();
     }
 
     @Override

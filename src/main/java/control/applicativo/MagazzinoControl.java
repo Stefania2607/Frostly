@@ -7,6 +7,7 @@ import dao.GustoDAO;
 import dao.IngredienteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
+import frostly.exception.RisorsaNonTrovataException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Gusto;
@@ -50,7 +51,7 @@ public class MagazzinoControl {
         }
         Gusto gusto = gustoDAO.trovaGustoPerNome(nomeGusto);
         if (gusto == null) {
-            throw new DatiNonValidiException("Gusto non trovato: " + nomeGusto);
+            throw new RisorsaNonTrovataException("Gusto non trovato: " + nomeGusto);
         }
 
         gusto.getRicetta().consumaIngredientiPerProduzione(numeroVaschette);
@@ -71,7 +72,7 @@ public class MagazzinoControl {
         }
         Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeIngrediente);
         if (ing == null) {
-            throw new DatiNonValidiException("Ingrediente non trovato: " + nomeIngrediente);
+            throw new RisorsaNonTrovataException("Ingrediente non trovato: " + nomeIngrediente);
         }
         ing.rifornisci(quantitaAggiunta);
         ingredienteDAO.aggiornaIngrediente(ing);
@@ -84,7 +85,7 @@ public class MagazzinoControl {
         }
         Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nomeIngrediente);
         if (ing == null) {
-            throw new DatiNonValidiException("Ingrediente non trovato: " + nomeIngrediente);
+            throw new RisorsaNonTrovataException("Ingrediente non trovato: " + nomeIngrediente);
         }
         ing.consuma(quantitaDaScaricare);
         ingredienteDAO.aggiornaIngrediente(ing);
@@ -123,7 +124,7 @@ public class MagazzinoControl {
         String nome = nomeIngrediente.trim();
         Ingrediente ing = ingredienteDAO.trovaIngredientePerNome(nome);
         if (ing == null) {
-            throw new DatiNonValidiException("Voce '" + nome + "' non trovata nel magazzino.");
+            throw new RisorsaNonTrovataException("Voce '" + nome + "' non trovata nel magazzino.");
         }
         ingredienteDAO.eliminaIngrediente(nome);
     }

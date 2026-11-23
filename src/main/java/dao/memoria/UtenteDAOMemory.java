@@ -14,7 +14,7 @@ import model.MaestroGelataio;
  */
 public class UtenteDAOMemory implements UtenteDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public MaestroGelataio getMaestroGelataio() {

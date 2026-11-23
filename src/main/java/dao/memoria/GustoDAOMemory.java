@@ -12,7 +12,7 @@ import model.Gusto;
  */
 public class GustoDAOMemory implements GustoDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public List<Gusto> caricaTuttiGusti() {

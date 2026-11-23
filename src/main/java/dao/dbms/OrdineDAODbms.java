@@ -16,7 +16,7 @@ import model.OrdineCliente;
  */
 public class OrdineDAODbms implements OrdineDAO {
 
-    private final ArchivioMemoria cache = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public List<OrdineCliente> caricaTuttiOrdini() {
@@ -26,7 +26,6 @@ public class OrdineDAODbms implements OrdineDAO {
 
     @Override
     public void salvaOrdine(OrdineCliente ordine) {
-        cache.salvaOrdine(ordine);
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             String del = "DELETE FROM ordini_clienti WHERE codice_ordine = ?";
@@ -55,6 +54,7 @@ public class OrdineDAODbms implements OrdineDAO {
                 iStmt.setString(8, descrizione);
                 iStmt.executeUpdate();
             }
+            cache.salvaOrdine(ordine);
         } catch (FrostlyException | SQLException ignored) {
         }
     }

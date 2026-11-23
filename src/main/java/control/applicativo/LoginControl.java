@@ -5,8 +5,11 @@ import bean.NotificaBean;
 import dao.DAOFactory;
 import dao.NotificaDAO;
 import dao.UtenteDAO;
+import frostly.exception.CredenzialiErrateException;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
+import frostly.exception.OperazioneNonAutorizzataException;
+import frostly.exception.RisorsaNonTrovataException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Cliente;
@@ -37,7 +40,7 @@ public class LoginControl {
         this.notificaDAO = notificaDAO;
     }
 
-    public LoginBean autenticaUtente(LoginBean credenzialiBean) throws DatiNonValidiException {
+    public LoginBean autenticaUtente(LoginBean credenzialiBean) throws CredenzialiErrateException {
         String email = credenzialiBean.getEmail();
         String password = credenzialiBean.getPassword();
 
@@ -67,7 +70,7 @@ public class LoginControl {
             }
         }
 
-        throw new DatiNonValidiException("Credenziali errate: nessun utente trovato con questa email/password.");
+        throw new CredenzialiErrateException("Credenziali errate: nessun utente trovato con questa email/password.");
     }
 
     /**
@@ -89,7 +92,7 @@ public class LoginControl {
     /** Creazione di un profilo dipendente: consentita solo al Maestro Gelataio autenticato. */
     public LoginBean creaProfiloDipendente(LoginBean dipendenteBean) throws FrostlyException {
         if (!RUOLO_MAESTRO.equals(SessionManager.getInstance().getRuoloUtenteLoggato())) {
-            throw new DatiNonValidiException("Operazione non consentita: solo il Maestro puo' creare profili dipendente.");
+            throw new OperazioneNonAutorizzataException("Operazione non consentita: solo il Maestro puo' creare profili dipendente.");
         }
         utenteDAO.registraNuovoUtente(
                 dipendenteBean.getNome(),
@@ -105,13 +108,13 @@ public class LoginControl {
     /** Eliminazione di un account dipendente: consentita esclusivamente al Maestro. */
     public void eliminaProfiloDipendente(String emailDipendente) throws FrostlyException {
         if (!RUOLO_MAESTRO.equals(SessionManager.getInstance().getRuoloUtenteLoggato())) {
-            throw new DatiNonValidiException("Operazione non consentita: solo il Maestro puo' eliminare profili dipendente.");
+            throw new OperazioneNonAutorizzataException("Operazione non consentita: solo il Maestro puo' eliminare profili dipendente.");
         }
         if (emailDipendente == null || emailDipendente.trim().isEmpty()) {
             throw new DatiNonValidiException("Seleziona il dipendente da eliminare.");
         }
         if (utenteDAO.trovaDipendentePerEmail(emailDipendente.trim()) == null) {
-            throw new DatiNonValidiException("Nessun dipendente trovato con l'email: " + emailDipendente.trim());
+            throw new RisorsaNonTrovataException("Nessun dipendente trovato con l'email: " + emailDipendente.trim());
         }
         utenteDAO.eliminaDipendente(emailDipendente.trim());
     }

@@ -2,6 +2,7 @@ package view;
 
 import bean.CarrelloBean;
 import bean.VaschettaItemBean;
+import control.grafico.GestoreCarrello;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.IntConsumer;
@@ -22,8 +23,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
- * Classe View dedicata esclusivamente alla rappresentazione grafica del Carrello
- * (pulsante "🛒 Vedi Carrello", lista degli articoli nel carrello e finestra modale di Checkout).
+ * Gestisce la visualizzazione grafica del carrello e della finestra di checkout.
  */
 public final class CarrelloView {
 
@@ -32,8 +32,8 @@ public final class CarrelloView {
 
     public static void aggiornaBottoneCarrello(Button btnCarrello, CarrelloBean carrello) {
         if (btnCarrello == null || carrello == null) return;
-        int n = carrello.getNumeroArticoli();
-        double tot = carrello.calcolaTotale();
+        int n = GestoreCarrello.getNumeroArticoli(carrello);
+        double tot = GestoreCarrello.calcolaTotale(carrello);
         btnCarrello.setMinWidth(Region.USE_PREF_SIZE);
         String labelProdotti = n == 1 ? "1 prodotto" : (n + " prodotti");
         btnCarrello.setText(String.format(Locale.US, "🛒 Vedi Carrello (%s • EUR %.2f)", labelProdotti, tot));
@@ -108,7 +108,6 @@ public final class CarrelloView {
                 lblTitolo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
                 HBox.setHgrow(lblTitolo, Priority.ALWAYS);
 
-                // Selettore Quantità: tasto [-] e [+] con conteggio centrale
                 HBox boxQta = new HBox(4);
                 boxQta.setAlignment(Pos.CENTER);
                 boxQta.setStyle("-fx-background-color: rgba(35,32,38,0.85); -fx-border-color: rgba(186,164,135,0.30); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 2 6;");
@@ -172,8 +171,8 @@ public final class CarrelloView {
         apriPopupCarrello(
                 owner,
                 carrello,
-                carrello::incrementaArticolo,
-                carrello::decrementaArticolo,
+                idx -> GestoreCarrello.incrementaArticolo(carrello, idx),
+                idx -> GestoreCarrello.decrementaArticolo(carrello, idx),
                 onRimuoviArticolo,
                 onSvuotaCarrello,
                 onConfermaOrdine
@@ -228,7 +227,7 @@ public final class CarrelloView {
                             if (onIncrementaArticolo != null) {
                                 onIncrementaArticolo.accept(idx);
                             } else {
-                                carrello.incrementaArticolo(idx);
+                                GestoreCarrello.incrementaArticolo(carrello, idx);
                             }
                             this.run();
                         },
@@ -236,7 +235,7 @@ public final class CarrelloView {
                             if (onDecrementaArticolo != null) {
                                 onDecrementaArticolo.accept(idx);
                             } else {
-                                carrello.decrementaArticolo(idx);
+                                GestoreCarrello.decrementaArticolo(carrello, idx);
                             }
                             this.run();
                         },
@@ -245,7 +244,7 @@ public final class CarrelloView {
                             this.run();
                         }
                 );
-                lblTotale.setText(String.format(Locale.US, "Totale Ordine: EUR %.2f", carrello.calcolaTotale()));
+                lblTotale.setText(String.format(Locale.US, "Totale Ordine: EUR %.2f", GestoreCarrello.calcolaTotale(carrello)));
             }
         };
         refreshInterno.run();
@@ -270,7 +269,7 @@ public final class CarrelloView {
         Button btnSuccessivo = new Button("Successivo ➔");
         btnSuccessivo.setStyle("-fx-background-color: linear-gradient(to bottom, #baa487, #8c7355); -fx-text-fill: #141216; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-background-radius: 12; -fx-padding: 10 24; -fx-cursor: hand;");
         btnSuccessivo.setOnAction(e -> {
-            if (carrello.isVuoto()) {
+            if (GestoreCarrello.isVuoto(carrello)) {
                 return;
             }
             procediSuccessivo[0] = true;

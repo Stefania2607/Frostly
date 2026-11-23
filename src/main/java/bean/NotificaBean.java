@@ -10,7 +10,6 @@ public class NotificaBean {
     private String timestamp;
 
     public NotificaBean() {
-        // Costruttore vuoto standard JavaBean
     }
 
     public NotificaBean(String titolo, String messaggio, String timestamp) {

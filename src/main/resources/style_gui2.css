@@ -1,6 +1,4 @@
-/* ==========================================================================
-   FROSTLY — SECONDA GUI (LAYOUT SIDEBAR • PALETTE NERO OSSIDIANA & ORO)
-   ========================================================================== */
+/* Foglio di stile GUI 2 */
 
 .root, .root-light, .root-dark, .luxury-root-dark {
     -fx-background-image: url("bg_gui2_gold.jpg");
@@ -153,9 +151,7 @@
     -fx-background-radius: 8;
 }
 
-/* ==========================================================================
-   SIDEBAR LATERALE (TabPane con side="LEFT" e testo orizzontale pulito)
-   ========================================================================== */
+/* Barra laterale GUI 2 */
 .tab-pane:left {
     -fx-background-color: rgba(8, 7, 10, 0.30);
 }

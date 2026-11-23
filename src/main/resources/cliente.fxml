@@ -53,12 +53,12 @@
                                        style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;"/>
                                 <VBox spacing="6">
                                     <HBox spacing="6">
-                                        <Button fx:id="btnFormato350" text="350g (3 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato350" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
-                                        <Button fx:id="btnFormato500" text="500g (4 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato500" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
+                                        <Button fx:id="btnFormato350" text="350g" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato350" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
+                                        <Button fx:id="btnFormato500" text="500g" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato500" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
                                     </HBox>
                                     <HBox spacing="6">
-                                        <Button fx:id="btnFormato750" text="750g (5 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato750" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
-                                        <Button fx:id="btnFormato1000" text="1 Kg (6 gusti)" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato1000" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
+                                        <Button fx:id="btnFormato750" text="750g" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato750" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
+                                        <Button fx:id="btnFormato1000" text="1 Kg" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato1000" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
                                     </HBox>
                                 </VBox>
 
@@ -76,8 +76,8 @@
                                 <VBox spacing="5" style="-fx-background-color: rgba(32,29,35,0.90); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 10;">
                                     <Label text="3. Guarnizioni extra sulla vaschetta:"
                                            style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
-                                    <CheckBox fx:id="checkPanna" text="☁️ +Panna Montata Fresca (+2.50€)" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
-                                    <CheckBox fx:id="checkGranella" text="✨ +Granella di Pistacchio (+3.50€)" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
+                                    <CheckBox fx:id="checkPanna" text="☁️ +Panna Montata Fresca" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
+                                    <CheckBox fx:id="checkGranella" text="✨ +Granella di Pistacchio" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
                                 </VBox>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">

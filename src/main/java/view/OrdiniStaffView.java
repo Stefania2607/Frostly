@@ -208,7 +208,6 @@ public final class OrdiniStaffView {
                     + "-fx-border-width: 1.0; -fx-border-radius: 12; -fx-background-radius: 12; -fx-opacity: 0.85;");
         }
 
-        // 1. RIGA TESTATA: ID Ordine, Cliente e Badge Stato
         HBox top = new HBox(10);
         top.setAlignment(Pos.CENTER_LEFT);
 
@@ -285,7 +284,6 @@ public final class OrdiniStaffView {
                 // Pulisce qualsiasi prefisso "Vaschetta #1:" erroneamente associato a crepes/caffetteria
                 String cleaned = pezzo.replaceFirst("^[Vv]aschetta #\\d+:\\s*", "").trim();
 
-                // Analizza nome prodotto e dettagli (toppings, gusti, opzioni)
                 String nomeProdotto = cleaned;
                 String dettagli = "";
 
@@ -301,7 +299,6 @@ public final class OrdiniStaffView {
                     }
                 }
 
-                // Identifica categoria specifica, icona e badge cromatico
                 String lower = cleaned.toLowerCase();
                 String icon = "🍨";
                 String cat = "GELATO";
@@ -358,7 +355,6 @@ public final class OrdiniStaffView {
                     }
                 }
 
-                // Costruisce la riga ordinata del singolo prodotto
                 HBox rowItem = new HBox(9);
                 rowItem.setAlignment(Pos.CENTER_LEFT);
                 rowItem.setStyle("-fx-padding: 8 10; -fx-background-color: rgba(26, 24, 28, 0.90); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 8; -fx-background-radius: 8;");
@@ -389,7 +385,6 @@ public final class OrdiniStaffView {
             }
         }
 
-        // 4. RIGA INFERIORE: Totale in evidenza e Azioni Staff
         HBox bottom = new HBox(12);
         bottom.setAlignment(Pos.CENTER_LEFT);
 

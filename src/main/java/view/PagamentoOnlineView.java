@@ -45,7 +45,6 @@ public final class PagamentoOnlineView {
                 + "-fx-border-color: rgba(186,164,135,0.40); -fx-border-width: 1.2;");
         root.setPrefWidth(660);
 
-        // Header
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -73,7 +72,6 @@ public final class PagamentoOnlineView {
 
         header.getChildren().addAll(lblBadge, titleBox, spH, boxTotale);
 
-        // Pillola riassuntiva della consegna
         HBox boxRiepilogo = new HBox(10);
         boxRiepilogo.setAlignment(Pos.CENTER_LEFT);
         boxRiepilogo.setStyle("-fx-background-color: rgba(28,25,33,0.85); -fx-border-color: rgba(186,164,135,0.22); "
@@ -85,7 +83,6 @@ public final class PagamentoOnlineView {
         lblRiepTesto.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
         boxRiepilogo.getChildren().addAll(lblRiepIcon, lblRiepTesto);
 
-        // Card Grafica Simulata (Dark Luxury Glass Card)
         VBox cardGrafica = new VBox(10);
         cardGrafica.setStyle("-fx-background-color: linear-gradient(to bottom right, #242028, #16141a); "
                 + "-fx-border-color: rgba(186,164,135,0.45); -fx-border-radius: 12; -fx-background-radius: 12; "
@@ -133,7 +130,6 @@ public final class PagamentoOnlineView {
         rigaBottomCard.getChildren().addAll(bTitolare, bScadenza, spBC, lblContactless);
         cardGrafica.getChildren().addAll(rigaTopCard, lblPreviewNumero, rigaBottomCard);
 
-        // Campi di Inserimento
         VBox formCampi = new VBox(10);
         formCampi.setStyle("-fx-background-color: rgba(24,22,28,0.90); -fx-border-color: rgba(186,164,135,0.25); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 14 16;");
 
@@ -202,14 +198,12 @@ public final class PagamentoOnlineView {
         rigaScadCvv.getChildren().addAll(txtScadenza, txtCvv, spFill, btnDemo);
         formCampi.getChildren().addAll(txtTitolare, txtNumero, rigaScadCvv);
 
-        // Area Messaggi di Errore
         Label lblErrore = new Label();
         lblErrore.setWrapText(true);
         lblErrore.setVisible(false);
         lblErrore.setStyle("-fx-text-fill: #ff8a80; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 10; "
                 + "-fx-background-color: rgba(188,71,73,0.22); -fx-border-color: rgba(255,138,128,0.4); -fx-border-radius: 6; -fx-background-radius: 6;");
 
-        // Footer Pulsanti
         HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_RIGHT);
 

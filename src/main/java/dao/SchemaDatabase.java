@@ -7,22 +7,20 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Componente dedicato alla definizione e inizializzazione dello schema del database (DDL)
- * e al popolamento iniziale dei dati (DML base) per MySQL e SQLite.
- * Separa le responsabilita' strutturali del database dal ConnectionManager.
+ * Gestisce l'inizializzazione dello schema del database MySQL e il popolamento dei dati base.
  */
 public final class SchemaDatabase {
 
     private SchemaDatabase() {
     }
 
-    public static void inizializzaSchemaEDati(Connection conn, boolean isMySql) throws SQLException {
+    public static void inizializzaSchemaEDati(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
             creaTabelle(stmt);
             migraMenuGustiSeNecessario(stmt);
             migraIngredientiSeNecessario(stmt);
-            migraOrdiniClientiSeNecessario(stmt, isMySql);
-            popolaDatiIniziali(conn, stmt, isMySql);
+            migraOrdiniClientiSeNecessario(stmt);
+            popolaDatiIniziali(conn, stmt);
         }
     }
 
@@ -154,10 +152,7 @@ public final class SchemaDatabase {
         }
     }
 
-    private static void migraOrdiniClientiSeNecessario(Statement stmt, boolean isMySql) {
-        if (!isMySql) {
-            return;
-        }
+    private static void migraOrdiniClientiSeNecessario(Statement stmt) {
         try {
             stmt.execute("ALTER TABLE ordini_clienti MODIFY COLUMN data_ritiro VARCHAR(512) NOT NULL");
             stmt.execute("ALTER TABLE ordini_clienti MODIFY COLUMN descrizione_dettagliata VARCHAR(2000) NOT NULL");
@@ -166,7 +161,7 @@ public final class SchemaDatabase {
         }
     }
 
-    private static void popolaDatiIniziali(Connection conn, Statement stmt, boolean isMySql) throws SQLException {
+    private static void popolaDatiIniziali(Connection conn, Statement stmt) throws SQLException {
         CatalogoMagazzino.popolaTabellaIngredienti(conn, stmt);
 
         boolean emergenzeVuote = true;
@@ -234,7 +229,7 @@ public final class SchemaDatabase {
             }
         }
         if (utentiVuoti) {
-            String insertUsersSql = (isMySql ? "INSERT IGNORE INTO " : "INSERT OR IGNORE INTO ")
+            String insertUsersSql = "INSERT IGNORE INTO "
                     + "utenti (email, nome, cognome, password, ruolo) VALUES "
                     + "('maestro@frostly.it', 'Stefania', 'Guga', 'admin123', 'MAESTRO_GELATAIO'),"
                     + "('mario@frostly.it', 'Mario', 'Rossi', 'pass123', 'DIPENDENTE'),"
@@ -244,8 +239,7 @@ public final class SchemaDatabase {
                     + "('marco@cliente.it', 'Marco', 'Fabbri', 'pass123', 'CLIENTE')";
             stmt.execute(insertUsersSql);
         } else {
-            // Assicura la presenza permanente dell'account Maestro Gelataio amministratore
-            String ensureMaestroSql = (isMySql ? "INSERT IGNORE INTO " : "INSERT OR IGNORE INTO ")
+            String ensureMaestroSql = "INSERT IGNORE INTO "
                     + "utenti (email, nome, cognome, password, ruolo) VALUES "
                     + "('maestro@frostly.it', 'Stefania', 'Guga', 'admin123', 'MAESTRO_GELATAIO')";
             stmt.execute(ensureMaestroSql);
@@ -258,7 +252,7 @@ public final class SchemaDatabase {
             }
         }
         if (turniVuoti) {
-            String insertTurniSql = (isMySql ? "INSERT IGNORE INTO " : "INSERT OR IGNORE INTO ")
+            String insertTurniSql = "INSERT IGNORE INTO "
                     + "turni (codice_turno, data_turno, ora_inizio, ora_fine, email_dipendente, stato) VALUES "
                     + "('TRN-01', 'Lunedi', '08:00', '14:00', 'mario@frostly.it', 'PUBBLICATO'),"
                     + "('TRN-02', 'Lunedi', '14:00', '20:00', 'giulia@frostly.it', 'PUBBLICATO'),"

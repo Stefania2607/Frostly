@@ -38,12 +38,6 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>8.3.0</version>
         </dependency>
-        <!-- Driver SQLite di fallback per esecuzione test senza MySQL -->
-        <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
-            <version>3.44.1.0</version>
-        </dependency>
         <!-- Generazione QR Code per scontrino fiscale digitale -->
         <dependency>
             <groupId>com.google.zxing</groupId>

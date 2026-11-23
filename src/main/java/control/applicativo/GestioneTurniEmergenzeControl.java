@@ -9,6 +9,7 @@ import dao.TurnoDAO;
 import dao.UtenteDAO;
 import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
+import frostly.exception.RisorsaNonTrovataException;
 import frostly.exception.TurnoNonDisponibileException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -69,7 +70,7 @@ public class GestioneTurniEmergenzeControl {
         List<Turno> turniEsistenti = turnoDao.caricaTuttiTurni();
         Dipendente dipendente = utenteDao.trovaDipendentePerEmail(beanInput.getEmailDipendente());
         if (dipendente == null) {
-            throw new DatiNonValidiException("Dipendente non trovato con email: " + beanInput.getEmailDipendente());
+            throw new RisorsaNonTrovataException("Dipendente non trovato con email: " + beanInput.getEmailDipendente());
         }
 
         if (!dipendente.isDisponibile(beanInput.getData(), beanInput.getOraInizio(), beanInput.getOraFine())
@@ -117,7 +118,7 @@ public class GestioneTurniEmergenzeControl {
             }
         }
         if (turnoCoinvolto == null) {
-            throw new DatiNonValidiException("Turno non trovato: " + beanInput.getCodiceTurno());
+            throw new RisorsaNonTrovataException("Turno non trovato: " + beanInput.getCodiceTurno());
         }
 
         turnoCoinvolto.dichiaraEmergenza();
@@ -277,13 +278,13 @@ public class GestioneTurniEmergenzeControl {
         return String.format("EMG-%02d", max + 1);
     }
 
-    private Emergenza trovaEmergenzaEntity(String codiceEmergenza) throws DatiNonValidiException {
+    private Emergenza trovaEmergenzaEntity(String codiceEmergenza) throws RisorsaNonTrovataException {
         for (Emergenza e : emergenzaDao.caricaTutteEmergenze()) {
             if (e.getCodiceEmergenza().equalsIgnoreCase(codiceEmergenza)) {
                 return e;
             }
         }
-        throw new DatiNonValidiException("Emergenza non trovata: " + codiceEmergenza);
+        throw new RisorsaNonTrovataException("Emergenza non trovata: " + codiceEmergenza);
     }
 
     private TurnoBean convertiTurnoInBean(Turno t) {

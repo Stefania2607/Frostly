@@ -11,7 +11,7 @@ import model.OrdineCliente;
  */
 public class OrdineDAOMemory implements OrdineDAO {
 
-    private final ArchivioMemoria archivio = ArchivioMemoria.getInstance();
+    private final ArchivioMemoria archivio = ArchivioMemoria.getDemoInstance();
 
     @Override
     public List<OrdineCliente> caricaTuttiOrdini() {

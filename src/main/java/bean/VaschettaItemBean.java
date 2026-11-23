@@ -18,7 +18,6 @@ public class VaschettaItemBean {
     private int quantita = 1;
 
     public VaschettaItemBean() {
-        // Costruttore JavaBean standard
     }
 
     public VaschettaItemBean(double pesoKg, List<String> gusti, boolean conPanna, boolean conGranellaBronte,

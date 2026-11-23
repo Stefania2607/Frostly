@@ -14,6 +14,7 @@ public class OrdineBean {
     private String emailCliente;
     private String nomeCliente;
     private String nomeGusto;
+    private final List<String> nomiGusti = new ArrayList<>();
     private double pesoKg;
     private String dataRitiro;
     private boolean conPanna;
@@ -75,11 +76,37 @@ public class OrdineBean {
         return nomeGusto;
     }
 
+    public List<String> getNomiGusti() {
+        return nomiGusti;
+    }
+
+    public void setNomiGusti(List<String> nomiGusti) throws DatiNonValidiException {
+        this.nomiGusti.clear();
+        if (nomiGusti != null) {
+            for (String ng : nomiGusti) {
+                if (ng != null && !ng.trim().isEmpty()) {
+                    this.nomiGusti.add(ng.trim());
+                }
+            }
+        }
+        if (this.nomiGusti.isEmpty()) {
+            throw new DatiNonValidiException("Selezionare almeno un gusto dal menu.");
+        }
+        this.nomeGusto = String.join(", ", this.nomiGusti);
+    }
+
     public void setNomeGusto(String nomeGusto) throws DatiNonValidiException {
         if (nomeGusto == null || nomeGusto.trim().isEmpty()) {
             throw new DatiNonValidiException("Selezionare un gusto dal menu.");
         }
         this.nomeGusto = nomeGusto.trim();
+        this.nomiGusti.clear();
+        for (String parte : this.nomeGusto.split(",")) {
+            String pulito = parte.trim();
+            if (!pulito.isEmpty()) {
+                this.nomiGusti.add(pulito);
+            }
+        }
     }
 
     public double getPesoKg() {

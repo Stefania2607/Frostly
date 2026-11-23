@@ -5,7 +5,7 @@ package model;
  */
 public class ConGranellaBronteDecorator extends ExtraVaschettaDecorator {
 
-    private static final double SUPPLEMENTO_GRANELLA = 3.50;
+    public static final double SUPPLEMENTO_GRANELLA = 3.50;
 
     public ConGranellaBronteDecorator(VaschettaComponent componenteDecorato) {
         super(componenteDecorato);
