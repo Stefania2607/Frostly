@@ -1,15 +1,19 @@
 package bean;
 
 import frostly.exception.DatiNonValidiException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Bean per il trasporto e la validazione sintattica dei dati di consegna o ritiro.
  */
 public class DatiConsegnaBean {
 
-    private static final String PATTERN_TOPONIMI_ITALIANI =
-            "^(?i)(via|viale|piazza|piazzale|corso|largo|vicolo|lungotevere|lungomare|strada|salita|discesa|"
-            + "circonvallazione|borgo|contrada|localit[aà]|monte|ponte|traversa|rampa|clivo|passeggiata|parco)\\.?\\s+.*";
+    private static final Pattern PATTERN_TOPONIMI_ITALIANI = Pattern.compile(
+            "^(?iu)(via|viale|piazza|piazzale|corso|largo|vicolo|lungotevere|lungomare|strada|salita|discesa|"
+            + "circonvallazione|borgo|contrada|localit[aà]|monte|ponte|traversa|rampa|clivo|passeggiata|parco)\\.?\\s+");
+    private static final Pattern PATTERN_NOME_VIA = Pattern.compile("[A-Za-zÀ-ÖØ-öø-ÿ]{2,}");
+    private static final Pattern PATTERN_CIVICO = Pattern.compile("\\b\\d{1,5}(?:/?[A-Za-z])?\\b");
 
     public enum TipoConsegna {
         DOMICILIO("🛵 Consegna a Domicilio"),
@@ -72,14 +76,15 @@ public class DatiConsegnaBean {
             throw new DatiNonValidiException("Inserisci un indirizzo completo (es. Via del Corso 124).");
         }
         String ind = indirizzoRaw.trim().replaceAll("\\s+", " ");
-        if (!ind.matches(PATTERN_TOPONIMI_ITALIANI)) {
+        Matcher mToponimo = PATTERN_TOPONIMI_ITALIANI.matcher(ind);
+        if (!mToponimo.find()) {
             throw new DatiNonValidiException("L'indirizzo deve iniziare con un toponimo valido (Via, Viale, Piazza, Corso, Largo, Vicolo, Monte, Strada, ecc.).");
         }
-        String resto = ind.replaceFirst("(?i)^[a-zà]+\\.?\\s+", "").trim();
-        if (!resto.matches(".*[A-Za-zÀ-ÖØ-öø-ÿ]{2,}.*")) {
+        String resto = ind.substring(mToponimo.end()).trim();
+        if (!PATTERN_NOME_VIA.matcher(resto).find()) {
             throw new DatiNonValidiException("Inserisci il nome completo della via o piazza dopo il toponimo (es. Via Roma 12).");
         }
-        if (!resto.matches(".*\\b\\d{1,5}(?:/?[A-Za-z])?\\b.*")) {
+        if (!PATTERN_CIVICO.matcher(resto).find()) {
             throw new DatiNonValidiException("Il numero civico è obbligatorio nell'indirizzo (es. Via del Corso 124).");
         }
     }

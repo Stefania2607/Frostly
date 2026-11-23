@@ -21,7 +21,7 @@ import model.StatoRichiesta;
  */
 public class StatisticheControl {
 
-    private static final Pattern PATTERN_QTA = Pattern.compile("^(\\d+)x\\s+(.+)$");
+    private static final Pattern PATTERN_QTA = Pattern.compile("^(\\d+)x\\s+(\\S.*)$");
 
     private final OrdineDAO ordineDAO;
     private final IngredienteDAO ingredienteDAO;

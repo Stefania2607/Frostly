@@ -378,7 +378,7 @@ public class OrdiniControl {
                 String s = seg.trim();
                 if (s.isEmpty()) continue;
                 int qty = 1;
-                java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d+)x\\s+(.+)$").matcher(s);
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d+)x\\s+(\\S.*)$").matcher(s);
                 if (m.matches()) {
                     qty = Integer.parseInt(m.group(1));
                     s = m.group(2).trim();

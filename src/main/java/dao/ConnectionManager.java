@@ -3,6 +3,9 @@ package dao;
 import frostly.exception.FrostlyException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -49,9 +52,22 @@ public class ConnectionManager {
             throw new FrostlyException("Impossibile leggere il file db.properties.", e);
         }
 
+        // Eventuali credenziali locali (non versionate) sovrascrivono db.properties
+        Path localProps = Paths.get("db.local.properties");
+        if (Files.exists(localProps)) {
+            try (InputStream localIn = Files.newInputStream(localProps)) {
+                props.load(localIn);
+            } catch (IOException ignored) {
+                // Prosegue con i valori di db.properties
+            }
+        }
+
         String url = props.getProperty("db.url");
         String user = props.getProperty("db.user");
-        String pwd = props.getProperty("db.password");
+        String pwd = System.getenv("FROSTLY_DB_PASSWORD");
+        if (pwd == null || pwd.isEmpty()) {
+            pwd = props.getProperty("db.password", "");
+        }
 
         if (url == null || url.trim().isEmpty()) {
             throw new FrostlyException("Configurazione database mancante: impostare 'db.url' in db.properties.");
