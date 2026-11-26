@@ -232,4 +232,39 @@ class TurniFlessibiliTest {
                 LUNEDI_W1, p.getTurniProposti(), cov, 60);
         assertTrue(check.dettagliScoperture().stream().anyMatch(s -> s.contains("CHIUSURA")));
     }
+
+    @Test
+    void test21_TurniFlessibiliRispettanoFasceAbilitateNoMattinaPerChiFaSoloSera() throws Exception {
+        DisponibilitaDipendente soloSera = DisponibilitaDipendente.tuttoDisponibile();
+        // Abilitata solo a Pom./Sera (16:00-00:00, idx 2) e Serale (20:00-00:00, idx 3): NO mattina!
+        soloSera.setFasceAbilitate(java.util.Set.of(2, 3));
+
+        // Un turno flessibile 11:00-19:00 deve essere RIFIUTATO
+        assertNotNull(soloSera.verificaCompatibilita(LUNEDI_W1, "11:00", "19:00"));
+        assertNotNull(soloSera.verificaCompatibilita(LUNEDI_W1, "09:00", "17:00"));
+        // Un turno flessibile dentro 16:00-00:00 deve essere CONSENTITO
+        assertNull(soloSera.verificaCompatibilita(LUNEDI_W1, "16:00", "22:00"));
+        assertNull(soloSera.verificaCompatibilita(LUNEDI_W1, "18:00", "00:00"));
+
+        Dipendente leila = creaStaff("Leila", "Bho", "leila@frostly.it",
+                ConfigurazioneOreDipendente.intervallo(20, 40), soloSera, 5);
+        Dipendente carmen = creaStaff("Carmen", "Test", "carmen@frostly.it",
+                ConfigurazioneOreDipendente.oreFisse(40), DisponibilitaDipendente.tuttoDisponibile(), 6);
+
+        ConfigurazioneGenerazioneTurni cfg = new ConfigurazioneGenerazioneTurni(
+                ModalitaGenerazione.INTERA_SETTIMANA, PrioritaOttimizzazione.COPERTURA_PRIORITARIA);
+        cfg.setTipoGenerazione(TipoGenerazione.FLESSIBILE);
+
+        PropostaTurniSettimanaBean p = MotoreTurniFlessibili.generaPropostaFlessibile(
+                LUNEDI_W1, List.of(leila, carmen), List.of(),
+                ConfigurazioneCoperturaFlessibile.predefinita(), cfg);
+
+        for (TurnoBean tb : p.getTurniProposti()) {
+            if ("leila@frostly.it".equalsIgnoreCase(tb.getEmailDipendente())) {
+                assertTrue(tb.getOraInizio().compareTo("16:00") >= 0,
+                        "Leila abilitata solo Pom./Sera non deve mai iniziare prima delle 16:00, trovato: "
+                                + tb.getOraInizio() + "-" + tb.getOraFine());
+            }
+        }
+    }
 }

@@ -155,6 +155,44 @@ public class DisponibilitaDipendente {
         };
     }
 
+    private boolean intervalloCopertoDaFasceAbilitate(int startMin, int endMin) {
+        if (fasceAbilitate.isEmpty() || endMin <= startMin) {
+            return false;
+        }
+        int[][] limitiFasce = {
+            {7 * 60, 14 * 60},   // 0: Mattina 07:00-14:00
+            {14 * 60, 20 * 60},  // 1: Pomeriggio 14:00-20:00
+            {16 * 60, 24 * 60},  // 2: Pom./Sera 16:00-00:00
+            {20 * 60, 24 * 60},  // 3: Serale 20:00-00:00
+            {10 * 60, 18 * 60}   // 4: Extra Weekend 10:00-18:00
+        };
+        java.util.List<int[]> attivi = new java.util.ArrayList<>();
+        for (Integer idx : fasceAbilitate) {
+            if (idx != null && idx >= 0 && idx < limitiFasce.length) {
+                attivi.add(limitiFasce[idx]);
+            }
+        }
+        if (attivi.isEmpty()) {
+            return false;
+        }
+        attivi.sort((a, b) -> Integer.compare(a[0], b[0]));
+
+        int copertoFino = startMin;
+        for (int[] iv : attivi) {
+            if (iv[1] <= copertoFino) {
+                continue;
+            }
+            if (iv[0] > copertoFino) {
+                return false;
+            }
+            copertoFino = Math.max(copertoFino, iv[1]);
+            if (copertoFino >= endMin) {
+                return true;
+            }
+        }
+        return copertoFino >= endMin;
+    }
+
     /**
      * Valuta le preferenze non vincolanti (soft): true se il turno rispetta la preferenza
      * del giorno o se non e' espressa alcuna preferenza specifica.
@@ -202,16 +240,23 @@ public class DisponibilitaDipendente {
             return "Indisponibile nella data specifica " + data.format(IT_DATE);
         }
 
-        // Verifica abilitazione sulla fascia del catalogo (es. nuovo assunto non abilitato al pomeriggio pieno)
-        int idxFascia = identificaIndiceFascia(oraInizio, oraFine);
-        if (idxFascia >= 0 && !fasceAbilitate.contains(idxFascia)) {
-            return "Non abilitato alla fascia " + nomeFasciaCatalogo(idxFascia);
-        }
-
         int startMin = parseMinuti(oraInizio);
         int endMin = parseMinuti(oraFine);
         if (endMin <= startMin) {
             endMin += 24 * 60;
+        }
+
+        // Verifica abilitazione sulle fasce del catalogo:
+        // - per turni esatti del catalogo controlla la fascia specifica;
+        // - per turni flessibili/personalizzati verifica che l'intero intervallo ricada
+        //   nell'unione delle fasce orarie abilitate del dipendente.
+        int idxFascia = identificaIndiceFascia(oraInizio, oraFine);
+        if (idxFascia >= 0) {
+            if (!fasceAbilitate.contains(idxFascia)) {
+                return "Non abilitato alla fascia " + nomeFasciaCatalogo(idxFascia);
+            }
+        } else if (fasceAbilitate.size() < 5 && !intervalloCopertoDaFasceAbilitate(startMin, endMin)) {
+            return "Turno " + oraInizio + "–" + oraFine + " fuori dalle fasce orarie abilitate";
         }
         if (maxTurniLunghiSettimana != null && maxTurniLunghiSettimana == 0 && (endMin - startMin) >= 8 * 60) {
             return "Abilitato solo a turni corti (< 8 h)";

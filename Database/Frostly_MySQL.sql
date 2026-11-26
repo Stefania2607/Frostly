@@ -23,7 +23,16 @@ CREATE TABLE utenti (
     nome VARCHAR(50) NOT NULL,
     cognome VARCHAR(50) NOT NULL,
     password VARCHAR(64) NOT NULL,
-    ruolo VARCHAR(30) NOT NULL
+    ruolo VARCHAR(30) NOT NULL,
+    modalita_ore VARCHAR(24),
+    ore_minime DOUBLE,
+    ore_massime DOUBLE,
+    tolleranza_sotto DOUBLE DEFAULT 0,
+    tolleranza_sopra DOUBLE DEFAULT 0,
+    mansioni VARCHAR(120) DEFAULT 'BANCO',
+    attivo BOOLEAN DEFAULT TRUE,
+    max_turni_settimanali INT,
+    disponibilita_config VARCHAR(1000)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO utenti (email, nome, cognome, password, ruolo) VALUES
@@ -44,13 +53,45 @@ CREATE TABLE turni (
     ora_inizio VARCHAR(10) NOT NULL,
     ora_fine VARCHAR(10) NOT NULL,
     email_dipendente VARCHAR(64) NOT NULL,
-    stato VARCHAR(20) NOT NULL
+    stato VARCHAR(20) NOT NULL,
+    bloccato BOOLEAN NOT NULL DEFAULT FALSE,
+    generato_auto BOOLEAN NOT NULL DEFAULT FALSE,
+    personalizzato BOOLEAN NOT NULL DEFAULT FALSE,
+    pausa_minuti INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO turni (codice_turno, data_turno, ora_inizio, ora_fine, email_dipendente, stato) VALUES
 ('TRN-01', 'Lunedi', '08:00', '14:00', 'mario@frostly.it', 'PUBBLICATO'),
 ('TRN-02', 'Lunedi', '14:00', '20:00', 'giulia@frostly.it', 'PUBBLICATO'),
 ('TRN-03', 'Martedi', '08:00', '14:00', 'mario@frostly.it', 'IN_EMERGENZA');
+
+-- ----------------------------------------------------------
+-- 2B. TABELLA: fabbisogni_turni
+-- ----------------------------------------------------------
+DROP TABLE IF EXISTS fabbisogni_turni;
+CREATE TABLE fabbisogni_turni (
+    chiave VARCHAR(16) PRIMARY KEY,
+    giorno INT NOT NULL,
+    indice_fascia INT NOT NULL,
+    totale_richiesto INT NOT NULL,
+    min_banco INT NOT NULL DEFAULT 0,
+    min_laboratorio INT NOT NULL DEFAULT 0,
+    min_responsabile INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------------------------------------
+-- 2C. TABELLA: richieste_indisponibilita
+-- ----------------------------------------------------------
+DROP TABLE IF EXISTS richieste_indisponibilita;
+CREATE TABLE richieste_indisponibilita (
+    codice_richiesta VARCHAR(32) PRIMARY KEY,
+    email_dipendente VARCHAR(64) NOT NULL,
+    nome_dipendente VARCHAR(100) NOT NULL,
+    data_richiesta VARCHAR(20) NOT NULL,
+    motivazione VARCHAR(255) NOT NULL,
+    stato VARCHAR(20) NOT NULL,
+    nota_maestro VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------
 -- 3. TABELLA: emergenze
@@ -348,7 +389,8 @@ CREATE TABLE recensioni (
     data_ora VARCHAR(32) NOT NULL,
     risposta_maestro VARCHAR(1000),
     data_risposta VARCHAR(32),
-    mi_piace INT NOT NULL DEFAULT 0
+    mi_piace INT NOT NULL DEFAULT 0,
+    foto_path VARCHAR(500)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO recensioni (codice_recensione, autore_email, autore_nome, voto_stelle, titolo, commento, data_ora, risposta_maestro, data_risposta, mi_piace) VALUES
@@ -381,10 +423,10 @@ CREATE TABLE ordini_clienti (
     email_cliente VARCHAR(64) NOT NULL,
     gusto_principale VARCHAR(128),
     peso_kg DOUBLE NOT NULL,
-    data_ritiro VARCHAR(128) NOT NULL,
+    data_ritiro VARCHAR(512) NOT NULL,
     stato VARCHAR(20) NOT NULL,
     prezzo_totale DOUBLE NOT NULL,
-    descrizione_dettagliata VARCHAR(1000) NOT NULL
+    descrizione_dettagliata VARCHAR(2000) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------
@@ -396,6 +438,20 @@ CREATE TABLE notifiche_utenti (
     titolo VARCHAR(128) NOT NULL,
     messaggio VARCHAR(1000) NOT NULL,
     timestamp_notifica VARCHAR(64) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------------------------------------
+-- 10. TABELLA: pagamenti
+-- ----------------------------------------------------------
+DROP TABLE IF EXISTS pagamenti;
+CREATE TABLE pagamenti (
+    codice_transazione VARCHAR(64) PRIMARY KEY,
+    email_cliente VARCHAR(64) NOT NULL,
+    importo DOUBLE NOT NULL,
+    data_ora VARCHAR(32) NOT NULL,
+    stato VARCHAR(20) NOT NULL,
+    carta_mascherata VARCHAR(30) NOT NULL,
+    modalita_consegna VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

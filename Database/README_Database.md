@@ -1,59 +1,48 @@
-# 🗄️ Frostly — Documentazione & Dump del Database
+# Frostly — Documentazione & Dump del Database (MySQL 8.0+)
 
-Questa cartella contiene gli script DDL e DML completi per il popolamento e l'inizializzazione del database relazionale dell'applicazione **Frostly**, strutturati secondo i requisiti del progetto di Ingegneria del Software (conformità RouteX).
-
----
-
-## 📂 File Presenti
-
-1. **`Frostly_MySQL.sql`**  
-   Script SQL ottimizzato per **MySQL Server 8.0+** / **MySQL Workbench**:
-   * Creazione automatica del database `frostly_db` con codifica `utf8mb4`.
-   * Motore transazionale `ENGINE=InnoDB`.
-   * Reset (`DROP TABLE IF EXISTS`), definizione vincoli di chiave primaria e indici.
-   * `INSERT INTO` complete di tutti gli utenti, turni, emergenze, 106 materie prime di magazzino, 128 prodotti del menu/vetrina e recensioni verificate.
-
-2. **`Frostly_SQLite.sql`**  
-   Script SQL compatibile al 100% con **SQLite 3** per esecuzione immediata locale:
-   ```bash
-   sqlite3 frostly_db.sqlite < Frostly_SQLite.sql
-   ```
+Questa cartella contiene lo script DDL e DML completo per l'inizializzazione del database relazionale **MySQL** dell'applicazione **Frostly**, allineato a `SchemaDatabase.java` e ai requisiti del corso ISPW (persistenza **FULL su MySQL**, alternativa **DEMO in-memory** e **FileSystem CSV** per `TurnoDAO`).
 
 ---
 
-## 📑 Struttura delle Tabelle (Schema Relazionale)
+## File Presente
+
+- **`Frostly_MySQL.sql`**: script SQL ottimizzato per **MySQL Server 8.0+** / **MySQL Workbench**:
+  - Creazione del database `frostly_db` con codifica `utf8mb4`.
+  - Motore transazionale `ENGINE=InnoDB`.
+  - Tutte le 12 tabelle relazionali (inclusi monte ore, limite turni settimanali, disponibilità, turni flessibili con pausa, fabbisogni, richieste indisponibilità e pagamenti).
+  - Popolamento iniziale completo (utenti, turni, emergenze, materie prime di magazzino, prodotti della vetrina e recensioni).
+
+---
+
+## Struttura delle Tabelle (Schema Relazionale)
 
 | Tabella | Descrizione | Chiave Primaria |
-|---|---|---|
-| **`utenti`** | Account di sistema (Maestro Gelataio, Dipendenti, Clienti) | `email` |
-| **`turni`** | Pianificazione oraria settimanale dello staff | `codice_turno` |
-| **`emergenze`** | Segnalazioni di malattia/indisposizione e richieste di sostituzione turno | `codice_emergenza` |
-| **`ingredienti`** | Dispensa e magazzino con giacenze, soglie minime, unità di misura e macro-categorie | `nome` |
-| **`menu_gusti`** | Prodotti della vetrina (Gelati, Crepes, Crostate, Cioccolate, Bevande, Caffetteria, Biscotti, Tè) con prezzi al Kg/porzione | `nome_gusto` |
-| **`recensioni`** | Recensioni clienti con punteggio in stelle, gradimento ("Utile") e risposte ufficiali del Maestro | `codice_recensione` |
-| **`richieste_gusto`** | Modulo cliente per proporre nuovi gusti personalizzati al Maestro | `codice_richiesta` |
-| **`ordini_clienti`** | Storico ordini asporto e delivery con dettaglio articoli composti e stato evasione | `codice_ordine` |
-| **`notifiche_utenti`** | Registro avvisi e comunicazioni push dello staff e della clientela | `timestamp_notifica` + `email_destinatario` |
+| :--- | :--- | :--- |
+| **`utenti`** | Account (Maestro, Dipendenti, Clienti), monte ore, mansioni, stato attivo, limite max turni e disponibilità | `email` |
+| **`turni`** | Pianificazione settimanale staff (turni standard, bloccati, automatici, flessibili personalizzati e pausa) | `codice_turno` |
+| **`fabbisogni_turni`** | Fabbisogno minimo di personale e mansioni per giorno e fascia | `chiave` |
+| **`richieste_indisponibilita`** | Richieste di ferie/permessi inviate dai dipendenti con approvazione del Maestro | `codice_richiesta` |
+| **`emergenze`** | Segnalazioni di indisposizione su turno e richieste di sostituzione | `codice_emergenza` |
+| **`ingredienti`** | Dispensa e magazzino con giacenze, soglie minime, unità di misura e categoria | `nome` |
+| **`menu_gusti`** | Catalogo vetrina (Gelati, Crepes, Crostate, Cioccolate, Bevande, Caffetteria, Biscotti, Tè/Tisane) | `nome_gusto` |
+| **`recensioni`** | Recensioni clienti con stelle, foto opzionale, gradimento e risposta del Maestro | `codice_recensione` |
+| **`richieste_gusto`** | Proposte di nuovi gusti su misura inviate dai clienti al Maestro | `codice_richiesta` |
+| **`ordini_clienti`** | Ordini ritiro al banco e consegna a domicilio con dettaglio articoli e stato | `codice_ordine` |
+| **`notifiche_utenti`** | Registro cronologico avvisi e comunicazioni | `email_destinatario` + `timestamp_notifica` |
+| **`pagamenti`** | Transazioni di pagamento online con carta mascherata (solo ultime 4 cifre) | `codice_transazione` |
 
 ---
 
-## 🚀 Istruzioni di Importazione
+## Istruzioni di Importazione (Modalità FULL — MySQL)
 
-### Opzione A: MySQL Workbench (Modalità RouteX FULL)
-1. Apri **MySQL Workbench** e connettiti alla tua istanza locale (`localhost:3306`).
-2. Vai su **File** ➔ **Open SQL Script...** e seleziona `Database/Frostly_MySQL.sql`.
-3. Clicca sull'icona del **Fulmine ⚡** (*Execute*) per creare il database e importare tutte le tabelle e i dati.
-4. Nel file `db.properties` del progetto, assicurati che la connessione punti a:
+1. Apri **MySQL Workbench** (o DBeaver) e connettiti alla tua istanza MySQL (`localhost:3306`).
+2. Esegui lo script `Database/Frostly_MySQL.sql` (in alternativa `SchemaDatabase.java` crea e migra automaticamente tutte le tabelle al primo avvio dell'applicazione).
+3. Verifica la configurazione in `src/main/resources/db.properties`:
    ```properties
-   CONNECTION_URL=jdbc:mysql://localhost:3306/frostly_db
-   LOGIN_USER=root
-   LOGIN_PASS=tua_password
+   db.url=jdbc:mysql://localhost:3306/frostly_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+   db.user=root
+   db.password=
+   app.mode=FULL
+   turni.persistence=DBMS
    ```
-
-### Opzione B: SQLite (Auto-alimentato o tramite file)
-Frostly include già il supporto automatico:
-* Se avvii l'app normalmente, `SchemaDatabase.java` rileva e auto-inizializza `frostly_db.sqlite`.
-* Se preferisci ricrearlo da zero tramite lo script:
-  ```bash
-  sqlite3 frostly_db.sqlite < Database/Frostly_SQLite.sql
-  ```
+4. Inserisci la tua password locale in `db.local.properties` (file escluso da Git) oppure nella variabile d'ambiente `FROSTLY_DB_PASSWORD`.

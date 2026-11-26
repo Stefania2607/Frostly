@@ -302,48 +302,12 @@ public final class AnteprimaTurniView {
 
         VBox listaAttuali = new VBox(6);
         List<TurnoBean> listaProposti = new ArrayList<>(proposta.getTurniProposti());
-        List<TurnoBean> nellaCella = new ArrayList<>();
-        for (TurnoBean t : listaProposti) {
-            LocalDate d = CalcolatoreOreSettimanali.estraiDataTurno(t.getData(), proposta.getLunediSettimana());
-            if (d != null && d.equals(dataGiorno) && oraInizio.equals(t.getOraInizio()) && oraFine.equals(t.getOraFine())) {
-                nellaCella.add(t);
-            }
-        }
+        boolean isSettimanaCorrente = proposta.getLunediSettimana() != null
+                && proposta.getLunediSettimana().equals(LocalDate.now().with(java.time.DayOfWeek.MONDAY));
+        List<TurnoBean> nellaCella = TurniStaffView.filtraTurniPerCella(
+                listaProposti, indiceGiorno, dataGiorno, isSettimanaCorrente, indiceFascia, oraInizio, oraFine);
 
-        if (nellaCella.isEmpty()) {
-            Label vuoto = new Label("Nessun dipendente proposto in questa fascia.");
-            vuoto.setStyle("-fx-font-size: 12px; -fx-text-fill: #a89f92; -fx-font-style: italic;");
-            listaAttuali.getChildren().add(vuoto);
-        } else {
-            for (TurnoBean t : nellaCella) {
-                HBox riga = new HBox(8);
-                riga.setAlignment(Pos.CENTER_LEFT);
-                Label l = new Label((t.isBloccato() ? "🔒 " : "👤 ") + t.getNomeDipendente());
-                l.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
-                Region sp = new Region();
-                HBox.setHgrow(sp, Priority.ALWAYS);
-
-                Button btnLock = new Button(t.isBloccato() ? "Sblocca" : "🔒 Blocca");
-                btnLock.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-cursor: hand;");
-                btnLock.setOnAction(e -> {
-                    t.setBloccato(!t.isBloccato());
-                    PropostaTurniSettimanaBean agg = onRivaluta.apply(listaProposti);
-                    onAggiorna.accept(agg);
-                    dlg.close();
-                });
-
-                Button btnRem = new Button("Rimuovi");
-                btnRem.setStyle("-fx-background-color: #7f1d1d; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-padding: 3 8; -fx-cursor: hand;");
-                btnRem.setOnAction(e -> {
-                    listaProposti.remove(t);
-                    PropostaTurniSettimanaBean agg = onRivaluta.apply(listaProposti);
-                    onAggiorna.accept(agg);
-                    dlg.close();
-                });
-                riga.getChildren().addAll(l, sp, btnLock, btnRem);
-                listaAttuali.getChildren().add(riga);
-            }
-        }
+        final TurnoBean[] turnoInModifica = {null};
 
         ComboBox<String> comboDip = new ComboBox<>();
         if (dipendenti != null) {
@@ -379,16 +343,114 @@ public final class AnteprimaTurniView {
         CheckBox chkBlocca = new CheckBox("🔒 Blocca questa assegnazione");
         chkBlocca.setStyle("-fx-text-fill: #f5ebe0; -fx-font-size: 12px;");
 
+        Label lblModoForm = new Label();
+        lblModoForm.setStyle("-fx-text-fill: #e5c99b; -fx-font-weight: bold; -fx-font-size: 11.5px;");
+        lblModoForm.setVisible(false);
+        lblModoForm.setManaged(false);
+
+        Label lblErrore = new Label();
+        lblErrore.setStyle("-fx-text-fill: #fca5a5; -fx-font-weight: bold; -fx-font-size: 11.5px;");
+        lblErrore.setVisible(false);
+        lblErrore.setManaged(false);
+
+        Button btnAnnullaMod = new Button("Annulla modifica");
+        btnAnnullaMod.setVisible(false);
+        btnAnnullaMod.setManaged(false);
+
+        Button btnAgg = new Button("+ Aggiungi alla proposta");
+        btnAgg.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
+
+        btnAnnullaMod.setOnAction(e -> {
+            turnoInModifica[0] = null;
+            comboDip.getSelectionModel().clearSelection();
+            txtInizioCustom.setText(oraInizio);
+            txtFineCustom.setText(oraFine);
+            txtPausaMin.setText("0");
+            chkBlocca.setSelected(false);
+            btnAgg.setText("+ Aggiungi alla proposta");
+            lblModoForm.setVisible(false);
+            lblModoForm.setManaged(false);
+            btnAnnullaMod.setVisible(false);
+            btnAnnullaMod.setManaged(false);
+            lblErrore.setVisible(false);
+            lblErrore.setManaged(false);
+        });
+
+        if (nellaCella.isEmpty()) {
+            Label vuoto = new Label("Nessun dipendente proposto in questa fascia.");
+            vuoto.setStyle("-fx-font-size: 12px; -fx-text-fill: #a89f92; -fx-font-style: italic;");
+            listaAttuali.getChildren().add(vuoto);
+        } else {
+            for (TurnoBean t : nellaCella) {
+                HBox riga = new HBox(8);
+                riga.setAlignment(Pos.CENTER_LEFT);
+                String orarioTurno = (t.getOraInizio() != null && t.getOraFine() != null)
+                        ? ("  (" + t.getOraInizio() + "–" + t.getOraFine()
+                           + (t.getPausaMinuti() > 0 ? ", pausa " + t.getPausaMinuti() + "m" : "") + ")")
+                        : "";
+                Label l = new Label((t.isBloccato() ? "🔒 " : "👤 ") + t.getNomeDipendente() + orarioTurno);
+                l.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;");
+                Region sp = new Region();
+                HBox.setHgrow(sp, Priority.ALWAYS);
+
+                Button btnMod = new Button("Modifica");
+                btnMod.setStyle("-fx-background-color: #764c86; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 9; -fx-cursor: hand;");
+                btnMod.setOnAction(e -> {
+                    turnoInModifica[0] = t;
+                    for (String item : comboDip.getItems()) {
+                        if (t.getEmailDipendente() != null
+                                && item.toLowerCase().startsWith(t.getEmailDipendente().toLowerCase() + " — ")) {
+                            comboDip.setValue(item);
+                            break;
+                        }
+                    }
+                    txtInizioCustom.setText(t.getOraInizio() != null ? t.getOraInizio() : oraInizio);
+                    txtFineCustom.setText(t.getOraFine() != null ? t.getOraFine() : oraFine);
+                    txtPausaMin.setText(String.valueOf(Math.max(0, t.getPausaMinuti())));
+                    chkBlocca.setSelected(t.isBloccato());
+                    lblModoForm.setText("✏ Modifica in corso: " + t.getNomeDipendente() + orarioTurno);
+                    lblModoForm.setVisible(true);
+                    lblModoForm.setManaged(true);
+                    btnAnnullaMod.setVisible(true);
+                    btnAnnullaMod.setManaged(true);
+                    btnAgg.setText("✔ Salva modifica");
+                    lblErrore.setVisible(false);
+                    lblErrore.setManaged(false);
+                });
+
+                Button btnLock = new Button(t.isBloccato() ? "Sblocca" : "🔒 Blocca");
+                btnLock.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-cursor: hand;");
+                btnLock.setOnAction(e -> {
+                    t.setBloccato(!t.isBloccato());
+                    PropostaTurniSettimanaBean agg = onRivaluta.apply(listaProposti);
+                    onAggiorna.accept(agg);
+                    dlg.close();
+                });
+
+                Button btnRem = new Button("Rimuovi");
+                btnRem.setStyle("-fx-background-color: #7f1d1d; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-padding: 3 8; -fx-cursor: hand;");
+                btnRem.setOnAction(e -> {
+                    listaProposti.remove(t);
+                    PropostaTurniSettimanaBean agg = onRivaluta.apply(listaProposti);
+                    onAggiorna.accept(agg);
+                    dlg.close();
+                });
+                riga.getChildren().addAll(l, sp, btnMod, btnLock, btnRem);
+                listaAttuali.getChildren().add(riga);
+            }
+        }
+
         HBox az = new HBox(8);
         az.setAlignment(Pos.CENTER_RIGHT);
         Button btnChiudi = new Button("Chiudi");
         btnChiudi.setOnAction(e -> dlg.close());
 
-        Button btnAgg = new Button("+ Aggiungi alla proposta");
-        btnAgg.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
         btnAgg.setOnAction(e -> {
             String sel = comboDip.getValue();
             if (sel == null || sel.isBlank()) {
+                lblErrore.setText("Seleziona un dipendente.");
+                lblErrore.setVisible(true);
+                lblErrore.setManaged(true);
                 return;
             }
             String email = sel.split(" — ")[0].trim();
@@ -404,31 +466,39 @@ public final class AnteprimaTurniView {
             } catch (Exception ignored) {
                 pausa = 0;
             }
-            TurnoBean nuovo = new TurnoBean();
-            nuovo.setCodiceTurno("TMP-" + System.nanoTime());
+
+            TurnoBean target = turnoInModifica[0] != null ? turnoInModifica[0] : new TurnoBean();
+            if (turnoInModifica[0] == null) {
+                target.setCodiceTurno("TMP-" + System.nanoTime());
+            }
             try {
-                nuovo.setData(chiaveData);
-                nuovo.setOraInizio(ini);
-                nuovo.setOraFine(fin);
-                nuovo.setEmailDipendente(dip.getEmail());
+                target.setData(chiaveData);
+                target.setOraInizio(ini);
+                target.setOraFine(fin);
+                target.setEmailDipendente(dip.getEmail());
             } catch (Exception ex) {
+                lblErrore.setText("Orario non valido: usa il formato HH:mm (es. 09:00, 17:30).");
+                lblErrore.setVisible(true);
+                lblErrore.setManaged(true);
                 return;
             }
-            nuovo.setNomeDipendente(dip.getNome() + " " + dip.getCognome());
-            nuovo.setStato("PIANIFICATO");
-            nuovo.setBloccato(chkBlocca.isSelected());
-            nuovo.setGeneratoAutomaticamente(false);
-            nuovo.setPersonalizzato(model.DisponibilitaDipendente.identificaIndiceFascia(ini, fin) < 0);
-            nuovo.setPausaMinuti(pausa);
-            listaProposti.add(nuovo);
+            target.setNomeDipendente(dip.getNome() + " " + dip.getCognome());
+            target.setStato("PIANIFICATO");
+            target.setBloccato(chkBlocca.isSelected());
+            target.setGeneratoAutomaticamente(false);
+            target.setPersonalizzato(model.DisponibilitaDipendente.identificaIndiceFascia(ini, fin) < 0);
+            target.setPausaMinuti(pausa);
+            if (turnoInModifica[0] == null) {
+                listaProposti.add(target);
+            }
 
             PropostaTurniSettimanaBean agg = onRivaluta.apply(listaProposti);
             onAggiorna.accept(agg);
             dlg.close();
         });
-        az.getChildren().addAll(btnChiudi, btnAgg);
+        az.getChildren().addAll(btnAnnullaMod, btnChiudi, btnAgg);
 
-        box.getChildren().addAll(lblTit, listaAttuali, comboDip, rigaOrariCustom, chkBlocca, az);
+        box.getChildren().addAll(lblTit, listaAttuali, lblModoForm, comboDip, rigaOrariCustom, chkBlocca, lblErrore, az);
         Scene dlgScene = new Scene(box);
         dlg.setScene(dlgScene);
         TemaProvenzaHelper.applicaSeGui2(dlgScene);
