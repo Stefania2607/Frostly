@@ -51,4 +51,30 @@ public class UtenteDAOMemory implements UtenteDAO {
             throws FrostlyException {
         archivio.registraNuovoUtente(nome, cognome, email, password, ruolo);
     }
+
+    @Override
+    public void aggiornaConfigurazioneDipendente(String email,
+                                                 model.ConfigurazioneOreDipendente configurazioneOre,
+                                                 model.DisponibilitaDipendente disponibilita) {
+        archivio.aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita);
+    }
+
+    @Override
+    public void aggiornaConfigurazioneDipendente(String email,
+                                                 model.ConfigurazioneOreDipendente configurazioneOre,
+                                                 model.DisponibilitaDipendente disponibilita,
+                                                 java.util.Set<model.MansioneDipendente> mansioni,
+                                                 Boolean attivo) {
+        archivio.aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita, mansioni, attivo);
+    }
+
+    @Override
+    public void aggiornaConfigurazioneDipendente(String email,
+                                                 model.ConfigurazioneOreDipendente configurazioneOre,
+                                                 model.DisponibilitaDipendente disponibilita,
+                                                 java.util.Set<model.MansioneDipendente> mansioni,
+                                                 Boolean attivo,
+                                                 Integer maxTurniSettimanali) {
+        archivio.aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita, mansioni, attivo, maxTurniSettimanali);
+    }
 }

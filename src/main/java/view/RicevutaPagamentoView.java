@@ -70,6 +70,7 @@ public final class RicevutaPagamentoView {
         Scene scene = new Scene(contenitore, larghezza, altezza);
         scene.setFill(Color.web("#121114"));
         dialog.setScene(scene);
+        TemaProvenzaHelper.applicaSeGui2(dialog.getScene());
         dialog.centerOnScreen();
 
         Label lblStatoLive = (Label) vistaElaborazione.getUserData();

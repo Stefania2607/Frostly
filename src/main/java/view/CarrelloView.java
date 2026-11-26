@@ -37,6 +37,15 @@ public final class CarrelloView {
         btnCarrello.setMinWidth(Region.USE_PREF_SIZE);
         String labelProdotti = n == 1 ? "1 prodotto" : (n + " prodotti");
         btnCarrello.setText(String.format(Locale.US, "🛒 Vedi Carrello (%s • EUR %.2f)", labelProdotti, tot));
+        boolean provenza = RecensioniView.isTemaSalottoChiaro(btnCarrello);
+        if (provenza) {
+            if (n > 0) {
+                btnCarrello.setStyle("-fx-background-color: linear-gradient(to right, #9366a0, #5e316f); -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 22; -fx-padding: 7 16; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(118,76,134,0.42), 10, 0, 0, 3);");
+            } else {
+                btnCarrello.setStyle("-fx-background-color: linear-gradient(to right, #8b6099, #6d427b); -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 22; -fx-padding: 7 16; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(118,76,134,0.22), 8, 0, 0, 2);");
+            }
+            return;
+        }
         if (n > 0) {
             btnCarrello.setStyle("-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 18; -fx-padding: 7 16; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(42,157,143,0.45), 10, 0, 0, 2);");
         } else {
@@ -282,6 +291,7 @@ public final class CarrelloView {
         Scene scene = new Scene(root);
         scene.setFill(javafx.scene.paint.Color.web("#121114"));
         popup.setScene(scene);
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.sizeToScene();
         popup.showAndWait();
 

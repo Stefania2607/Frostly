@@ -3,6 +3,13 @@ package view;
 import bean.RecensioneBean;
 import control.applicativo.RecensioniControl;
 import frostly.exception.FrostlyException;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.geometry.Pos;
@@ -12,10 +19,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -32,12 +43,163 @@ public final class RecensioniView {
     private RecensioniView() {
     }
 
+    private static final java.util.Map<String, Image> CACHE_IMMAGINI = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static Image caricaImmagineRecensione(String path) {
+        return caricaImmagineRidimensionata(path, 0, 0);
+    }
+
+    public static Image caricaImmagineRidimensionata(String path, double maxW, double maxH) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        String p = path.trim();
+        String cacheKey = p + "@" + (int) maxW + "x" + (int) maxH;
+        Image cached = CACHE_IMMAGINI.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        String uri = risolviUriImmagine(p);
+        if (uri == null) {
+            return null;
+        }
+        try {
+            Image img = (maxW > 0 && maxH > 0)
+                    ? new Image(uri, maxW, maxH, true, true, true)
+                    : new Image(uri, true);
+            if (!img.isError()) {
+                CACHE_IMMAGINI.put(cacheKey, img);
+                return img;
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+        return null;
+    }
+
+    private static String risolviUriImmagine(String p) {
+        if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("file:")) {
+            return p;
+        }
+        File f = new File(p);
+        if (f.exists() && f.isFile()) {
+            return f.toURI().toString();
+        }
+        File fRes = new File("src/main/resources", p);
+        if (fRes.exists() && fRes.isFile()) {
+            return fRes.toURI().toString();
+        }
+        URL resUrl = RecensioniView.class.getResource(p.startsWith("/") ? p : "/" + p);
+        return resUrl != null ? resUrl.toExternalForm() : null;
+    }
+
+    public static String scegliESalvaFotoRecensione(Window owner) {
+        FileChooser scelta = new FileChooser();
+        scelta.setTitle("Allega una foto alla tua recensione");
+        scelta.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                "Immagini (png, jpg, jpeg, gif)", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+        File file = scelta.showOpenDialog(owner);
+        if (file == null) {
+            return null;
+        }
+        try {
+            Path cartella = Paths.get("immagini_recensioni");
+            Files.createDirectories(cartella);
+            Path cartellaRes = Paths.get("src/main/resources/immagini_recensioni");
+            if (Files.exists(Paths.get("src/main/resources"))) {
+                Files.createDirectories(cartellaRes);
+            }
+            String pulito = file.getName().replaceAll("[^A-Za-z0-9._-]", "_");
+            String nomeUnivoco = System.currentTimeMillis() + "_" + pulito;
+            Path destinazione = cartella.resolve(nomeUnivoco);
+            Files.copy(file.toPath(), destinazione, StandardCopyOption.REPLACE_EXISTING);
+            if (Files.exists(cartellaRes)) {
+                Files.copy(destinazione, cartellaRes.resolve(nomeUnivoco), StandardCopyOption.REPLACE_EXISTING);
+            }
+            return "immagini_recensioni/" + nomeUnivoco;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static void apriLightboxFoto(Window owner, String fotoPath, String didascalia) {
+        Image img = caricaImmagineRecensione(fotoPath);
+        if (img == null) {
+            return;
+        }
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Frostly — Scatto dal Salotto");
+        if (owner != null) {
+            popup.initOwner(owner);
+        }
+
+        VBox root = new VBox(12);
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: #1B1E1C; -fx-padding: 18 22;");
+
+        HBox top = new HBox(10);
+        top.setAlignment(Pos.CENTER_LEFT);
+        Label lblCap = new Label(didascalia != null && !didascalia.isBlank() ? didascalia : "Scatto dal Salotto Frostly");
+        lblCap.setStyle("-fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-font-size: 16px; -fx-text-fill: #F7F4EE;");
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+        Button btnChiudi = new Button("✕ Chiudi");
+        btnChiudi.setStyle("-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: #F7F4EE; "
+                + "-fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 16; -fx-padding: 5 14; -fx-cursor: hand;");
+        btnChiudi.setOnAction(e -> popup.close());
+        top.getChildren().addAll(lblCap, sp, btnChiudi);
+
+        ImageView view = new ImageView(img);
+        view.setPreserveRatio(true);
+        view.setFitWidth(720);
+        view.setFitHeight(520);
+        view.setSmooth(true);
+
+        StackPane frame = new StackPane(view);
+        frame.setStyle("-fx-background-color: #111312; -fx-background-radius: 14; -fx-padding: 6;");
+
+        root.getChildren().addAll(top, frame);
+        popup.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
+        popup.showAndWait();
+    }
+
+    public static boolean isTemaSalottoChiaro(javafx.scene.Node node) {
+        if (util.SessionManager.getInstance().isGui2Attiva()) {
+            return true;
+        }
+        javafx.scene.Parent curr = (node instanceof javafx.scene.Parent p) ? p : (node != null ? node.getParent() : null);
+        while (curr != null) {
+            for (String sheet : curr.getStylesheets()) {
+                if (sheet != null && sheet.contains("style_gui2.css")) {
+                    return true;
+                }
+            }
+            curr = curr.getParent();
+        }
+        return false;
+    }
+
     public static VBox buildCardRecensione(RecensioneBean r,
                                            boolean isAutenticato,
                                            boolean isMaestro,
                                            Consumer<RecensioneBean> onMiPiace,
                                            Consumer<RecensioneBean> onRispondi,
                                            Runnable onRichiediLogin) {
+        return buildCardRecensione(r, isAutenticato, isMaestro, false, onMiPiace, onRispondi, onRichiediLogin);
+    }
+
+    public static VBox buildCardRecensione(RecensioneBean r,
+                                           boolean isAutenticato,
+                                           boolean isMaestro,
+                                           boolean temaChiaro,
+                                           Consumer<RecensioneBean> onMiPiace,
+                                           Consumer<RecensioneBean> onRispondi,
+                                           Runnable onRichiediLogin) {
+        if (temaChiaro) {
+            return buildCardRecensioneEditoriale(r, isAutenticato, isMaestro, onMiPiace, onRispondi, onRichiediLogin);
+        }
         VBox card = new VBox(8);
         card.setStyle("-fx-background-color: rgba(28, 25, 33, 0.88); -fx-background-radius: 12; -fx-padding: 14 18; "
                 + "-fx-border-color: rgba(186, 164, 135, 0.28); -fx-border-radius: 12; -fx-border-width: 1; "
@@ -101,7 +263,9 @@ public final class RecensioniView {
             rigaInterazioni.getChildren().add(btnRispondi);
         }
 
-        card.getChildren().addAll(header, lblTitolo, lblCommento, rigaInterazioni);
+        card.getChildren().addAll(header, lblTitolo, lblCommento);
+        aggiungiAnteprimaFotoSePresente(card, r, false);
+        card.getChildren().add(rigaInterazioni);
 
         if (r.haRispostaMaestro()) {
             VBox boxRisposta = new VBox(4);
@@ -131,6 +295,144 @@ public final class RecensioniView {
         }
 
         return card;
+    }
+
+    private static VBox buildCardRecensioneEditoriale(RecensioneBean r,
+                                                      boolean isAutenticato,
+                                                      boolean isMaestro,
+                                                      Consumer<RecensioneBean> onMiPiace,
+                                                      Consumer<RecensioneBean> onRispondi,
+                                                      Runnable onRichiediLogin) {
+        VBox card = new VBox(10);
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 18; -fx-padding: 16 20; "
+                + "-fx-border-color: #E2DDD2; -fx-border-radius: 18; -fx-border-width: 1; "
+                + "-fx-effect: dropshadow(gaussian, rgba(27,30,28,0.06), 14, 0, 0, 4);");
+
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        String nome = r.getAutoreNome() != null && !r.getAutoreNome().isBlank() ? r.getAutoreNome().trim() : "Ospite Frostly";
+        String[] parti = nome.split("\\s+");
+        StringBuilder init = new StringBuilder();
+        for (int i = 0; i < Math.min(2, parti.length); i++) {
+            if (!parti[i].isEmpty()) {
+                init.append(Character.toUpperCase(parti[i].charAt(0)));
+            }
+        }
+
+        javafx.scene.layout.StackPane avatar = new javafx.scene.layout.StackPane();
+        avatar.setMinSize(34, 34);
+        avatar.setPrefSize(34, 34);
+        avatar.setMaxSize(34, 34);
+        avatar.setStyle("-fx-background-color: #2D4A3E; -fx-background-radius: 17;");
+        Label lblInit = new Label(init.length() > 0 ? init.toString() : "OF");
+        lblInit.setStyle("-fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #F7F4EE;");
+        avatar.getChildren().add(lblInit);
+
+        VBox infoAutore = new VBox(1);
+        Label lblNome = new Label(nome);
+        lblNome.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #1B1E1C;");
+        Label lblVerif = new Label("✓ Degustazione Verificata  •  " + (r.getDataOra() != null ? r.getDataOra() : ""));
+        lblVerif.setStyle("-fx-font-size: 11px; -fx-text-fill: #3D6353;");
+        infoAutore.getChildren().addAll(lblNome, lblVerif);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label lblStelle = new Label(r.getStelleIcone());
+        lblStelle.setStyle("-fx-font-size: 14.5px; -fx-text-fill: #C86D44; -fx-font-weight: bold; -fx-letter-spacing: 1px;");
+
+        header.getChildren().addAll(avatar, infoAutore, spacer, lblStelle);
+
+        Label lblTitolo = new Label("“" + (r.getTitolo() != null ? r.getTitolo() : "") + "”");
+        lblTitolo.setWrapText(true);
+        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #1B1E1C;");
+
+        Label lblCommento = new Label(r.getCommento());
+        lblCommento.setWrapText(true);
+        lblCommento.setStyle("-fx-font-size: 13px; -fx-text-fill: #686D69; -fx-line-spacing: 2.4;");
+
+        HBox rigaInterazioni = new HBox(10);
+        rigaInterazioni.setAlignment(Pos.CENTER_LEFT);
+        rigaInterazioni.setStyle("-fx-border-color: #EFECE4 transparent transparent transparent; -fx-border-width: 1; -fx-padding: 8 0 0 0;");
+
+        Button btnLike = new Button("🥂 Brinda (" + r.getMiPiace() + ")");
+        if (isAutenticato) {
+            btnLike.setStyle("-fx-background-color: #FCF5F2; -fx-text-fill: #A85632; -fx-font-weight: bold; "
+                    + "-fx-font-size: 12px; -fx-background-radius: 18; -fx-border-color: #D9855F; "
+                    + "-fx-border-radius: 18; -fx-padding: 5 14; -fx-cursor: hand;");
+            if (onMiPiace != null) {
+                btnLike.setOnAction(e -> onMiPiace.accept(r));
+            }
+        } else {
+            btnLike.setStyle("-fx-background-color: #EFECE4; -fx-text-fill: #686D69; -fx-font-weight: bold; "
+                    + "-fx-font-size: 12px; -fx-background-radius: 18; -fx-border-color: #E2DDD2; "
+                    + "-fx-border-radius: 18; -fx-padding: 5 14; -fx-cursor: hand;");
+            btnLike.setOnAction(e -> mostraAvvisoLoginNecessario(card.getScene() != null ? card.getScene().getWindow() : null, onRichiediLogin));
+        }
+        rigaInterazioni.getChildren().add(btnLike);
+
+        if (isMaestro && onRispondi != null) {
+            Button btnRispondi = new Button(r.haRispostaMaestro() ? "✏️ Modifica Risposta" : "🪶 Rispondi come Maestro");
+            btnRispondi.setStyle("-fx-background-color: #2D4A3E; -fx-text-fill: #F7F4EE; -fx-font-weight: bold; "
+                    + "-fx-font-size: 12px; -fx-background-radius: 18; -fx-padding: 5 14; -fx-cursor: hand;");
+            btnRispondi.setOnAction(e -> onRispondi.accept(r));
+            rigaInterazioni.getChildren().add(btnRispondi);
+        }
+
+        card.getChildren().addAll(header, lblTitolo, lblCommento);
+        aggiungiAnteprimaFotoSePresente(card, r, true);
+
+        if (r.haRispostaMaestro()) {
+            VBox boxRisposta = new VBox(4);
+            boxRisposta.setStyle("-fx-background-color: #F2F6F4; -fx-border-color: #2D4A3E; -fx-border-width: 1 1 1 3; "
+                    + "-fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 14;");
+
+            HBox rigaMaestro = new HBox(6);
+            rigaMaestro.setAlignment(Pos.CENTER_LEFT);
+            Label lblBadgeMaestro = new Label("🪶 Risposta della Maestra Gelataia (Stefania Guga)");
+            lblBadgeMaestro.setStyle("-fx-font-weight: bold; -fx-font-size: 11.5px; -fx-text-fill: #2D4A3E;");
+            Region sp = new Region();
+            HBox.setHgrow(sp, Priority.ALWAYS);
+            Label lblDataRisp = new Label(r.getDataRisposta() != null ? r.getDataRisposta() : "");
+            lblDataRisp.setStyle("-fx-font-size: 11px; -fx-text-fill: #686D69; -fx-font-style: italic;");
+            rigaMaestro.getChildren().addAll(lblBadgeMaestro, sp, lblDataRisp);
+
+            Label lblTestoRisposta = new Label("“" + r.getRispostaMaestro() + "”");
+            lblTestoRisposta.setWrapText(true);
+            lblTestoRisposta.setStyle("-fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-font-size: 13px; -fx-text-fill: #1B1E1C;");
+
+            boxRisposta.getChildren().addAll(rigaMaestro, lblTestoRisposta);
+            card.getChildren().add(boxRisposta);
+        }
+
+        card.getChildren().add(rigaInterazioni);
+        return card;
+    }
+
+    private static void aggiungiAnteprimaFotoSePresente(VBox card, RecensioneBean r, boolean temaChiaro) {
+        if (r == null || !r.haFoto()) {
+            return;
+        }
+        Image img = caricaImmagineRecensione(r.getFotoPath());
+        if (img == null) {
+            return;
+        }
+        ImageView iv = new ImageView(img);
+        iv.setFitHeight(135);
+        iv.setPreserveRatio(true);
+        iv.setSmooth(true);
+
+        StackPane thumb = new StackPane(iv);
+        thumb.setMaxWidth(Region.USE_PREF_SIZE);
+        thumb.setStyle((temaChiaro
+                ? "-fx-background-color: #EFECE4; -fx-border-color: #E2DDD2;"
+                : "-fx-background-color: #141216; -fx-border-color: rgba(186,164,135,0.30);")
+                + " -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 3; -fx-cursor: hand;");
+        thumb.setOnMouseClicked(e -> apriLightboxFoto(
+                card.getScene() != null ? card.getScene().getWindow() : null,
+                r.getFotoPath(), r.getTitolo()));
+        card.getChildren().add(thumb);
     }
 
     public static void apriPopupRispostaMaestro(Window owner,
@@ -209,6 +511,7 @@ public final class RecensioniView {
         root.getChildren().addAll(lblTitolo, boxPreview, lblGuidaRisposta, txtRisposta, footer);
 
         popup.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.showAndWait();
     }
 
@@ -293,10 +596,11 @@ public final class RecensioniView {
         root.getChildren().addAll(lblTitolo, lblSotto, bannerCrea, scroll, footer);
 
         popup.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.showAndWait();
     }
 
-    private static void mostraAvvisoLoginNecessario(Window owner, Runnable onRichiediLogin) {
+    public static void mostraAvvisoLoginNecessario(Window owner, Runnable onRichiediLogin) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Frostly — Accesso Richiesto");
@@ -355,7 +659,7 @@ public final class RecensioniView {
                 + "-fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 8 20; -fx-cursor: hand;");
         btnAccedi.setOnAction(e -> {
             popup.close();
-            if (owner instanceof Stage stage) {
+            if (owner instanceof Stage stage && stage.getModality() != Modality.NONE) {
                 stage.close();
             }
             if (onRichiediLogin != null) {
@@ -367,6 +671,7 @@ public final class RecensioniView {
         root.getChildren().addAll(headerBox, cardInfo, footer);
 
         popup.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.showAndWait();
     }
 }

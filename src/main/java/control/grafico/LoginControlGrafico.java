@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -18,9 +19,11 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import util.ModalitaEsecuzione;
 import util.SessionManager;
+import view.RecensioniPubblicheView;
 import view.VetrinaMenuView;
 
 /**
@@ -40,6 +43,10 @@ public class LoginControlGrafico extends Application {
     private TextField campoEmail;
     @FXML
     private PasswordField campoPassword;
+    @FXML
+    private TextField campoPasswordVisibile;
+    @FXML
+    private Button btnMostraPassword;
 
     @FXML
     private TextField campoNomeReg;
@@ -56,6 +63,8 @@ public class LoginControlGrafico extends Application {
     private HBox boxSottocategorie;
     @FXML
     private FlowPane grigliaProdotti;
+    @FXML
+    private VBox boxContenutoRecensioniPubbliche;
 
     private VetrinaMenuView vetrina;
 
@@ -87,8 +96,34 @@ public class LoginControlGrafico extends Application {
             comboModalita.setItems(FXCollections.observableArrayList(ModalitaEsecuzione.values()));
             comboModalita.setValue(SessionManager.getInstance().getModalita());
         }
+        if (campoPassword != null && campoPasswordVisibile != null) {
+            campoPassword.textProperty().bindBidirectional(campoPasswordVisibile.textProperty());
+        }
         if (grigliaProdotti != null) {
             caricaMenuPubblico();
+        }
+        if (boxContenutoRecensioniPubbliche != null) {
+            new RecensioniPubblicheView(boxContenutoRecensioniPubbliche, this::onClickTornaALogin).carica();
+        }
+    }
+
+    @FXML
+    public void onClickMostraNascondiPassword() {
+        if (campoPassword == null || campoPasswordVisibile == null) return;
+        boolean mostra = !campoPasswordVisibile.isVisible();
+        campoPasswordVisibile.setVisible(mostra);
+        campoPasswordVisibile.setManaged(mostra);
+        campoPassword.setVisible(!mostra);
+        campoPassword.setManaged(!mostra);
+        if (btnMostraPassword != null) {
+            btnMostraPassword.setText(mostra ? "🙈" : "👁");
+        }
+        if (mostra) {
+            campoPasswordVisibile.requestFocus();
+            campoPasswordVisibile.positionCaret(campoPasswordVisibile.getText().length());
+        } else {
+            campoPassword.requestFocus();
+            campoPassword.positionCaret(campoPassword.getText().length());
         }
     }
 
@@ -109,6 +144,7 @@ public class LoginControlGrafico extends Application {
             LoginBean autenticato = appControl.autenticaUtente(bean);
 
             boolean usaGui2 = checkSecondaGui != null && checkSecondaGui.isSelected();
+            SessionManager.getInstance().setGui2Attiva(usaGui2);
             String suffisso = usaGui2 ? "_gui2.fxml" : ".fxml";
 
             if (LoginControl.RUOLO_MAESTRO.equals(autenticato.getRuoloAutenticato())) {
@@ -136,13 +172,7 @@ public class LoginControlGrafico extends Application {
         if (comboModalita != null && comboModalita.getValue() != null) {
             SessionManager.getInstance().setModalita(comboModalita.getValue());
         }
-        javafx.stage.Window owner = (campoEmail != null && campoEmail.getScene() != null)
-                ? campoEmail.getScene().getWindow() : finestraPrincipale;
-        view.RecensioniView.apriPopupRecensioniPubbliche(owner, () -> {
-            if (campoEmail != null) {
-                campoEmail.requestFocus();
-            }
-        });
+        cambiaSchermata("/recensioni_pubbliche.fxml");
     }
 
     @FXML
@@ -173,6 +203,7 @@ public class LoginControlGrafico extends Application {
             appControl.autenticaUtente(new LoginBean(regBean.getEmail(), regBean.getPassword()));
 
             boolean usaGui2 = checkSecondaGui != null && checkSecondaGui.isSelected();
+            SessionManager.getInstance().setGui2Attiva(usaGui2);
             cambiaSchermata("/cliente" + (usaGui2 ? "_gui2.fxml" : ".fxml"));
 
             if (finestraPrincipale != null) {

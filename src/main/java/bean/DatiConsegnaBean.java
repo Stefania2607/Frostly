@@ -43,6 +43,8 @@ public class DatiConsegnaBean {
     private String telefono = "";
     private String noteCitofono = "";
     private String orarioRichiesto = "Subito (~25-35 min)";
+    private String nomeRitiro = "";
+    private String cognomeRitiro = "";
     private String nominativoRitiro = "";
 
     public DatiConsegnaBean() {
@@ -64,10 +66,16 @@ public class DatiConsegnaBean {
             if (this.orarioRichiesto == null || this.orarioRichiesto.isBlank()) {
                 throw new DatiNonValidiException("Seleziona l'orario desiderato per il ritiro in gelateria.");
             }
-            String nom = this.nominativoRitiro != null ? this.nominativoRitiro.trim() : "";
-            if (!nom.isEmpty() && !nom.matches("^[A-Za-zÀ-ÖØ-öø-ÿ'\\-\\s]{2,60}$")) {
-                throw new DatiNonValidiException("Il nominativo per il ritiro contiene caratteri non validi.");
-            }
+            validaCampoAnagrafico(this.nomeRitiro, "Il nome di chi ritira è obbligatorio (minimo 2 lettere, solo caratteri alfabetici).");
+            validaCampoAnagrafico(this.cognomeRitiro, "Il cognome di chi ritira è obbligatorio (minimo 2 lettere, solo caratteri alfabetici).");
+            validaTelefonoItaliano(this.telefono);
+        }
+    }
+
+    private static void validaCampoAnagrafico(String valore, String msgErrore) throws DatiNonValidiException {
+        String pulito = (valore != null) ? valore.trim() : "";
+        if (!pulito.matches("^[A-Za-zÀ-ÖØ-öø-ÿ'\\-\\s]{2,40}$")) {
+            throw new DatiNonValidiException(msgErrore);
         }
     }
 
@@ -91,7 +99,7 @@ public class DatiConsegnaBean {
 
     public static void validaTelefonoItaliano(String telefonoRaw) throws DatiNonValidiException {
         if (telefonoRaw == null || telefonoRaw.isBlank()) {
-            throw new DatiNonValidiException("Il recapito telefonico italiano è obbligatorio per la consegna.");
+            throw new DatiNonValidiException("Il recapito telefonico italiano è obbligatorio.");
         }
         String pulito = telefonoRaw.trim().replaceAll("[\\s\\-\\.()]+", "");
         if (pulito.startsWith("+39")) {
@@ -118,8 +126,12 @@ public class DatiConsegnaBean {
             if (orarioRichiesto != null && !orarioRichiesto.isBlank()) {
                 sb.append(" • Orario: ").append(orarioRichiesto);
             }
-            if (nominativoRitiro != null && !nominativoRitiro.isBlank()) {
-                sb.append(" • Nome: ").append(nominativoRitiro.trim());
+            String nomCompleto = getNominativoRitiro();
+            if (!nomCompleto.isBlank()) {
+                sb.append(" • Ritiro: ").append(nomCompleto);
+            }
+            if (telefono != null && !telefono.isBlank()) {
+                sb.append(" • Tel: ").append(telefono.trim());
             }
             if (noteCitofono != null && !noteCitofono.isBlank()) {
                 sb.append(" • Note: ").append(noteCitofono.trim());
@@ -194,8 +206,40 @@ public class DatiConsegnaBean {
         this.orarioRichiesto = orarioRichiesto;
     }
 
+    public String getNomeRitiro() {
+        return nomeRitiro;
+    }
+
+    public void setNomeRitiro(String nomeRitiro) {
+        this.nomeRitiro = (nomeRitiro != null) ? nomeRitiro : "";
+        aggiornaNominativoDaNomeCognome();
+    }
+
+    public String getCognomeRitiro() {
+        return cognomeRitiro;
+    }
+
+    public void setCognomeRitiro(String cognomeRitiro) {
+        this.cognomeRitiro = (cognomeRitiro != null) ? cognomeRitiro : "";
+        aggiornaNominativoDaNomeCognome();
+    }
+
+    private void aggiornaNominativoDaNomeCognome() {
+        String n = this.nomeRitiro != null ? this.nomeRitiro.trim() : "";
+        String c = this.cognomeRitiro != null ? this.cognomeRitiro.trim() : "";
+        String unito = (n + " " + c).trim();
+        if (!unito.isEmpty()) {
+            this.nominativoRitiro = unito;
+        }
+    }
+
     public String getNominativoRitiro() {
-        return nominativoRitiro;
+        String n = this.nomeRitiro != null ? this.nomeRitiro.trim() : "";
+        String c = this.cognomeRitiro != null ? this.cognomeRitiro.trim() : "";
+        if (!n.isEmpty() || !c.isEmpty()) {
+            return (n + " " + c).trim();
+        }
+        return nominativoRitiro != null ? nominativoRitiro : "";
     }
 
     public void setNominativoRitiro(String nominativoRitiro) {

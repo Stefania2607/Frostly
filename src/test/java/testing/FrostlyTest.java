@@ -243,6 +243,10 @@ class FrostlyTest {
         List<OrdineBean> lista = control.visualizzaOrdiniCliente("elena@cliente.it");
         boolean trovato = lista.stream().anyMatch(o -> o.getCodiceOrdine().equals(creato.getCodiceOrdine()) && "APPROVATA".equals(o.getStato()));
         assertTrue(trovato);
+
+        // Un ordine gia' disdetto non puo' essere confermato
+        control.disdiciOrdine(creato.getCodiceOrdine(), "Maestro Gelataio");
+        assertThrows(DatiNonValidiException.class, () -> control.confermaOrdine(creato.getCodiceOrdine(), "Maestro Gelataio"));
     }
 
     /**
@@ -828,6 +832,24 @@ class FrostlyTest {
                 "Mario Rossi", "4532 0150 1234 5671", "12/28", "000"
         );
         assertThrows(frostly.exception.InvalidCardException.class, cartaCvvZero::validaSintassi);
+
+        // Ritiro al banco: nome, cognome e telefono italiano obbligatori
+        bean.DatiConsegnaBean asportoIncompleto = new bean.DatiConsegnaBean(
+                bean.DatiConsegnaBean.TipoConsegna.ASPORTO, "", "", "Oggi 18:00", ""
+        );
+        assertThrows(DatiNonValidiException.class, asportoIncompleto::validaSintassi);
+
+        asportoIncompleto.setNomeRitiro("Mario");
+        assertThrows(DatiNonValidiException.class, asportoIncompleto::validaSintassi);
+
+        asportoIncompleto.setCognomeRitiro("Rossi");
+        assertThrows(DatiNonValidiException.class, asportoIncompleto::validaSintassi);
+
+        asportoIncompleto.setTelefono("12345");
+        assertThrows(DatiNonValidiException.class, asportoIncompleto::validaSintassi);
+
+        asportoIncompleto.setTelefono("+39 333 1234567");
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(asportoIncompleto::validaSintassi);
     }
 
     /**

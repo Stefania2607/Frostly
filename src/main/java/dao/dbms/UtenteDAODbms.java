@@ -93,8 +93,72 @@ public class UtenteDAODbms implements UtenteDAO {
         cache.registraNuovoUtente(nome, cognome, email, password, ruolo);
     }
 
+    @Override
+    public void aggiornaConfigurazioneDipendente(String email,
+                                                 model.ConfigurazioneOreDipendente configurazioneOre,
+                                                 model.DisponibilitaDipendente disponibilita) throws FrostlyException {
+        Dipendente corrente = cache.trovaDipendentePerEmail(email);
+        aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita,
+                corrente != null ? corrente.getMansioni() : null,
+                corrente != null ? corrente.isAttivo() : Boolean.TRUE);
+    }
+
+    @Override
+    public void aggiornaConfigurazioneDipendente(String email,
+                                                 model.ConfigurazioneOreDipendente configurazioneOre,
+                                                 model.DisponibilitaDipendente disponibilita,
+                                                 java.util.Set<model.MansioneDipendente> mansioni,
+                                                 Boolean attivo) throws FrostlyException {
+        Dipendente corrente = cache.trovaDipendentePerEmail(email);
+        aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita, mansioni, attivo,
+                corrente != null ? corrente.getMaxTurniSettimanali() : null);
+    }
+
+    @Override
+    public void aggiornaConfigurazioneDipendente(String email,
+                                                 model.ConfigurazioneOreDipendente configurazioneOre,
+                                                 model.DisponibilitaDipendente disponibilita,
+                                                 java.util.Set<model.MansioneDipendente> mansioni,
+                                                 Boolean attivo,
+                                                 Integer maxTurniSettimanali) throws FrostlyException {
+        Connection conn = ConnectionManager.getInstance().getConnection();
+        String sql = "UPDATE utenti SET modalita_ore = ?, ore_minime = ?, ore_massime = ?, "
+                + "tolleranza_sotto = ?, tolleranza_sopra = ?, mansioni = ?, attivo = ?, "
+                + "max_turni_settimanali = ?, disponibilita_config = ? "
+                + "WHERE email = ? AND ruolo = 'DIPENDENTE'";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            if (configurazioneOre != null && configurazioneOre.isConfigurato()) {
+                stmt.setString(1, configurazioneOre.getModalita().name());
+                stmt.setDouble(2, configurazioneOre.getOreMinime());
+                stmt.setDouble(3, configurazioneOre.getOreMassime());
+                stmt.setDouble(4, configurazioneOre.getTolleranzaSotto());
+                stmt.setDouble(5, configurazioneOre.getTolleranzaSopra());
+            } else {
+                stmt.setString(1, model.ModalitaMonteOre.NON_CONFIGURATO.name());
+                stmt.setNull(2, java.sql.Types.DOUBLE);
+                stmt.setNull(3, java.sql.Types.DOUBLE);
+                stmt.setDouble(4, 0.0);
+                stmt.setDouble(5, 0.0);
+            }
+            stmt.setString(6, model.MansioneDipendente.serializza(mansioni));
+            stmt.setBoolean(7, attivo == null || attivo);
+            if (maxTurniSettimanali != null && maxTurniSettimanali > 0) {
+                stmt.setInt(8, maxTurniSettimanali);
+            } else {
+                stmt.setNull(8, java.sql.Types.INTEGER);
+            }
+            stmt.setString(9, disponibilita != null ? disponibilita.serializza() : null);
+            stmt.setString(10, email);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new FrostlyException("Errore JDBC nell'aggiornamento configurazione ore/disponibilità dipendente.", e);
+        }
+        cache.aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita, mansioni, attivo, maxTurniSettimanali);
+    }
+
     private void sincronizzaUtentiDaDatabase() {
-        String query = "SELECT email, nome, cognome, password, ruolo FROM utenti";
+        String query = "SELECT email, nome, cognome, password, ruolo, modalita_ore, ore_minime, ore_massime, "
+                + "tolleranza_sotto, tolleranza_sopra, mansioni, attivo, max_turni_settimanali, disponibilita_config FROM utenti";
         try {
             Connection conn = ConnectionManager.getInstance().getConnection();
             try (PreparedStatement stmt = conn.prepareStatement(query);
@@ -108,7 +172,29 @@ public class UtenteDAODbms implements UtenteDAO {
                     String cognome = rs.getString("cognome");
                     String pass = rs.getString("password");
                     if ("DIPENDENTE".equalsIgnoreCase(ruolo)) {
-                        dipendentiDb.add(new Dipendente(nome, cognome, email, pass));
+                        Dipendente dip = new Dipendente(nome, cognome, email, pass);
+                        String mod = rs.getString("modalita_ore");
+                        Object minObj = rs.getObject("ore_minime");
+                        Object maxObj = rs.getObject("ore_massime");
+                        Object tsObj = rs.getObject("tolleranza_sotto");
+                        Object tpObj = rs.getObject("tolleranza_sopra");
+                        Double min = minObj != null ? ((Number) minObj).doubleValue() : null;
+                        Double max = maxObj != null ? ((Number) maxObj).doubleValue() : null;
+                        Double ts = tsObj != null ? ((Number) tsObj).doubleValue() : 0.0;
+                        Double tp = tpObj != null ? ((Number) tpObj).doubleValue() : 0.0;
+                        dip.setConfigurazioneOre(model.ConfigurazioneOreDipendente.daDatabase(mod, min, max, ts, tp));
+                        dip.setMansioni(model.MansioneDipendente.deserializza(rs.getString("mansioni")));
+                        Object attObj = rs.getObject("attivo");
+                        dip.setAttivo(attObj == null || rs.getBoolean("attivo"));
+                        Object maxTurniObj = rs.getObject("max_turni_settimanali");
+                        if (maxTurniObj != null) {
+                            int mt = ((Number) maxTurniObj).intValue();
+                            if (mt > 0) {
+                                dip.setMaxTurniSettimanali(mt);
+                            }
+                        }
+                        dip.setDisponibilita(model.DisponibilitaDipendente.deserializza(rs.getString("disponibilita_config")));
+                        dipendentiDb.add(dip);
                     } else if ("CLIENTE".equalsIgnoreCase(ruolo)) {
                         clientiDb.add(new Cliente(nome, cognome, email, pass));
                     } else if ("MAESTRO_GELATAIO".equalsIgnoreCase(ruolo)) {

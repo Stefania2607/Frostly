@@ -527,8 +527,93 @@ public class ArchivioMemoria {
                 return;
             }
         }
-        notifiche.add(new Notifica(emailDest, titolo, messaggio, timestamp));
+        notifiche.add(0, new Notifica(emailDest, titolo, messaggio, timestamp));
     }
+    private final java.util.Map<String, model.FabbisognoTurno> fabbisogniTurni = new java.util.LinkedHashMap<>();
+    private final java.util.List<model.RichiestaIndisponibilita> richiesteIndisponibilita = new java.util.ArrayList<>();
+
+    public synchronized java.util.List<model.RichiestaIndisponibilita> getRichiesteIndisponibilita() {
+        return new java.util.ArrayList<>(richiesteIndisponibilita);
+    }
+
+    public synchronized void salvaRichiestaIndisponibilita(model.RichiestaIndisponibilita r) {
+        if (r == null) {
+            return;
+        }
+        for (int i = 0; i < richiesteIndisponibilita.size(); i++) {
+            if (richiesteIndisponibilita.get(i).getCodiceRichiesta().equalsIgnoreCase(r.getCodiceRichiesta())) {
+                richiesteIndisponibilita.set(i, r);
+                return;
+            }
+        }
+        richiesteIndisponibilita.add(0, r);
+    }
+
+    public synchronized java.util.Map<String, model.FabbisognoTurno> getFabbisogniTurni() {
+        if (fabbisogniTurni.isEmpty()) {
+            for (java.time.DayOfWeek g : java.time.DayOfWeek.values()) {
+                for (int f = 0; f < 5; f++) {
+                    fabbisogniTurni.put(model.FabbisognoTurno.chiave(g, f), model.FabbisognoTurno.predefinito(g, f));
+                }
+            }
+        }
+        java.util.Map<String, model.FabbisognoTurno> copia = new java.util.LinkedHashMap<>();
+        for (java.util.Map.Entry<String, model.FabbisognoTurno> e : fabbisogniTurni.entrySet()) {
+            copia.put(e.getKey(), e.getValue().copia());
+        }
+        return copia;
+    }
+
+    public synchronized void salvaFabbisogniTurni(java.util.Map<String, model.FabbisognoTurno> nuovi) {
+        if (nuovi == null) {
+            return;
+        }
+        fabbisogniTurni.clear();
+        for (java.util.Map.Entry<String, model.FabbisognoTurno> e : nuovi.entrySet()) {
+            fabbisogniTurni.put(e.getKey(), e.getValue().copia());
+        }
+    }
+
+    public synchronized void aggiornaConfigurazioneDipendente(String email,
+                                                             model.ConfigurazioneOreDipendente configurazioneOre,
+                                                             model.DisponibilitaDipendente disponibilita) {
+        aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita, null, null);
+    }
+
+    public synchronized void aggiornaConfigurazioneDipendente(String email,
+                                                             model.ConfigurazioneOreDipendente configurazioneOre,
+                                                             model.DisponibilitaDipendente disponibilita,
+                                                             java.util.Set<model.MansioneDipendente> mansioni,
+                                                             Boolean attivo) {
+        Dipendente dip = trovaDipendentePerEmail(email);
+        aggiornaConfigurazioneDipendente(email, configurazioneOre, disponibilita, mansioni, attivo,
+                dip != null ? dip.getMaxTurniSettimanali() : null);
+    }
+
+    public synchronized void aggiornaConfigurazioneDipendente(String email,
+                                                             model.ConfigurazioneOreDipendente configurazioneOre,
+                                                             model.DisponibilitaDipendente disponibilita,
+                                                             java.util.Set<model.MansioneDipendente> mansioni,
+                                                             Boolean attivo,
+                                                             Integer maxTurniSettimanali) {
+        Dipendente dip = trovaDipendentePerEmail(email);
+        if (dip != null) {
+            if (configurazioneOre != null) {
+                dip.setConfigurazioneOre(configurazioneOre);
+            }
+            if (disponibilita != null) {
+                dip.setDisponibilita(disponibilita);
+            }
+            if (mansioni != null && !mansioni.isEmpty()) {
+                dip.setMansioni(mansioni);
+            }
+            if (attivo != null) {
+                dip.setAttivo(attivo);
+            }
+            dip.setMaxTurniSettimanali(maxTurniSettimanali);
+        }
+    }
+
     public synchronized List<Recensione> getRecensioni() {
         return new ArrayList<>(recensioni);
     }
@@ -568,7 +653,7 @@ public class ArchivioMemoria {
 
     public synchronized void sincronizzaRecensioneDaDb(String cod, String email, String nome, int voto,
                                                        String tit, String comm, String data, String risp,
-                                                       String dataRisp, int miPiace) {
+                                                       String dataRisp, int miPiace, String fotoPath) {
         for (Recensione r : recensioni) {
             if (r.getCodiceRecensione().equalsIgnoreCase(cod)) {
                 r.setVotoStelle(voto);
@@ -577,9 +662,10 @@ public class ArchivioMemoria {
                 r.setRispostaMaestro(risp);
                 r.setDataRisposta(dataRisp);
                 r.setMiPiace(miPiace);
+                r.setFotoPath(fotoPath);
                 return;
             }
         }
-        recensioni.add(new Recensione(cod, email, nome, voto, tit, comm, data, risp, dataRisp, miPiace));
+        recensioni.add(new Recensione(cod, email, nome, voto, tit, comm, data, risp, dataRisp, miPiace, fotoPath));
     }
 }

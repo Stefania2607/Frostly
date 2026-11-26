@@ -12,6 +12,10 @@ public class Turno {
     private String oraFine;
     private Dipendente dipendenteAssegnato;
     private StatoTurno stato;
+    private boolean bloccato;
+    private boolean generatoAutomaticamente;
+    private boolean personalizzato;
+    private int pausaMinuti;
 
     public Turno(String codiceTurno, String data, String oraInizio, String oraFine, Dipendente dipendenteAssegnato) {
         this.codiceTurno = codiceTurno;
@@ -20,6 +24,10 @@ public class Turno {
         this.oraFine = oraFine;
         this.dipendenteAssegnato = dipendenteAssegnato;
         this.stato = StatoTurno.PIANIFICATO;
+        this.bloccato = false;
+        this.generatoAutomaticamente = false;
+        this.personalizzato = false;
+        this.pausaMinuti = 0;
     }
 
     public void pubblica() {
@@ -98,5 +106,37 @@ public class Turno {
 
     public void setStato(StatoTurno stato) {
         this.stato = stato;
+    }
+
+    public boolean isBloccato() {
+        return bloccato;
+    }
+
+    public void setBloccato(boolean bloccato) {
+        this.bloccato = bloccato;
+    }
+
+    public boolean isGeneratoAutomaticamente() {
+        return generatoAutomaticamente;
+    }
+
+    public void setGeneratoAutomaticamente(boolean generatoAutomaticamente) {
+        this.generatoAutomaticamente = generatoAutomaticamente;
+    }
+
+    public boolean isPersonalizzato() {
+        return personalizzato;
+    }
+
+    public void setPersonalizzato(boolean personalizzato) {
+        this.personalizzato = personalizzato;
+    }
+
+    public int getPausaMinuti() {
+        return pausaMinuti;
+    }
+
+    public void setPausaMinuti(int pausaMinuti) {
+        this.pausaMinuti = Math.max(0, pausaMinuti);
     }
 }

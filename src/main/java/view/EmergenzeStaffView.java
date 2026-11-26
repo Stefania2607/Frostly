@@ -122,6 +122,7 @@ public final class EmergenzeStaffView {
 
         root.getChildren().addAll(lblTitolo, lblSub, cardInfo, cardMotivo, cardAzione, boxBottoni);
         popup.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.showAndWait();
     }
 }

@@ -39,6 +39,11 @@ public class TurniControlGrafico {
     @FXML private ListView<NotificaBean> listaNotifiche;
 
     @FXML private VBox boxCalendarioTurni;
+    @FXML private VBox boxGestioneDipendenti;
+    @FXML private VBox paneDisponibilitaStaff;
+    @FXML private Button btnToggleStaff;
+    @FXML private VBox boxDisponibilitaStaff;
+    @FXML private HBox boxKpiTurni;
     @FXML private javafx.scene.control.DatePicker datePickerSettimana;
     @FXML private Label lblSettimanaAttiva;
     @FXML private Label lblConteggioTurni;
@@ -66,6 +71,9 @@ public class TurniControlGrafico {
     @FXML private TextField campoCognomeNuovoDip;
     @FXML private TextField campoEmailNuovoDip;
     @FXML private TextField campoPasswordNuovoDip;
+    @FXML private ComboBox<String> comboModalitaOreDip;
+    @FXML private TextField campoOreMinDip;
+    @FXML private TextField campoOreMaxDip;
 
     @FXML private Label lblCategoriaFormMenu;
     @FXML private ComboBox<String> comboCategoriaMenu;
@@ -105,6 +113,9 @@ public class TurniControlGrafico {
 
     @FXML private VBox boxCardsRecensioniMaestro;
     @FXML private Label lblRiepilogoRecensioniMaestro;
+    @FXML private javafx.scene.control.Tab tabChatMaestro;
+    @FXML private Label lblTabChatMaestro;
+    @FXML private ListView<OrdineBean> listaChatMaestro;
 
     private CatalogoMenuStaffControlGrafico catalogoMenuHelper;
     private MagazzinoGustiStaffControlGrafico magazzinoGustiHelper;
@@ -123,6 +134,20 @@ public class TurniControlGrafico {
         if (tendinaUrgenze != null) {
             tendinaUrgenze.setVisible(false);
             tendinaUrgenze.setManaged(false);
+        }
+        if (tabPaneMaestro != null && tabPaneMaestro.getSide() == javafx.geometry.Side.LEFT) {
+            tabPaneMaestro.addEventFilter(javafx.scene.input.ScrollEvent.SCROLL, e -> {
+                if (e.getTarget() instanceof javafx.scene.Node n) {
+                    javafx.scene.Node cur = n;
+                    while (cur != null && cur != tabPaneMaestro) {
+                        if (cur.getStyleClass().contains("tab-header-area")) {
+                            e.consume();
+                            break;
+                        }
+                        cur = cur.getParent();
+                    }
+                }
+            });
         }
 
         catalogoMenuHelper = new CatalogoMenuStaffControlGrafico(this::mostraEsito, this::aggiornaListe);
@@ -170,7 +195,14 @@ public class TurniControlGrafico {
                 listaDipendentiStaff, campoNomeNuovoDip, campoCognomeNuovoDip,
                 campoEmailNuovoDip, campoPasswordNuovoDip, comboDipendenteTurno, comboSostituto,
                 this::mostraEsito, this::aggiornaListe);
+        dipendentiHelper.legaControlliMonteOre(comboModalitaOreDip, campoOreMinDip, campoOreMaxDip);
+        dipendentiHelper.legaContenitoreModerno(boxGestioneDipendenti);
         dipendentiHelper.inizializza();
+
+        turniStaffHelper.legaPannelloDisponibilita(
+                boxDisponibilitaStaff,
+                boxKpiTurni,
+                email -> dipendentiHelper.apriConfigurazioneDipendentePerEmail(email));
 
         recensioniHelper = new RecensioniControlGrafico(this::mostraEsito, this::aggiornaListe);
         recensioniHelper.legaCampiMaestro(boxCardsRecensioniMaestro, lblRiepilogoRecensioniMaestro);
@@ -179,9 +211,10 @@ public class TurniControlGrafico {
         if (listaNotifiche != null) {
             AvvisiStaffView.configuraListaAvvisi(listaNotifiche, notifica -> {
                 Window owner = listaNotifiche.getScene() != null ? listaNotifiche.getScene().getWindow() : null;
-                AvvisiStaffView.mostraPopupDettaglioAvviso(owner, notifica, this::selezionaTabPerNome, this::eliminaNotifica);
+                AvvisiStaffView.mostraPopupDettaglioAvviso(owner, notifica, this::navigaDaAvviso, this::eliminaNotifica);
             }, this::eliminaNotifica);
         }
+        view.ChatOrdineView.configuraListaChat(listaChatMaestro, true, this::aggiornaListe);
 
         aggiornaListe();
 
@@ -202,11 +235,23 @@ public class TurniControlGrafico {
     @FXML public void onClickApriSezioneStaff() { selezionaTab(5); }
     @FXML public void onClickApriSezioneAvvisi() { selezionaTab(6); }
     @FXML public void onClickApriSezioneOrdini() { selezionaTab(7); }
+    @FXML public void onClickApriSezioneStatistiche() { selezionaTab(8); }
+    @FXML public void onClickApriSezioneChat() { selezionaTab(9); }
     @FXML public void onClickTornaDashboard() { selezionaTab(0); }
 
     private void selezionaTab(int indice) {
         if (tabPaneMaestro != null && tabPaneMaestro.getTabs().size() > indice) {
             tabPaneMaestro.getSelectionModel().select(indice);
+        }
+    }
+
+    private void navigaDaAvviso(String sezione, String codiceOrdine) {
+        selezionaTabPerNome(sezione);
+        if (sezione != null && sezione.toLowerCase().contains("ordini")
+                && codiceOrdine != null && !codiceOrdine.isBlank()
+                && ordiniStaffHelper != null) {
+            ordiniStaffHelper.aggiornaOrdiniStaff();
+            ordiniStaffHelper.selezionaOrdinePerCodice(codiceOrdine);
         }
     }
 
@@ -242,6 +287,7 @@ public class TurniControlGrafico {
         if (recensioniHelper != null) {
             recensioniHelper.aggiornaRecensioniMaestro();
         }
+        aggiornaChatMaestro();
         mostraEsito("Recensioni aggiornate.", false);
     }
     @FXML
@@ -250,14 +296,40 @@ public class TurniControlGrafico {
         mostraEsito("Elenco ordini aggiornato.", false);
     }
 
+    @FXML
+    public void onClickApriStoricoOrdini() {
+        if (ordiniStaffHelper != null) {
+            ordiniStaffHelper.apriStoricoOrdini();
+        }
+    }
+
     @FXML public void onClickConfermaOrdineStaff() { ordiniStaffHelper.confermaOrdineSelezionato(); }
     @FXML public void onClickDisdiciOrdineStaff() { ordiniStaffHelper.disdiciOrdineSelezionato(); }
     @FXML public void onClickGeneraPassword() { dipendentiHelper.generaPasswordSicura(); }
     @FXML public void onClickCreaDipendente() { dipendentiHelper.creaDipendente(); }
     @FXML public void onClickEliminaDipendente() { dipendentiHelper.eliminaDipendente(); }
+    @FXML public void onClickConfiguraOreDipendente() { dipendentiHelper.apriConfigurazioneDipendenteSelezionato(); }
     @FXML public void onClickSettimanaPrecedente() { turniStaffHelper.vaiASettimanaPrecedente(); }
     @FXML public void onClickSettimanaSuccessiva() { turniStaffHelper.vaiASettimanaSuccessiva(); }
     @FXML public void onClickSettimanaCorrente() { turniStaffHelper.vaiASettimanaCorrente(); }
+    @FXML public void onClickGeneraTurniAuto() { turniStaffHelper.apriGeneratoreTurniAutomatico(); }
+    @FXML public void onClickConfiguraFabbisogni() { turniStaffHelper.apriConfigurazioneFabbisogni(); }
+    @FXML public void onClickRipristinaTurni() { turniStaffHelper.ripristinaUltimaPianificazione(); }
+    @FXML public void onClickRichiediIndisponibilita() { turniStaffHelper.apriRichiestaIndisponibilitaDipendente(util.SessionManager.getInstance().getEmailUtenteLoggato()); }
+    @FXML public void onClickGestisciPermessi() { turniStaffHelper.apriGestionePermessiMaestro(); }
+
+    @FXML
+    public void onTogglePannelloStaff() {
+        if (paneDisponibilitaStaff == null) {
+            return;
+        }
+        boolean visibile = !paneDisponibilitaStaff.isVisible();
+        paneDisponibilitaStaff.setVisible(visibile);
+        paneDisponibilitaStaff.setManaged(visibile);
+        if (btnToggleStaff != null) {
+            btnToggleStaff.setText(visibile ? "👥 Staff" : "👥 Mostra Staff");
+        }
+    }
     @FXML public void onCambioDataPicker() { turniStaffHelper.onCambioDataPicker(); }
 
     @FXML public void onClickPubblicaTurno() { turniStaffHelper.pubblicaNuovoTurno(); }
@@ -311,6 +383,45 @@ public class TurniControlGrafico {
         }
     }
 
+    private void aggiornaChatMaestro() {
+        if (listaChatMaestro == null) return;
+        control.applicativo.OrdiniControl ctrl = new control.applicativo.OrdiniControl();
+        List<OrdineBean> tutti = new ArrayList<>(ctrl.visualizzaTuttiOrdini());
+        java.util.Map<String, Integer> conteggi = new java.util.HashMap<>();
+        int totaleMessaggi = 0;
+        for (OrdineBean ob : tutti) {
+            int n = ctrl.caricaMessaggiChatOrdine(ob.getCodiceOrdine(), ob.getEmailCliente()).size();
+            conteggi.put(ob.getCodiceOrdine(), n);
+            totaleMessaggi += n;
+        }
+        tutti.sort((a, b) -> {
+            int ca = conteggi.getOrDefault(a.getCodiceOrdine(), 0);
+            int cb = conteggi.getOrDefault(b.getCodiceOrdine(), 0);
+            if (ca != cb) return Integer.compare(cb, ca);
+            String ka = a.getCodiceOrdine() != null ? a.getCodiceOrdine() : "";
+            String kb = b.getCodiceOrdine() != null ? b.getCodiceOrdine() : "";
+            return kb.compareToIgnoreCase(ka);
+        });
+        listaChatMaestro.getItems().clear();
+        for (OrdineBean ob : tutti) {
+            int n = conteggi.getOrDefault(ob.getCodiceOrdine(), 0);
+            if (n > 0 || control.applicativo.OrdiniControl.isOrdineAttivoPerChatCliente(ob)) {
+                listaChatMaestro.getItems().add(ob);
+            }
+        }
+        if (listaChatMaestro.getItems().isEmpty()) {
+            for (int i = 0; i < Math.min(5, tutti.size()); i++) {
+                listaChatMaestro.getItems().add(tutti.get(i));
+            }
+        }
+        String titoloTab = totaleMessaggi > 0 ? ("💬 Chat (" + totaleMessaggi + ")") : "💬 Chat";
+        if (lblTabChatMaestro != null) {
+            lblTabChatMaestro.setText(titoloTab);
+        } else if (tabChatMaestro != null) {
+            tabChatMaestro.setText(titoloTab);
+        }
+    }
+
     @FXML
     public void onClickLogout() {
         SessionManager.getInstance().logout();
@@ -339,6 +450,7 @@ public class TurniControlGrafico {
         if (recensioniHelper != null) {
             recensioniHelper.aggiornaRecensioniMaestro();
         }
+        aggiornaChatMaestro();
 
         List<NotificaBean> listaN = new LoginControl().recuperaNotificheUtente(emailUtente);
         List<NotificaBean> listaNOrdinata = new ArrayList<>(listaN);

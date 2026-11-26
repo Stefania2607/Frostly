@@ -26,6 +26,10 @@ public class MagazzinoControl {
         this(DAOFactory.getIngredienteDAO(), DAOFactory.getGustoDAO());
     }
 
+    public static String inferisciCategoriaIngrediente(String nome, String unita) {
+        return Ingrediente.inferisciCategoria(nome, unita);
+    }
+
     public MagazzinoControl(IngredienteDAO ingredienteDAO, GustoDAO gustoDAO) {
         this.ingredienteDAO = ingredienteDAO;
         this.gustoDAO = gustoDAO;

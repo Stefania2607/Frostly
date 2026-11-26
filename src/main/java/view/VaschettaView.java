@@ -25,6 +25,14 @@ public final class VaschettaView {
     public static void evidenziaPulsanteFormato(Button b, boolean attivo) {
         if (b == null) return;
         b.setMinWidth(Region.USE_PREF_SIZE);
+        if (RecensioniView.isTemaSalottoChiaro(b)) {
+            if (attivo) {
+                b.setStyle("-fx-background-color: linear-gradient(to right, #9366a0, #6d427b); -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-border-color: #764c86; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 6 10;");
+            } else {
+                b.setStyle("-fx-background-color: #f3eae5; -fx-text-fill: #37253d; -fx-font-weight: bold; -fx-border-color: #ddcddc; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 6 10; -fx-cursor: hand;");
+            }
+            return;
+        }
         if (attivo) {
             b.setStyle("-fx-background-color: linear-gradient(to bottom, #baa487, #8c7355); -fx-text-fill: #141216; -fx-font-weight: bold; -fx-border-color: #baa487; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6 12;");
         } else {

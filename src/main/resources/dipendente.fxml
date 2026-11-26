@@ -23,12 +23,14 @@
 
             <Tab text="📅 Turni Staff &amp; Calendario">
                 <VBox spacing="10" styleClass="glass-card" style="-fx-padding: 14 18;">
-                    <HBox alignment="CENTER_LEFT" spacing="12">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label text="Calendario Turni di Lavoro Settimanali Staff"
                                style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblRiepilogoTurniDipendente"
-                               style="-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
+                               style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
+                        <Button text="🗓️ Richiedi Permesso" minWidth="-Infinity" onAction="#onClickRichiediIndisponibilita"
+                                styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 5 12;"/>
                     </HBox>
 
                     <!-- BARRA NAVIGAZIONE SETTIMANE CALENDARIO -->
@@ -69,10 +71,7 @@
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button text="➕ Nuovo Prodotto" onAction="#onClickNuovoGustoMenu" styleClass="btn-sage" minWidth="-Infinity"/>
                     </HBox>
-                    <ScrollPane fitToHeight="true" vbarPolicy="NEVER" hbarPolicy="AS_NEEDED"
-                                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-                        <HBox fx:id="boxCategorieMenu" spacing="6" alignment="CENTER_LEFT" style="-fx-padding: 2 0;"/>
-                    </ScrollPane>
+                    <HBox fx:id="boxCategorieMenu" spacing="5" alignment="CENTER_LEFT" style="-fx-padding: 4 2 6 2;"/>
                     <HBox fx:id="boxSottocategorieMenu" spacing="6" alignment="CENTER_LEFT" minHeight="24"/>
                     <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="540" VBox.vgrow="ALWAYS"
                                 style="-fx-background-color: transparent; -fx-background: transparent;">
@@ -151,7 +150,8 @@
                                style="-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblConteggioOrdiniStaff" text="(0 ordini)" style="-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;"/>
-                        <Button text="🔄 Aggiorna Ordini" onAction="#onClickAggiornaOrdiniStaff" styleClass="btn-outline"/>
+                        <Button text="📚 Storico" minWidth="-Infinity" onAction="#onClickApriStoricoOrdini" styleClass="btn-outline"/>
+                        <Button text="🔄 Aggiorna Ordini" minWidth="-Infinity" onAction="#onClickAggiornaOrdiniStaff" styleClass="btn-outline"/>
                     </HBox>
                     <Label text="💡 Clicca '✔ Conferma' per avviare la preparazione o '✕ Disdici' se i gusti sono esauriti."
                            style="-fx-font-size: 13px; -fx-text-fill: #baa487; -fx-font-style: italic;"/>

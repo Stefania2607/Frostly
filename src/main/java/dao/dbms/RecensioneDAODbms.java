@@ -27,7 +27,7 @@ public class RecensioneDAODbms implements RecensioneDAO {
     public List<Recensione> trovaTutteRecensioni() throws FrostlyException {
         List<Recensione> lista = new ArrayList<>();
         String sql = "SELECT codice_recensione, autore_email, autore_nome, voto_stelle, "
-                + "titolo, commento, data_ora, risposta_maestro, data_risposta, mi_piace "
+                + "titolo, commento, data_ora, risposta_maestro, data_risposta, mi_piace, foto_path "
                 + "FROM recensioni ORDER BY codice_recensione DESC";
         Connection conn = ConnectionManager.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql);
@@ -43,12 +43,13 @@ public class RecensioneDAODbms implements RecensioneDAO {
                         rs.getString("data_ora"),
                         rs.getString("risposta_maestro"),
                         rs.getString("data_risposta"),
-                        rs.getInt("mi_piace"));
+                        rs.getInt("mi_piace"),
+                        rs.getString("foto_path"));
                 lista.add(r);
                 cache.sincronizzaRecensioneDaDb(
                         r.getCodiceRecensione(), r.getAutoreEmail(), r.getAutoreNome(),
                         r.getVotoStelle(), r.getTitolo(), r.getCommento(), r.getDataOra(),
-                        r.getRispostaMaestro(), r.getDataRisposta(), r.getMiPiace());
+                        r.getRispostaMaestro(), r.getDataRisposta(), r.getMiPiace(), r.getFotoPath());
             }
             return lista;
         } catch (SQLException e) {
@@ -65,8 +66,8 @@ public class RecensioneDAODbms implements RecensioneDAO {
         }
 
         String sql = "INSERT INTO recensioni (codice_recensione, autore_email, autore_nome, voto_stelle, "
-                + "titolo, commento, data_ora, risposta_maestro, data_risposta, mi_piace) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "titolo, commento, data_ora, risposta_maestro, data_risposta, mi_piace, foto_path) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = ConnectionManager.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, r.getCodiceRecensione());
@@ -79,6 +80,7 @@ public class RecensioneDAODbms implements RecensioneDAO {
             ps.setString(8, r.getRispostaMaestro());
             ps.setString(9, r.getDataRisposta());
             ps.setInt(10, r.getMiPiace());
+            ps.setString(11, r.getFotoPath());
             ps.executeUpdate();
             cache.salvaRecensione(r);
             return r;

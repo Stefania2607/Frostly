@@ -27,6 +27,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import util.SessionManager;
 import view.CarrelloView;
+import view.CatalogoProvenzaGui2View;
 import view.ClienteMenuView;
 import view.CrepeConfiguratoreView;
 import view.VetrinaMenuView;
@@ -50,6 +51,7 @@ public class GelateriaControlGrafico {
 
     @FXML private HBox boxCategorieCliente;
     @FXML private VBox boxGustiDisponibili;
+    @FXML private VBox boxCatalogoProvenza;
     @FXML private VBox boxSezioneVaschetta;
 
     @FXML private Button btnFormato350;
@@ -62,14 +64,21 @@ public class GelateriaControlGrafico {
     @FXML private CheckBox checkGranella;
     @FXML private Label lblPrezzoVaschettaCorrente;
 
+    @FXML private HBox boxBrandInfo;
     @FXML private ListView<OrdineBean> listaMieiOrdini;
     @FXML private ListView<String> listaNotificheCliente;
+    @FXML private javafx.scene.control.Tab tabChatCliente;
+    @FXML private Label lblTabChatCliente;
+    @FXML private ListView<OrdineBean> listaChatCliente;
 
     @FXML private ComboBox<String> comboVotoRecensione;
     @FXML private TextField campoTitoloRecensione;
     @FXML private javafx.scene.control.TextArea campoCommentoRecensione;
     @FXML private VBox boxCardsRecensioniCliente;
     @FXML private Label lblMediaRecensioniCliente;
+    @FXML private VBox boxLibroEsperienze;
+    @FXML private Label lblFotoRecensione;
+    @FXML private Button btnRimuoviFotoRecensione;
 
     @FXML private TextField campoNomeGustoCustom;
     @FXML private TextField campoDescrizioneCustom;
@@ -98,6 +107,7 @@ public class GelateriaControlGrafico {
     private VaschettaControlGrafico vaschettaHelper;
     private RecensioniControlGrafico recensioniHelper;
     private CheckoutControlGrafico checkoutHelper;
+    private CatalogoProvenzaGui2View catalogoProvenzaView;
 
     @FXML
     public void initialize() {
@@ -107,11 +117,17 @@ public class GelateriaControlGrafico {
         }
 
         ClienteMenuView.configuraCelleMieiOrdini(listaMieiOrdini);
+        view.ChatOrdineView.configuraListaChat(listaChatCliente, false, this::aggiornaMieiOrdini);
 
         recensioniHelper = new RecensioniControlGrafico(this::mostraEsito, null);
         recensioniHelper.legaCampiCliente(
                 comboVotoRecensione, campoTitoloRecensione, campoCommentoRecensione,
                 boxCardsRecensioniCliente, lblMediaRecensioniCliente);
+        recensioniHelper.legaFotoRecensione(lblFotoRecensione, btnRimuoviFotoRecensione);
+        recensioniHelper.legaLibroEsperienze(
+                boxLibroEsperienze,
+                SessionManager.getInstance().getEmailUtenteLoggato(),
+                SessionManager.getInstance().getNomeUtenteLoggato());
         recensioniHelper.aggiornaRecensioniCliente();
 
         gustoCustomHelper = new RichiestaGustoControlGrafico();
@@ -128,6 +144,20 @@ public class GelateriaControlGrafico {
                 lblCapienzaVaschetta, boxVaschettaGrafica, checkPanna, checkGranella,
                 lblPrezzoVaschettaCorrente, this::mostraEsito, this::aggiornaBoxGustiDisponibili);
         vaschettaHelper.inizializza();
+
+        if (boxCatalogoProvenza != null) {
+            catalogoProvenzaView = new CatalogoProvenzaGui2View(
+                    boxCatalogoProvenza,
+                    cat -> {
+                        if (boxSezioneVaschetta != null) {
+                            boolean mostra = "Gelati".equalsIgnoreCase(cat);
+                            boxSezioneVaschetta.setVisible(mostra);
+                            boxSezioneVaschetta.setManaged(mostra);
+                        }
+                    },
+                    this::onClickAggiungiGustoAllaVaschetta,
+                    this::aggiungiProdottoMenuAlCarrello);
+        }
 
         checkoutHelper = new CheckoutControlGrafico(
                 carrello,
@@ -184,6 +214,9 @@ public class GelateriaControlGrafico {
     }
 
     private void aggiornaBoxGustiDisponibili() {
+        if (catalogoProvenzaView != null) {
+            catalogoProvenzaView.aggiornaSelezioneVaschetta(carrello.getGustiNellaVaschetta());
+        }
         if (boxGustiDisponibili == null) return;
 
         if (categoriaCatalogoSelezionata == null || categoriaCatalogoSelezionata.isEmpty()) {
@@ -227,10 +260,22 @@ public class GelateriaControlGrafico {
         vaschettaHelper.aggiungiORimuoviGusto(g);
     }
 
-    @FXML public void onClickFormato350() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_350G, model.VaschettaBase.MAX_GUSTI_350G); }
-    @FXML public void onClickFormato500() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_500G, model.VaschettaBase.MAX_GUSTI_500G); }
-    @FXML public void onClickFormato750() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_750G, model.VaschettaBase.MAX_GUSTI_750G); }
-    @FXML public void onClickFormato1000() { vaschettaHelper.selezionaFormato(model.VaschettaBase.PESO_1000G, model.VaschettaBase.MAX_GUSTI_1000G); }
+    @FXML public void onClickFormato350() {
+        bean.RegoleVaschettaBean r = control.applicativo.OrdiniControl.ottieniRegoleVaschetta();
+        vaschettaHelper.selezionaFormato(r.getPeso350g(), r.getMaxGusti350g());
+    }
+    @FXML public void onClickFormato500() {
+        bean.RegoleVaschettaBean r = control.applicativo.OrdiniControl.ottieniRegoleVaschetta();
+        vaschettaHelper.selezionaFormato(r.getPeso500g(), r.getMaxGusti500g());
+    }
+    @FXML public void onClickFormato750() {
+        bean.RegoleVaschettaBean r = control.applicativo.OrdiniControl.ottieniRegoleVaschetta();
+        vaschettaHelper.selezionaFormato(r.getPeso750g(), r.getMaxGusti750g());
+    }
+    @FXML public void onClickFormato1000() {
+        bean.RegoleVaschettaBean r = control.applicativo.OrdiniControl.ottieniRegoleVaschetta();
+        vaschettaHelper.selezionaFormato(r.getPeso1000g(), r.getMaxGusti1000g());
+    }
 
     @FXML
     public void onClickSvuotaVaschetta() {
@@ -355,10 +400,35 @@ public class GelateriaControlGrafico {
         aggiornaStatoCarrello();
     }
     private void aggiornaMieiOrdini() {
-        if (listaMieiOrdini == null) return;
         String email = SessionManager.getInstance().getEmailUtenteLoggato();
-        listaMieiOrdini.getItems().clear();
-        listaMieiOrdini.getItems().addAll(new OrdiniControl().visualizzaOrdiniCliente(email));
+        OrdiniControl ctrl = new OrdiniControl();
+        List<OrdineBean> ordini = ctrl.visualizzaOrdiniCliente(email);
+        if (listaMieiOrdini != null) {
+            listaMieiOrdini.getItems().clear();
+            listaMieiOrdini.getItems().addAll(ordini);
+        }
+        if (listaChatCliente != null) {
+            listaChatCliente.getItems().clear();
+            int totaleMessaggi = 0;
+            for (OrdineBean ob : ordini) {
+                int nMsg = ctrl.caricaMessaggiChatOrdine(ob.getCodiceOrdine(), ob.getEmailCliente()).size();
+                totaleMessaggi += nMsg;
+                if (OrdiniControl.isOrdineAttivoPerChatCliente(ob) || nMsg > 0) {
+                    listaChatCliente.getItems().add(ob);
+                }
+            }
+            String titoloTab = totaleMessaggi > 0 ? ("💬 Chat Ordini (" + totaleMessaggi + ")") : "💬 Chat Ordini";
+            if (lblTabChatCliente != null) {
+                lblTabChatCliente.setText(titoloTab);
+            } else if (tabChatCliente != null) {
+                tabChatCliente.setText(titoloTab);
+            }
+        }
+    }
+
+    @FXML
+    public void onClickInfoBoutique() {
+        view.InfoBoutiquePopoverView.toggle(boxBrandInfo);
     }
 
     @FXML
@@ -392,6 +462,21 @@ public class GelateriaControlGrafico {
     }
 
     @FXML
+    public void onClickAllegaFotoRecensione() {
+        if (recensioniHelper == null) return;
+        Window owner = btnApriCarrello != null && btnApriCarrello.getScene() != null
+                ? btnApriCarrello.getScene().getWindow() : null;
+        recensioniHelper.scegliFotoRecensione(owner);
+    }
+
+    @FXML
+    public void onClickRimuoviFotoRecensione() {
+        if (recensioniHelper != null) {
+            recensioniHelper.rimuoviFotoRecensione();
+        }
+    }
+
+    @FXML
     public void onClickLogout() {
         SessionManager.getInstance().logout();
         LoginControlGrafico.cambiaSchermata("/login.fxml");
@@ -418,7 +503,12 @@ public class GelateriaControlGrafico {
                 catalogoGustiGelato.add(g);
             }
         }
-        impostaCategoriaCatalogo(categoriaCatalogoSelezionata);
+        if (catalogoProvenzaView != null) {
+            catalogoProvenzaView.aggiornaDati(
+                    categorieMenuDisponibili(), tuttiProdottiMenu, carrello.getGustiNellaVaschetta());
+        } else {
+            impostaCategoriaCatalogo(categoriaCatalogoSelezionata);
+        }
         if (gustoCustomHelper != null) {
             gustoCustomHelper.aggiornaListaRichieste(email);
         }

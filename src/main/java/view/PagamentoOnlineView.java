@@ -248,6 +248,7 @@ public final class PagamentoOnlineView {
         Scene scene = new Scene(root, 680, 580);
         scene.setFill(javafx.scene.paint.Color.web("#121114"));
         popup.setScene(scene);
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.sizeToScene();
         popup.centerOnScreen();
         popup.showAndWait();

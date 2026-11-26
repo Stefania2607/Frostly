@@ -18,6 +18,7 @@ public class RecensioneBean {
     private String rispostaMaestro;
     private String dataRisposta;
     private int miPiace;
+    private String fotoPath;
 
     public RecensioneBean() {
     }
@@ -136,5 +137,17 @@ public class RecensioneBean {
 
     public boolean haRispostaMaestro() {
         return rispostaMaestro != null && !rispostaMaestro.trim().isEmpty();
+    }
+
+    public String getFotoPath() {
+        return fotoPath;
+    }
+
+    public void setFotoPath(String fotoPath) {
+        this.fotoPath = fotoPath;
+    }
+
+    public boolean haFoto() {
+        return fotoPath != null && !fotoPath.trim().isEmpty();
     }
 }

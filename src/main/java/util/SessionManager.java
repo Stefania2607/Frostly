@@ -11,6 +11,7 @@ public class SessionManager {
     private String emailUtenteLoggato;
     private String ruoloUtenteLoggato;
     private String nomeUtenteLoggato;
+    private boolean gui2Attiva;
 
     private SessionManager() {
         this.modalita = caricaModalitaDaConfigurazione();
@@ -57,6 +58,15 @@ public class SessionManager {
         this.emailUtenteLoggato = null;
         this.ruoloUtenteLoggato = null;
         this.nomeUtenteLoggato = null;
+        this.gui2Attiva = false;
+    }
+
+    public boolean isGui2Attiva() {
+        return gui2Attiva;
+    }
+
+    public void setGui2Attiva(boolean gui2Attiva) {
+        this.gui2Attiva = gui2Attiva;
     }
 
     public String getEmailUtenteLoggato() {

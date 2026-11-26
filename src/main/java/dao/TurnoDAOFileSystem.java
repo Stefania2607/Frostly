@@ -21,33 +21,19 @@ public class TurnoDAOFileSystem implements TurnoDAO {
 
     private static final String TURNI_CSV_FILE = "turni_frostly.csv";
     private static final String SEP = ";";
+    private final ArchivioMemoria cache = ArchivioMemoria.getJdbcCacheInstance();
 
     @Override
     public void salvaTurno(Turno turno) throws FrostlyException {
-        ArchivioMemoria.getInstance().salvaTurno(turno);
-        List<Turno> tuttiTurni = ArchivioMemoria.getInstance().getTurni();
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(TURNI_CSV_FILE))) {
-            for (Turno t : tuttiTurni) {
-                String riga = String.join(SEP,
-                        t.getCodiceTurno(),
-                        t.getData(),
-                        t.getOraInizio(),
-                        t.getOraFine(),
-                        t.getDipendenteAssegnato().getEmail(),
-                        t.getStato().name());
-                writer.write(riga);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            throw new FrostlyException("Errore scrittura file CSV dei turni.", e);
-        }
+        cache.salvaTurno(turno);
+        scriviCsvTurni(cache.getTurni());
     }
 
     @Override
     public List<Turno> caricaTuttiTurni() throws FrostlyException {
         File file = new File(TURNI_CSV_FILE);
         if (!file.exists()) {
-            return ArchivioMemoria.getInstance().getTurni();
+            return cache.getTurni();
         }
         List<Turno> daFile = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -56,13 +42,29 @@ public class TurnoDAOFileSystem implements TurnoDAO {
                 String[] campi = line.split(SEP);
                 if (campi.length >= 6) {
                     String emailDip = campi[4];
-                    Dipendente dip = ArchivioMemoria.getInstance().trovaDipendentePerEmail(emailDip);
+                    Dipendente dip = cache.trovaDipendentePerEmail(emailDip);
                     if (dip == null && emailDip != null) {
                         dip = new Dipendente("Personale", "(Non in organico)", emailDip, "");
                     }
                     if (dip != null) {
                         Turno t = new Turno(campi[0], campi[1], campi[2], campi[3], dip);
                         t.setStato(StatoTurno.valueOf(campi[5]));
+                        if (campi.length >= 7) {
+                            t.setBloccato(Boolean.parseBoolean(campi[6]));
+                        }
+                        if (campi.length >= 8) {
+                            t.setGeneratoAutomaticamente(Boolean.parseBoolean(campi[7]));
+                        }
+                        if (campi.length >= 9) {
+                            t.setPersonalizzato(Boolean.parseBoolean(campi[8]));
+                        }
+                        if (campi.length >= 10) {
+                            try {
+                                t.setPausaMinuti(Integer.parseInt(campi[9]));
+                            } catch (NumberFormatException ignored) {
+                                // Ignora formato pausa non valido
+                            }
+                        }
                         daFile.add(t);
                     }
                 }
@@ -70,26 +72,49 @@ public class TurnoDAOFileSystem implements TurnoDAO {
         } catch (IOException e) {
             throw new FrostlyException("Errore lettura file CSV dei turni.", e);
         }
-        return daFile.isEmpty() ? ArchivioMemoria.getInstance().getTurni() : daFile;
+        return daFile.isEmpty() ? cache.getTurni() : daFile;
     }
 
     @Override
     public void eliminaTurno(String codiceTurno) throws FrostlyException {
-        ArchivioMemoria.getInstance().eliminaTurno(codiceTurno);
-        List<Turno> tuttiTurni = ArchivioMemoria.getInstance().getTurni();
+        cache.eliminaTurno(codiceTurno);
+        scriviCsvTurni(cache.getTurni());
+    }
+
+    @Override
+    public void sostituisciTurniAtomico(List<String> codiciDaEliminare, List<Turno> nuoviTurni) throws FrostlyException {
+        if (codiciDaEliminare != null) {
+            for (String cod : codiciDaEliminare) {
+                cache.eliminaTurno(cod);
+            }
+        }
+        if (nuoviTurni != null) {
+            for (Turno t : nuoviTurni) {
+                cache.salvaTurno(t);
+            }
+        }
+        scriviCsvTurni(cache.getTurni());
+    }
+
+    private void scriviCsvTurni(List<Turno> tuttiTurni) throws FrostlyException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(TURNI_CSV_FILE))) {
             for (Turno t : tuttiTurni) {
-                if (t.getDipendenteAssegnato() != null) {
-                    String riga = String.join(SEP,
-                            t.getCodiceTurno(),
-                            t.getData(),
-                            t.getOraInizio(),
-                            t.getOraFine(),
-                            t.getDipendenteAssegnato().getEmail(),
-                            t.getStato().name());
-                    writer.write(riga);
-                    writer.newLine();
+                if (t.getDipendenteAssegnato() == null) {
+                    continue;
                 }
+                String riga = String.join(SEP,
+                        t.getCodiceTurno(),
+                        t.getData(),
+                        t.getOraInizio(),
+                        t.getOraFine(),
+                        t.getDipendenteAssegnato().getEmail(),
+                        t.getStato().name(),
+                        String.valueOf(t.isBloccato()),
+                        String.valueOf(t.isGeneratoAutomaticamente()),
+                        String.valueOf(t.isPersonalizzato()),
+                        String.valueOf(t.getPausaMinuti()));
+                writer.write(riga);
+                writer.newLine();
             }
         } catch (IOException e) {
             throw new FrostlyException("Errore scrittura file CSV dei turni.", e);

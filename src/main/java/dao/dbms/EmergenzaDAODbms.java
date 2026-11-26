@@ -49,6 +49,66 @@ public class EmergenzaDAODbms implements EmergenzaDAO {
         }
     }
 
+    @Override
+    public List<model.RichiestaIndisponibilita> caricaRichiesteIndisponibilita() {
+        String sql = "SELECT codice_richiesta, email_dipendente, nome_dipendente, data_richiesta, motivazione, stato, nota_maestro "
+                + "FROM richieste_indisponibilita";
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                java.util.List<model.RichiestaIndisponibilita> dalDb = new java.util.ArrayList<>();
+                while (rs.next()) {
+                    java.time.LocalDate data = java.time.LocalDate.parse(rs.getString("data_richiesta"));
+                    model.RichiestaIndisponibilita r = new model.RichiestaIndisponibilita(
+                            rs.getString("codice_richiesta"),
+                            rs.getString("email_dipendente"),
+                            rs.getString("nome_dipendente"),
+                            data,
+                            rs.getString("motivazione"));
+                    r.setStato(model.RichiestaIndisponibilita.StatoRichiesta.valueOf(rs.getString("stato")));
+                    r.setNotaMaestro(rs.getString("nota_maestro"));
+                    dalDb.add(r);
+                    cache.salvaRichiestaIndisponibilita(r);
+                }
+                return dalDb;
+            }
+        } catch (Exception ignored) {
+            return cache.getRichiesteIndisponibilita();
+        }
+    }
+
+    @Override
+    public void salvaRichiestaIndisponibilita(model.RichiestaIndisponibilita r) {
+        if (r == null) {
+            return;
+        }
+        try {
+            Connection conn = ConnectionManager.getInstance().getConnection();
+            String del = "DELETE FROM richieste_indisponibilita WHERE codice_richiesta = ?";
+            String ins = "INSERT INTO richieste_indisponibilita "
+                    + "(codice_richiesta, email_dipendente, nome_dipendente, data_richiesta, motivazione, stato, nota_maestro) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement dStmt = conn.prepareStatement(del);
+                 PreparedStatement iStmt = conn.prepareStatement(ins)) {
+                dStmt.setString(1, r.getCodiceRichiesta());
+                dStmt.executeUpdate();
+
+                iStmt.setString(1, r.getCodiceRichiesta());
+                iStmt.setString(2, r.getEmailDipendente());
+                iStmt.setString(3, r.getNomeDipendente());
+                iStmt.setString(4, r.getDataRichiesta().toString());
+                iStmt.setString(5, r.getMotivazione());
+                iStmt.setString(6, r.getStato().name());
+                iStmt.setString(7, r.getNotaMaestro());
+                iStmt.executeUpdate();
+            }
+            cache.salvaRichiestaIndisponibilita(r);
+        } catch (FrostlyException | SQLException ignored) {
+            cache.salvaRichiestaIndisponibilita(r);
+        }
+    }
+
     private void sincronizzaEmergenzeDaDatabase() {
         String sql = "SELECT codice_emergenza, codice_turno, email_richiedente, email_sostituto, motivazione, stato, nota_risposta FROM emergenze";
         try {

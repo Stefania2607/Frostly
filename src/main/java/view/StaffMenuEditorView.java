@@ -294,6 +294,7 @@ public final class StaffMenuEditorView {
                 footer);
 
         popup.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(popup.getScene());
         popup.showAndWait();
     }
 
@@ -396,6 +397,7 @@ public final class StaffMenuEditorView {
         root.getChildren().addAll(headerBox, cardInfo, footer);
 
         dialog.setScene(new Scene(root));
+        TemaProvenzaHelper.applicaSeGui2(dialog.getScene());
         dialog.showAndWait();
     }
 }

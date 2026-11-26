@@ -95,51 +95,77 @@ public final class TurniStaffView {
         boolean isSettimanaCorrente = lunediSettimana.equals(lunediCorrente);
 
         GridPane griglia = new GridPane();
-        griglia.setHgap(6);
-        griglia.setVgap(6);
+        griglia.setHgap(5);
+        griglia.setVgap(5);
+        VBox.setVgrow(griglia, Priority.ALWAYS);
         griglia.setStyle("-fx-padding: 6; -fx-background-color: rgba(20, 18, 22, 0.90); -fx-background-radius: 12; -fx-border-color: rgba(186, 164, 135, 0.28); -fx-border-radius: 12;");
 
         // Vincoli colonne: Colonna 0 per fasce orarie, Colonne 1..7 per Lunedì..Domenica
         ColumnConstraints colOrari = new ColumnConstraints();
-        colOrari.setMinWidth(135);
-        colOrari.setPrefWidth(142);
-        colOrari.setMaxWidth(155);
+        colOrari.setMinWidth(102);
+        colOrari.setPrefWidth(106);
+        colOrari.setMaxWidth(112);
         griglia.getColumnConstraints().add(colOrari);
 
         for (int g = 0; g < 7; g++) {
             ColumnConstraints colGiorno = new ColumnConstraints();
-            colGiorno.setMinWidth(122);
-            colGiorno.setPrefWidth(140);
+            colGiorno.setMinWidth(74);
+            colGiorno.setPrefWidth(90);
             colGiorno.setHgrow(Priority.ALWAYS);
             griglia.getColumnConstraints().add(colGiorno);
         }
 
+        // Vincoli righe: header fisso, 5 fasce orarie espanse equamente per evitare scrollbar
+        javafx.scene.layout.RowConstraints rowHeader = new javafx.scene.layout.RowConstraints();
+        rowHeader.setVgrow(Priority.NEVER);
+        griglia.getRowConstraints().add(rowHeader);
+        for (int f = 0; f < FASCE_ORARIE.length; f++) {
+            javafx.scene.layout.RowConstraints rowFascia = new javafx.scene.layout.RowConstraints();
+            rowFascia.setVgrow(Priority.ALWAYS);
+            griglia.getRowConstraints().add(rowFascia);
+        }
+
+        boolean provenza = RecensioniView.isTemaSalottoChiaro(contenitore);
+        if (provenza) {
+            griglia.setStyle("-fx-background-color: #fbf6f1; -fx-background-radius: 14; -fx-padding: 8; -fx-border-color: #e9dbdf; -fx-border-radius: 14;");
+        }
+
         VBox cellaAngolo = new VBox(2);
         cellaAngolo.setAlignment(Pos.CENTER);
-        cellaAngolo.setStyle("-fx-background-color: rgba(35, 32, 38, 0.95); -fx-background-radius: 8; -fx-padding: 8 6; -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 8;");
-        Label lblAngolo1 = new Label("⏰ FASCE ORARIE");
-        lblAngolo1.setStyle("-fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 12.5px;");
-        Label lblAngolo2 = new Label("🗓️ GIORNI SETTIMANA");
-        lblAngolo2.setStyle("-fx-text-fill: #baa487; -fx-font-size: 11.5px; -fx-font-weight: bold;");
+        cellaAngolo.setStyle(provenza
+                ? "-fx-background-color: #eee2ee; -fx-background-radius: 10; -fx-padding: 8 6; -fx-border-color: #ddcddc; -fx-border-radius: 10;"
+                : "-fx-background-color: rgba(35, 32, 38, 0.95); -fx-background-radius: 8; -fx-padding: 8 6; -fx-border-color: rgba(186, 164, 135, 0.25); -fx-border-radius: 8;");
+        Label lblAngolo1 = new Label("FASCE");
+        lblAngolo1.setStyle("-fx-text-fill: " + (provenza ? "#37253d" : "#f5ebe0") + "; -fx-font-weight: bold; -fx-font-size: 11px;");
+        Label lblAngolo2 = new Label("ORARIE");
+        lblAngolo2.setStyle("-fx-text-fill: " + (provenza ? "#764c86" : "#baa487") + "; -fx-font-size: 10px; -fx-font-weight: bold;");
         cellaAngolo.getChildren().addAll(lblAngolo1, lblAngolo2);
         griglia.add(cellaAngolo, 0, 0);
 
+        java.time.format.DateTimeFormatter fmtCorto = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
         for (int g = 0; g < 7; g++) {
             LocalDate dataGiorno = lunediSettimana.plusDays(g);
             boolean isOggi = dataGiorno.equals(oggi);
             boolean isWeekend = (g >= 5);
 
-            VBox headerGiorno = new VBox(2);
+            VBox headerGiorno = new VBox(1);
             headerGiorno.setAlignment(Pos.CENTER);
-            String bgHeader = isOggi ? "#baa487" : (isWeekend ? "rgba(45, 40, 48, 0.95)" : "rgba(32, 30, 35, 0.90)");
-            String borderHeader = isOggi ? "#baa487" : "rgba(186, 164, 135, 0.25)";
-            headerGiorno.setStyle("-fx-background-color: " + bgHeader + "; -fx-background-radius: 8; -fx-padding: 7 4; -fx-border-color: " + borderHeader + "; -fx-border-radius: 8;");
+            String bgHeader;
+            String borderHeader;
+            if (provenza) {
+                bgHeader = isOggi ? "#764c86" : (isWeekend ? "#f4eaf5" : "#f3eae5");
+                borderHeader = isOggi ? "#5e316f" : "#e2d3df";
+            } else {
+                bgHeader = isOggi ? "#baa487" : (isWeekend ? "rgba(45, 40, 48, 0.95)" : "rgba(32, 30, 35, 0.90)");
+                borderHeader = isOggi ? "#baa487" : "rgba(186, 164, 135, 0.25)";
+            }
+            headerGiorno.setStyle("-fx-background-color: " + bgHeader + "; -fx-background-radius: 10; -fx-padding: 6 3; -fx-border-color: " + borderHeader + "; -fx-border-radius: 10;");
 
-            Label lblNomeGiorno = new Label(GIORNI_ETICHETTE[g] + (isOggi ? " (OGGI)" : ""));
-            lblNomeGiorno.setStyle("-fx-text-fill: " + (isOggi ? "#141312" : "#f5ebe0") + "; -fx-font-weight: bold; -fx-font-size: 13px;");
+            Label lblNomeGiorno = new Label(GIORNI_BREVI[g].toUpperCase() + (isOggi ? " •" : ""));
+            lblNomeGiorno.setStyle("-fx-text-fill: " + (provenza ? (isOggi ? "#ffffff" : "#37253d") : (isOggi ? "#141312" : "#f5ebe0")) + "; -fx-font-weight: bold; -fx-font-size: 12px;");
 
-            Label lblData = new Label(dataGiorno.format(FMT_COMPLETO));
-            lblData.setStyle("-fx-text-fill: " + (isOggi ? "#141312" : "#baa487") + "; -fx-font-size: 12px; -fx-font-weight: bold;");
+            Label lblData = new Label(dataGiorno.format(fmtCorto));
+            lblData.setStyle("-fx-text-fill: " + (provenza ? (isOggi ? "#f3eae5" : "#764c86") : (isOggi ? "#141312" : "#baa487")) + "; -fx-font-size: 11px; -fx-font-weight: bold;");
 
             headerGiorno.getChildren().addAll(lblNomeGiorno, lblData);
             griglia.add(headerGiorno, g + 1, 0);
@@ -152,18 +178,25 @@ public final class TurniStaffView {
             String descFascia = FASCE_ORARIE[f][3];
             boolean soloWeekend = "WEEKEND".equals(FASCE_ORARIE[f][4]);
 
-            VBox boxFascia = new VBox(3);
+            VBox boxFascia = new VBox(2);
             boxFascia.setAlignment(Pos.CENTER_LEFT);
-            String bgFascia = "rgba(26, 24, 28, 0.90)";
-            String borderFascia = "rgba(186, 164, 135, 0.22)";
+            String bgFascia = provenza ? "#fffaf7" : "rgba(26, 24, 28, 0.90)";
+            String borderFascia = provenza ? "#e9dbdf" : "rgba(186, 164, 135, 0.22)";
             boxFascia.setStyle("-fx-background-color: " + bgFascia + "; -fx-border-color: " + borderFascia
-                    + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 10;");
+                    + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 6 7;");
 
-            Label lblRange = new Label("⏰ " + rangeLabel);
-            lblRange.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
+            String shortRange = oraInizio.substring(0, 2) + ":00–" + oraFine.substring(0, 2) + ":00";
+            Label lblRange = new Label(shortRange);
+            lblRange.setMinWidth(Region.USE_PREF_SIZE);
+            lblRange.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
-            Label lblDesc = new Label(descFascia);
-            lblDesc.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (soloWeekend ? "#fcd34d;" : "#baa487;"));
+            String shortDesc = descFascia
+                    .replaceAll("\\s*\\([^)]*\\)", "")
+                    .replaceAll("^[^\\p{L}]+", "")
+                    .trim();
+            Label lblDesc = new Label(shortDesc);
+            lblDesc.setWrapText(true);
+            lblDesc.setStyle("-fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: " + (provenza ? (soloWeekend ? "#ad443f;" : "#764c86;") : (soloWeekend ? "#fcd34d;" : "#baa487;")));
 
             boxFascia.getChildren().addAll(lblRange, lblDesc);
             griglia.add(boxFascia, 0, f + 1);
@@ -175,26 +208,26 @@ public final class TurniStaffView {
                 String titoloGiornoEsteso = GIORNI_ETICHETTE[g] + " " + dataGiorno.format(FMT_COMPLETO);
 
                 if (soloWeekend && !isWeekend) {
-                    // Cella non prevista da Lunedì a Venerdì per il turno 10:00 - 18:00
                     VBox cellaDisabilitata = new VBox();
                     cellaDisabilitata.setAlignment(Pos.CENTER);
-                    cellaDisabilitata.setMinHeight(78);
-                    cellaDisabilitata.setStyle("-fx-background-color: rgba(24, 22, 26, 0.40); -fx-border-color: rgba(186, 164, 135, 0.12); "
-                            + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6;");
-                    Label lblNo = new Label("— Solo Sab / Dom —");
-                    lblNo.setStyle("-fx-text-fill: #7d756d; -fx-font-size: 12px; -fx-font-style: italic;");
+                    cellaDisabilitata.setMinHeight(64);
+                    cellaDisabilitata.setStyle(provenza
+                            ? "-fx-background-color: #f3eae5; -fx-border-color: #e9dbdf; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 4;"
+                            : "-fx-background-color: rgba(24, 22, 26, 0.40); -fx-border-color: rgba(186, 164, 135, 0.12); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 4;");
+                    Label lblNo = new Label("Solo weekend");
+                    lblNo.setWrapText(true);
+                    lblNo.setStyle("-fx-text-fill: " + (provenza ? "#8d7c92" : "#7d756d") + "; -fx-font-size: 10.5px; -fx-font-style: italic;");
                     cellaDisabilitata.getChildren().add(lblNo);
                     griglia.add(cellaDisabilitata, g + 1, f + 1);
                     continue;
                 }
 
-                // Filtra i turni appartenenti a questo incrocio (Giorno g, Fascia f)
                 List<TurnoBean> turniCella = filtraTurniPerCella(
                         tuttiTurni, g, dataGiorno, isSettimanaCorrente, f, oraInizio, oraFine);
 
                 VBox cella = costruisciCellaIntersezione(
                         g, f, chiaveDataGiorno, titoloGiornoEsteso,
-                        turniCella, isMaestro, emailUtenteLoggato,
+                        turniCella, isMaestro, emailUtenteLoggato, provenza,
                         onClickIncrocioMaestro, onClickTurnoDipendente);
 
                 griglia.add(cella, g + 1, f + 1);
@@ -211,31 +244,53 @@ public final class TurniStaffView {
                                                     List<TurnoBean> turniCella,
                                                     boolean isMaestro,
                                                     String emailUtenteLoggato,
+                                                    boolean provenza,
                                                     IncrocioClickHandler onClickIncrocioMaestro,
                                                     Consumer<TurnoBean> onClickTurnoDipendente) {
-        VBox cella = new VBox(5);
-        cella.setAlignment(Pos.TOP_LEFT);
-        cella.setMinHeight(82);
+        VBox cella = new VBox(4);
+        cella.setAlignment(turniCella.isEmpty() ? Pos.CENTER : Pos.TOP_LEFT);
+        cella.setMinHeight(64);
 
         boolean haEmergenza = turniCella.stream().anyMatch(t -> "IN_EMERGENZA".equalsIgnoreCase(t.getStato()));
         boolean haMioTurno = !isMaestro && emailUtenteLoggato != null
                 && turniCella.stream().anyMatch(t -> emailUtenteLoggato.equalsIgnoreCase(t.getEmailDipendente()));
+        boolean scoperta = turniCella.isEmpty();
 
-        String bgCella = haEmergenza ? "rgba(65, 20, 25, 0.85)" : (haMioTurno ? "rgba(22, 55, 38, 0.85)" : "rgba(24, 22, 26, 0.85)");
-        String borderCella = haEmergenza ? "#ef4444" : (haMioTurno ? "#10b981" : "rgba(186, 164, 135, 0.20)");
-        String borderWidth = (haEmergenza || haMioTurno) ? "1.8" : "1";
+        String bgCella;
+        String borderCella;
+        if (provenza) {
+            bgCella = haEmergenza ? "#fdf2f2" : (haMioTurno ? "#edf7f0" : (scoperta ? "#fdfaf7" : "#ffffff"));
+            borderCella = haEmergenza ? "#ef4444" : (haMioTurno ? "#387548" : (scoperta ? "#decfe0" : "#eadde2"));
+        } else {
+            bgCella = haEmergenza ? "rgba(65, 20, 25, 0.85)" : (haMioTurno ? "rgba(22, 55, 38, 0.85)" : "rgba(24, 22, 26, 0.85)");
+            borderCella = haEmergenza ? "#ef4444" : (haMioTurno ? "#10b981" : "rgba(186, 164, 135, 0.22)");
+        }
+        String borderWidth = (haEmergenza || haMioTurno) ? "1.6" : "1";
+        String borderStyle = scoperta ? "-fx-border-style: dashed; " : "";
+        String cursorStyle = (isMaestro && onClickIncrocioMaestro != null) ? "-fx-cursor: hand; " : "";
 
-        cella.setStyle("-fx-background-color: " + bgCella + "; -fx-border-color: " + borderCella
-                + "; -fx-border-width: " + borderWidth + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6;");
+        String stileBase = "-fx-background-color: " + bgCella + "; -fx-border-color: " + borderCella
+                + "; -fx-border-width: " + borderWidth + "; " + borderStyle + cursorStyle
+                + "-fx-border-radius: 9; -fx-background-radius: 9; -fx-padding: 4;";
+        String stileHover = "-fx-background-color: " + (provenza ? "#faf1fc" : "rgba(42, 36, 48, 0.94)")
+                + "; -fx-border-color: " + (provenza ? "#8c5b9e" : "#baa487")
+                + "; -fx-border-width: 1.5; " + cursorStyle
+                + "-fx-border-radius: 9; -fx-background-radius: 9; -fx-padding: 4;";
 
-        if (turniCella.isEmpty()) {
-            Label lblVuoto = new Label("Nessun assegnato");
-            lblVuoto.setStyle("-fx-text-fill: #7d756d; -fx-font-size: 12px; -fx-font-style: italic;");
+        cella.setStyle(stileBase);
+
+        if (scoperta) {
+            Label lblVuoto = new Label(isMaestro ? "+ Assegna" : "—");
+            lblVuoto.setStyle("-fx-text-fill: " + (provenza ? "#9d8ba4" : "#8b8175")
+                    + "; -fx-font-size: 11px; -fx-font-weight: " + (isMaestro ? "bold;" : "normal;"));
             cella.getChildren().add(lblVuoto);
         } else {
-            for (TurnoBean t : turniCella) {
+            int maxVisibili = 2;
+            int mostrati = Math.min(maxVisibili, turniCella.size());
+            for (int i = 0; i < mostrati; i++) {
+                TurnoBean t = turniCella.get(i);
                 VBox badgeTurno = costruisciBadgeTurnoInCella(
-                        t, isMaestro, emailUtenteLoggato,
+                        t, isMaestro, emailUtenteLoggato, provenza,
                         () -> {
                             if (isMaestro && onClickIncrocioMaestro != null) {
                                 onClickIncrocioMaestro.onIncrocioSelezionato(
@@ -246,20 +301,38 @@ public final class TurniStaffView {
                         });
                 cella.getChildren().add(badgeTurno);
             }
+            if (turniCella.size() > maxVisibili) {
+                int extra = turniCella.size() - maxVisibili;
+                Label lblExtra = new Label("+" + extra + (extra == 1 ? " altro" : " altri"));
+                lblExtra.setStyle("-fx-background-color: " + (provenza ? "#eee2ee" : "rgba(186,164,135,0.20)")
+                        + "; -fx-text-fill: " + (provenza ? "#5e316f" : "#baa487")
+                        + "; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 7; -fx-background-radius: 8;");
+                cella.getChildren().add(lblExtra);
+            }
         }
 
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-        cella.getChildren().add(spacer);
-
+        // Intera cella cliccabile per il Maestro (niente pulsanti "Gestisci" ripetuti)
         if (isMaestro && onClickIncrocioMaestro != null) {
-            Button btnGestisci = new Button(turniCella.isEmpty() ? "➕ Inserisci" : "✏️ Gestisci / +");
-            btnGestisci.setMaxWidth(Double.MAX_VALUE);
-            btnGestisci.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; "
-                    + "-fx-font-size: 12px; -fx-padding: 3 6; -fx-background-radius: 6; -fx-cursor: hand;");
-            btnGestisci.setOnAction(e -> onClickIncrocioMaestro.onIncrocioSelezionato(
+            cella.setOnMouseEntered(e -> cella.setStyle(stileHover));
+            cella.setOnMouseExited(e -> cella.setStyle(stileBase));
+            cella.setOnMouseClicked(e -> onClickIncrocioMaestro.onIncrocioSelezionato(
                     indiceGiorno, indiceFascia, chiaveDataGiorno, titoloGiornoEsteso));
-            cella.getChildren().add(btnGestisci);
+
+            StringBuilder tip = new StringBuilder(titoloGiornoEsteso)
+                    .append(" • ").append(FASCE_ORARIE[indiceFascia][2]);
+            if (scoperta) {
+                tip.append("\nTurno scoperto — clicca per assegnare personale");
+            } else {
+                for (TurnoBean t : turniCella) {
+                    tip.append("\n• ").append(t.getNomeDipendente())
+                       .append(" (").append(t.getOraInizio()).append("–").append(t.getOraFine()).append(")");
+                    if (t.getPausaMinuti() > 0) tip.append(" [pausa ").append(t.getPausaMinuti()).append("m]");
+                    if (t.isBloccato()) tip.append(" 🔒");
+                    if ("IN_EMERGENZA".equalsIgnoreCase(t.getStato())) tip.append(" [EMERGENZA]");
+                }
+                tip.append("\nClicca per gestire o modificare assegnazioni");
+            }
+            javafx.scene.control.Tooltip.install(cella, new javafx.scene.control.Tooltip(tip.toString()));
         }
 
         return cella;
@@ -268,49 +341,67 @@ public final class TurniStaffView {
     private static VBox costruisciBadgeTurnoInCella(TurnoBean t,
                                                     boolean isMaestro,
                                                     String emailUtenteLoggato,
+                                                    boolean provenza,
                                                     Runnable onClick) {
         boolean isMio = emailUtenteLoggato != null && emailUtenteLoggato.equalsIgnoreCase(t.getEmailDipendente());
         String stato = t.getStato() != null ? t.getStato().toUpperCase() : "PUBBLICATO";
 
-        VBox badge = new VBox(2);
+        VBox badge = new VBox(1);
+        badge.setMaxWidth(Double.MAX_VALUE);
         String bgBadge;
         String borderBadge;
         String textColor;
-        String statoLabel;
+        String indicatore;
 
         if (stato.contains("EMERGENZA")) {
-            bgBadge = "rgba(70, 20, 25, 0.90)";
+            bgBadge = provenza ? "#fde8e8" : "rgba(70, 20, 25, 0.90)";
             borderBadge = "#ef4444";
-            textColor = "#fca5a5";
-            statoLabel = "🚨 EMERGENZA";
+            textColor = provenza ? "#b91c1c" : "#fca5a5";
+            indicatore = "● Urgenza";
         } else if (stato.contains("SOSTITUIT")) {
-            bgBadge = "rgba(25, 45, 65, 0.90)";
+            bgBadge = provenza ? "#e0f2fe" : "rgba(25, 45, 65, 0.90)";
             borderBadge = "#3b82f6";
-            textColor = "#93c5fd";
-            statoLabel = "🔄 Sostituito";
+            textColor = provenza ? "#1d4ed8" : "#93c5fd";
+            indicatore = "● Sostituito";
         } else if (isMio && !isMaestro) {
-            bgBadge = "rgba(22, 55, 38, 0.90)";
-            borderBadge = "#10b981";
-            textColor = "#a7f3d0";
-            statoLabel = "⭐ TUO TURNO (Clicca)";
+            bgBadge = provenza ? "#e6f4ea" : "rgba(22, 55, 38, 0.90)";
+            borderBadge = provenza ? "#387548" : "#10b981";
+            textColor = provenza ? "#1e6b3a" : "#a7f3d0";
+            indicatore = "★ Tuo turno";
         } else {
-            bgBadge = "rgba(38, 35, 42, 0.90)";
-            borderBadge = "rgba(186, 164, 135, 0.28)";
-            textColor = "#f5ebe0";
-            statoLabel = "✔ Assegnato";
+            bgBadge = provenza ? "#f4eaf5" : "rgba(42, 38, 50, 0.95)";
+            borderBadge = provenza ? "#dfd0e3" : "rgba(186, 164, 135, 0.32)";
+            textColor = provenza ? "#3f224d" : "#f8f1e7";
+            indicatore = null;
         }
 
-        badge.setStyle("-fx-background-color: " + bgBadge + "; -fx-border-color: " + borderBadge
-                + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
+        String borderBlocco = t.isBloccato()
+                ? "-fx-border-color: " + (provenza ? "#764c86" : "#baa487") + "; -fx-border-width: 1 1 1 3; "
+                : "-fx-border-color: " + borderBadge + "; -fx-border-width: 1; ";
 
-        Label lblNome = new Label("👤 " + t.getNomeDipendente());
-        lblNome.setWrapText(true);
-        lblNome.setStyle("-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: " + textColor + ";");
+        badge.setStyle("-fx-background-color: " + bgBadge + "; " + borderBlocco
+                + "-fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 3 5; -fx-cursor: hand;");
 
-        Label lblStato = new Label(statoLabel);
-        lblStato.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+        String nomeCompatto = formattaNomeBreve(t.getNomeDipendente());
+        Label lblNome = new Label((t.isBloccato() ? "▪ " : "") + nomeCompatto);
+        lblNome.setStyle("-fx-font-family: -apple-system, 'Helvetica Neue', 'Arial', sans-serif; "
+                + "-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " + textColor + ";");
+        badge.getChildren().add(lblNome);
 
-        badge.getChildren().addAll(lblNome, lblStato);
+        if (t.isPersonalizzato()) {
+            Label lblCustom = new Label(t.getOraInizio() + "–" + t.getOraFine());
+            lblCustom.setStyle("-fx-font-family: -apple-system, 'Helvetica Neue', 'Arial', sans-serif; "
+                    + "-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: "
+                    + (provenza ? "#6d427b;" : "#f0cf95;"));
+            badge.getChildren().add(lblCustom);
+        }
+
+        if (indicatore != null) {
+            Label lblStato = new Label(indicatore);
+            lblStato.setStyle("-fx-font-family: -apple-system, 'Helvetica Neue', 'Arial', sans-serif; "
+                    + "-fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+            badge.getChildren().add(lblStato);
+        }
         badge.setOnMouseClicked(e -> {
             e.consume();
             if (onClick != null) {
@@ -318,6 +409,21 @@ public final class TurniStaffView {
             }
         });
         return badge;
+    }
+
+    /**
+     * Formatta il nome dipendente in forma compatta e leggibile (es. "Martina S.")
+     * evitando troncamenti con ellissi nelle celle del calendario.
+     */
+    private static String formattaNomeBreve(String nomeCompleto) {
+        if (nomeCompleto == null || nomeCompleto.isBlank()) {
+            return "Staff";
+        }
+        String[] parti = nomeCompleto.trim().split("\\s+");
+        if (parti.length == 1 || nomeCompleto.trim().length() <= 11) {
+            return nomeCompleto.trim();
+        }
+        return parti[0] + " " + Character.toUpperCase(parti[1].charAt(0)) + ".";
     }
 
     /**
@@ -380,14 +486,21 @@ public final class TurniStaffView {
         if (in.equals(inizioFascia) && fi.equals(fineFascia)) {
             return true;
         }
-        // Compatibilità con eventuali turni storici (08:00-14:00 -> fascia mattina 07:00-14:00; 18:00-00:00 -> fascia 20:00-00:00)
-        if (indiceFascia == 0 && "08:00".equals(in) && "14:00".equals(fi)) {
-            return true;
+        // Se il turno corrisponde esattamente a un'altra fascia del catalogo, non duplicarlo
+        if (model.DisponibilitaDipendente.identificaIndiceFascia(in, fi) >= 0) {
+            return false;
         }
-        if (indiceFascia == 3 && "18:00".equals(in) && ("00:00".equals(fi) || "24:00".equals(fi))) {
-            return true;
+        // Turni personalizzati/flessibili: mappatura univoca per ora di inizio (visibili sempre con badge orario)
+        if (in.compareTo("12:00") < 0) {
+            return indiceFascia == 0;
         }
-        return false;
+        if (in.compareTo("16:00") < 0) {
+            return indiceFascia == 1;
+        }
+        if (in.compareTo("19:00") < 0) {
+            return indiceFascia == 2;
+        }
+        return indiceFascia == 3;
     }
 
     /**
@@ -404,6 +517,44 @@ public final class TurniStaffView {
                                                         Consumer<String> onRimuoviTurnoCodice,
                                                         GestioneEmergenzaCallback onApprovaEmergenza,
                                                         BiConsumer<String, String> onRifiutaEmergenza) {
+        apriPopupGestioneIncrocioMaestro(owner, titoloGiornoEsteso, rangeFascia, turniAttualiCella,
+                dipendentiFormattati, cercaEmergenzaPerTurno, null,
+                onAssegnaDipendenteEmail, onRimuoviTurnoCodice, onApprovaEmergenza, onRifiutaEmergenza);
+    }
+
+    public static void apriPopupGestioneIncrocioMaestro(Window owner,
+                                                        String titoloGiornoEsteso,
+                                                        String rangeFascia,
+                                                        List<TurnoBean> turniAttualiCella,
+                                                        List<String> dipendentiFormattati,
+                                                        java.util.function.Function<String, EmergenzaBean> cercaEmergenzaPerTurno,
+                                                        java.util.function.Function<String, control.applicativo.CalcolatoreOreSettimanali.AnteprimaAssegnazione> anteprimaProvider,
+                                                        Consumer<String> onAssegnaDipendenteEmail,
+                                                        Consumer<String> onRimuoviTurnoCodice,
+                                                        GestioneEmergenzaCallback onApprovaEmergenza,
+                                                        BiConsumer<String, String> onRifiutaEmergenza) {
+        apriPopupGestioneIncrocioMaestro(owner, titoloGiornoEsteso, rangeFascia, turniAttualiCella,
+                dipendentiFormattati, cercaEmergenzaPerTurno, anteprimaProvider,
+                (email, bloccato) -> {
+                    if (onAssegnaDipendenteEmail != null) {
+                        onAssegnaDipendenteEmail.accept(email);
+                    }
+                },
+                null, onRimuoviTurnoCodice, onApprovaEmergenza, onRifiutaEmergenza);
+    }
+
+    public static void apriPopupGestioneIncrocioMaestro(Window owner,
+                                                        String titoloGiornoEsteso,
+                                                        String rangeFascia,
+                                                        List<TurnoBean> turniAttualiCella,
+                                                        List<String> dipendentiFormattati,
+                                                        java.util.function.Function<String, EmergenzaBean> cercaEmergenzaPerTurno,
+                                                        java.util.function.Function<String, control.applicativo.CalcolatoreOreSettimanali.AnteprimaAssegnazione> anteprimaProvider,
+                                                        BiConsumer<String, Boolean> onAssegnaDipendenteConBlocco,
+                                                        BiConsumer<String, Boolean> onToggleBloccoTurno,
+                                                        Consumer<String> onRimuoviTurnoCodice,
+                                                        GestioneEmergenzaCallback onApprovaEmergenza,
+                                                        BiConsumer<String, String> onRifiutaEmergenza) {
         Stage dialog = new Stage();
         if (owner != null) {
             dialog.initOwner(owner);
@@ -411,44 +562,74 @@ public final class TurniStaffView {
         dialog.initModality(Modality.WINDOW_MODAL);
         dialog.setTitle("Gestione Incrocio Turno — " + titoloGiornoEsteso);
 
-        VBox root = new VBox(14);
-        root.setPadding(new Insets(20, 24, 20, 24));
+        VBox root = new VBox(12);
+        root.setPrefWidth(680);
+        root.setMinWidth(660);
+        root.setPadding(new Insets(18, 22, 18, 22));
         root.setStyle("-fx-background-color: rgba(18,17,20,0.97); -fx-border-color: rgba(186,164,135,0.40); -fx-border-width: 1.2; -fx-border-radius: 12; -fx-background-radius: 12;");
 
         Label lblTitolo = new Label("📅 Gestione Incrocio Calendario Turni");
-        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 16.5px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
+        lblTitolo.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
 
         Label lblSottotitolo = new Label("🗓️ " + titoloGiornoEsteso + "   •   ⏰ Fascia: " + rangeFascia);
-        lblSottotitolo.setStyle("-fx-background-color: rgba(35,32,38,0.90); -fx-text-fill: #baa487; -fx-font-weight: bold; "
-                + "-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-radius: 8; -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 8;");
+        lblSottotitolo.setMaxWidth(Double.MAX_VALUE);
+        lblSottotitolo.setStyle("-fx-background-color: rgba(35,32,38,0.92); -fx-text-fill: #baa487; -fx-font-weight: bold; "
+                + "-fx-font-size: 13px; -fx-padding: 7 12; -fx-background-radius: 10; -fx-border-color: rgba(186,164,135,0.28); -fx-border-radius: 10;");
 
         Label lblPresenti = new Label("👥 Personale assegnato in questo incrocio:");
-        lblPresenti.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
+        lblPresenti.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0; "
+                + "-fx-background-color: rgba(24,22,28,0.75); -fx-padding: 4 10; -fx-background-radius: 8;");
 
+        boolean haEmergenzaInCella = false;
         VBox boxPresenti = new VBox(8);
+        boxPresenti.setStyle("-fx-padding: 2;");
         if (turniAttualiCella == null || turniAttualiCella.isEmpty()) {
             Label lblNessuno = new Label("Nessun dipendente assegnato in questa fascia. Usa il modulo sotto per inserirne uno.");
-            lblNessuno.setStyle("-fx-text-fill: #ded7cd; -fx-font-style: italic; -fx-font-size: 13.5px;");
+            lblNessuno.setWrapText(true);
+            lblNessuno.setStyle("-fx-text-fill: #ded7cd; -fx-font-style: italic; -fx-font-size: 13px;");
             boxPresenti.getChildren().add(lblNessuno);
         } else {
             for (TurnoBean t : turniAttualiCella) {
                 VBox cardAssegnato = new VBox(8);
                 boolean inEmergenza = "IN_EMERGENZA".equalsIgnoreCase(t.getStato());
-                cardAssegnato.setStyle("-fx-background-color: " + (inEmergenza ? "rgba(65,20,25,0.85)" : "rgba(26,24,28,0.92)")
-                        + "; -fx-border-color: " + (inEmergenza ? "#ef4444" : "rgba(186,164,135,0.25)")
-                        + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10 12;");
+                if (inEmergenza) {
+                    haEmergenzaInCella = true;
+                }
+                cardAssegnato.setStyle("-fx-background-color: " + (inEmergenza ? "rgba(65,20,25,0.92)" : "rgba(26,24,28,0.95)")
+                        + "; -fx-border-color: " + (inEmergenza ? "#ef4444" : "rgba(186,164,135,0.28)")
+                        + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 12;");
 
-                HBox rigaTop = new HBox(10);
+                HBox rigaTop = new HBox(8);
                 rigaTop.setAlignment(Pos.CENTER_LEFT);
 
-                Label lblInfo = new Label("👤 " + t.getNomeDipendente() + " (" + t.getEmailDipendente() + ") — [" + t.getCodiceTurno() + "]");
-                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5ebe0;");
-                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #3a2618;");
+                Label lblInfo = new Label((t.isBloccato() ? "🔒 " : "👤 ") + t.getNomeDipendente()
+                        + " (" + t.getEmailDipendente() + ") — [" + t.getCodiceTurno() + "]");
+                lblInfo.setWrapText(true);
+                lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
                 HBox.setHgrow(lblInfo, Priority.ALWAYS);
 
-                Button btnRimuovi = new Button("🗑️ Rimuovi dal Turno");
+                Region spTop = new Region();
+                HBox.setHgrow(spTop, Priority.SOMETIMES);
+
+                if (onToggleBloccoTurno != null) {
+                    Button btnBlocco = new Button(t.isBloccato() ? "🔓 Sblocca" : "🔒 Blocca");
+                    btnBlocco.setMinWidth(Region.USE_PREF_SIZE);
+                    btnBlocco.setStyle("-fx-background-color: " + (t.isBloccato() ? "#5e316f" : "#3a3542")
+                            + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; "
+                            + "-fx-padding: 5 11; -fx-background-radius: 8; -fx-cursor: hand;");
+                    btnBlocco.setOnAction(e -> {
+                        onToggleBloccoTurno.accept(t.getCodiceTurno(), !t.isBloccato());
+                        dialog.close();
+                    });
+                    rigaTop.getChildren().addAll(lblInfo, spTop, btnBlocco);
+                } else {
+                    rigaTop.getChildren().addAll(lblInfo, spTop);
+                }
+
+                Button btnRimuovi = new Button("🗑️ Rimuovi");
+                btnRimuovi.setMinWidth(Region.USE_PREF_SIZE);
                 btnRimuovi.setStyle("-fx-background-color: #bc4749; -fx-text-fill: white; -fx-font-weight: bold; "
-                        + "-fx-font-size: 12.5px; -fx-padding: 4 10; -fx-background-radius: 6; -fx-cursor: hand;");
+                        + "-fx-font-size: 12px; -fx-padding: 5 11; -fx-background-radius: 8; -fx-cursor: hand;");
                 btnRimuovi.setOnAction(e -> {
                     if (onRimuoviTurnoCodice != null) {
                         onRimuoviTurnoCodice.accept(t.getCodiceTurno());
@@ -456,7 +637,7 @@ public final class TurniStaffView {
                     dialog.close();
                 });
 
-                rigaTop.getChildren().addAll(lblInfo, btnRimuovi);
+                rigaTop.getChildren().add(btnRimuovi);
                 cardAssegnato.getChildren().add(rigaTop);
 
                 // Se il turno è in emergenza, mostra i dettagli del reclamo e permette la sostituzione immediata
@@ -525,8 +706,12 @@ public final class TurniStaffView {
 
         ScrollPane scrollPresenti = new ScrollPane(boxPresenti);
         scrollPresenti.setFitToWidth(true);
-        scrollPresenti.setPrefHeight(Math.min(220, Math.max(85, (turniAttualiCella != null ? turniAttualiCella.size() : 1) * 85)));
-        scrollPresenti.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        scrollPresenti.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        int baseHeight = haEmergenzaInCella ? 225 : Math.max(90, (turniAttualiCella != null ? turniAttualiCella.size() : 1) * 76);
+        scrollPresenti.setPrefHeight(Math.min(280, baseHeight));
+        scrollPresenti.setMinHeight(haEmergenzaInCella ? 205 : 70);
+        VBox.setVgrow(scrollPresenti, Priority.ALWAYS);
+        scrollPresenti.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
 
         Separator sep = new Separator();
 
@@ -549,19 +734,116 @@ public final class TurniStaffView {
         comboNuovoDip.setPromptText("Seleziona membro dello staff...");
         comboNuovoDip.setPrefWidth(300);
 
+        Label lblAnteprima = new Label();
+        lblAnteprima.setWrapText(true);
+        lblAnteprima.setVisible(false);
+        lblAnteprima.setManaged(false);
+        lblAnteprima.setStyle("-fx-font-size: 12px; -fx-padding: 8 10; -fx-background-radius: 8; -fx-border-radius: 8;");
+
+        Runnable aggiornaAnteprima = () -> {
+            if (anteprimaProvider == null || comboNuovoDip.getValue() == null) {
+                lblAnteprima.setVisible(false);
+                lblAnteprima.setManaged(false);
+                return;
+            }
+            String emailSel = estraiEmail(comboNuovoDip.getValue());
+            control.applicativo.CalcolatoreOreSettimanali.AnteprimaAssegnazione ant = anteprimaProvider.apply(emailSel);
+            if (ant == null) {
+                lblAnteprima.setVisible(false);
+                lblAnteprima.setManaged(false);
+                return;
+            }
+            String att = model.ConfigurazioneOreDipendente.formattaOre(ant.oreAttuali());
+            String dur = model.ConfigurazioneOreDipendente.formattaOre(ant.oreTurno());
+            String ris = model.ConfigurazioneOreDipendente.formattaOre(ant.oreRisultanti());
+            String target = ant.configurazioneOre().getEtichettaObiettivo();
+            StringBuilder sb = new StringBuilder();
+            sb.append("Ore attuali: ").append(att).append(" h  •  Turno: +").append(dur)
+              .append(" h  →  Risultanti: ").append(ris).append(" h (Obiettivo: ").append(target).append(")");
+            if (ant.maxTurniSettimanali() != null) {
+                sb.append("  •  Turni: ").append(ant.turniAttuali()).append("/").append(ant.maxTurniSettimanali());
+            }
+            if (ant.superaMaxTurni()) {
+                sb.append("\n⛔ Limite massimo turni raggiunto (").append(ant.turniAttuali())
+                  .append("/").append(ant.maxTurniSettimanali())
+                  .append("): l'assegnazione non è consentita.");
+            }
+            if (ant.superaMassimo()) {
+                sb.append("\n⚠️ L'assegnazione comporterebbe il superamento di ")
+                  .append(model.ConfigurazioneOreDipendente.formattaOre(ant.oreEccesso()))
+                  .append(" h del limite settimanale.");
+            }
+            if (ant.avvisoDisponibilita() != null) {
+                sb.append("\n🚫 Disponibilità: ").append(ant.avvisoDisponibilita());
+            }
+            lblAnteprima.setText(sb.toString());
+            boolean alert = ant.superaMaxTurni() || ant.superaMassimo() || ant.avvisoDisponibilita() != null;
+            lblAnteprima.setStyle(alert
+                    ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #fca5a5; -fx-background-color: rgba(85,22,28,0.85); -fx-border-color: #ef4444; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 10;"
+                    : "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #a7f3d0; -fx-background-color: rgba(22,55,38,0.85); -fx-border-color: #10b981; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 10;");
+            lblAnteprima.setVisible(true);
+            lblAnteprima.setManaged(true);
+            TemaProvenzaHelper.applicaSeGui2(lblAnteprima);
+        };
+        comboNuovoDip.setOnAction(ev -> aggiornaAnteprima.run());
+        aggiornaAnteprima.run();
+
+        javafx.scene.control.CheckBox chkBloccaNuovo = new javafx.scene.control.CheckBox("🔒 Blocca assegnazione (protetta dalla generazione automatica)");
+        chkBloccaNuovo.setStyle("-fx-text-fill: #ded7cd; -fx-font-size: 12px;");
+
         Button btnInserisci = new Button("➕ Assegna al Turno");
         btnInserisci.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold; "
                 + "-fx-font-size: 14px; -fx-padding: 7 16; -fx-background-radius: 8; -fx-cursor: hand;");
         btnInserisci.setOnAction(e -> {
             String selezionato = comboNuovoDip.getValue();
-            if (selezionato != null && onAssegnaDipendenteEmail != null) {
-                onAssegnaDipendenteEmail.accept(estraiEmail(selezionato));
+            if (selezionato != null && onAssegnaDipendenteConBlocco != null) {
+                String emailSel = estraiEmail(selezionato);
+                if (anteprimaProvider != null) {
+                    control.applicativo.CalcolatoreOreSettimanali.AnteprimaAssegnazione ant = anteprimaProvider.apply(emailSel);
+                    if (ant != null && ant.superaMaxTurni()) {
+                        javafx.scene.control.Alert blocco = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+                        blocco.initOwner(dialog);
+                        blocco.setTitle("Limite Massimo Turni Raggiunto");
+                        blocco.setHeaderText("Impossibile assegnare un altro turno a " + ant.nomeCompleto());
+                        blocco.setContentText(ant.nomeCompleto() + " ha già raggiunto il limite massimo di "
+                                + ant.maxTurniSettimanali() + " turni settimanali (" + ant.turniAttuali()
+                                + "/" + ant.maxTurniSettimanali() + ").\nModifica il limite nel profilo dipendente se necessario.");
+                        blocco.showAndWait();
+                        return;
+                    }
+                    if (ant != null && (ant.superaMassimo() || ant.avvisoDisponibilita() != null)) {
+                        javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+                        confirm.initOwner(dialog);
+                        confirm.setTitle("Conferma Assegnazione Turno");
+                        confirm.setHeaderText("Attenzione: rilevato vincolo per " + ant.nomeCompleto());
+                        StringBuilder msg = new StringBuilder();
+                        if (ant.superaMassimo()) {
+                            msg.append("L'assegnazione comporterebbe il superamento di ")
+                               .append(model.ConfigurazioneOreDipendente.formattaOre(ant.oreEccesso()))
+                               .append(" h del limite settimanale (")
+                               .append(model.ConfigurazioneOreDipendente.formattaOre(ant.oreRisultanti()))
+                               .append(" / ").append(ant.configurazioneOre().getEtichettaObiettivo()).append(").\n");
+                        }
+                        if (ant.avvisoDisponibilita() != null) {
+                            msg.append("Disponibilità incompatibile: ").append(ant.avvisoDisponibilita()).append(".\n");
+                        }
+                        msg.append("\nVuoi confermare comunque l'assegnazione?");
+                        confirm.setContentText(msg.toString());
+                        javafx.scene.control.ButtonType btnSi = new javafx.scene.control.ButtonType("Conferma comunque");
+                        javafx.scene.control.ButtonType btnNo = new javafx.scene.control.ButtonType("Annulla", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                        confirm.getButtonTypes().setAll(btnSi, btnNo);
+                        if (confirm.showAndWait().orElse(btnNo) != btnSi) {
+                            return;
+                        }
+                    }
+                }
+                onAssegnaDipendenteConBlocco.accept(emailSel, chkBloccaNuovo.isSelected());
                 dialog.close();
             }
         });
 
         rigaAggiungi.getChildren().addAll(comboNuovoDip, btnInserisci);
-        boxAggiungi.getChildren().addAll(lblAggiungi, rigaAggiungi);
+        boxAggiungi.getChildren().addAll(lblAggiungi, rigaAggiungi, chkBloccaNuovo, lblAnteprima);
 
         HBox boxBottom = new HBox();
         boxBottom.setAlignment(Pos.CENTER_RIGHT);
@@ -572,8 +854,10 @@ public final class TurniStaffView {
 
         root.getChildren().addAll(lblTitolo, lblSottotitolo, lblPresenti, scrollPresenti, sep, boxAggiungi, boxBottom);
 
-        Scene scene = new Scene(root, 560, 470);
+        Scene scene = new Scene(root, 700, haEmergenzaInCella ? 590 : 470);
         dialog.setScene(scene);
+        TemaProvenzaHelper.applicaSeGui2(dialog.getScene());
+        dialog.centerOnScreen();
         dialog.showAndWait();
     }
 
@@ -670,6 +954,7 @@ public final class TurniStaffView {
 
         Scene scene = new Scene(root, 540, 410);
         dialog.setScene(scene);
+        TemaProvenzaHelper.applicaSeGui2(dialog.getScene());
         dialog.showAndWait();
     }
 

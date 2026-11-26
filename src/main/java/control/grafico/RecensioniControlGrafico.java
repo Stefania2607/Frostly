@@ -3,15 +3,18 @@ package control.grafico;
 import bean.RecensioneBean;
 import control.applicativo.RecensioniControl;
 import frostly.exception.FrostlyException;
+import java.io.File;
 import java.util.List;
 import java.util.function.BiConsumer;
 import javafx.collections.FXCollections;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
+import view.LibroEsperienzeView;
 import view.RecensioniView;
 
 /**
@@ -30,6 +33,10 @@ public class RecensioniControlGrafico {
     private TextArea campoCommentoRecensione;
     private VBox boxCardsRecensioniCliente;
     private Label lblMediaRecensioniCliente;
+    private Label lblFotoRecensione;
+    private Button btnRimuoviFotoRecensione;
+    private String fotoRecensionePath;
+    private LibroEsperienzeView libroEsperienzeView;
 
     private VBox boxCardsRecensioniMaestro;
     private Label lblRiepilogoRecensioniMaestro;
@@ -61,6 +68,54 @@ public class RecensioniControlGrafico {
         }
     }
 
+    public void legaFotoRecensione(Label lblFoto, Button btnRimuovi) {
+        this.lblFotoRecensione = lblFoto;
+        this.btnRimuoviFotoRecensione = btnRimuovi;
+    }
+
+    public void legaLibroEsperienze(VBox boxLibro, String autoreEmail, String autoreNome) {
+        if (boxLibro == null) {
+            return;
+        }
+        this.libroEsperienzeView = new LibroEsperienzeView(
+                boxLibro,
+                autoreEmail,
+                autoreNome,
+                b -> mettiMiPiace(b.getCodiceRecensione()),
+                onEsito,
+                () -> {
+                    aggiornaRecensioniCliente();
+                    if (onStatoAggiornato != null) {
+                        onStatoAggiornato.run();
+                    }
+                });
+    }
+
+    public void scegliFotoRecensione(Window owner) {
+        String path = RecensioniView.scegliESalvaFotoRecensione(owner);
+        if (path != null) {
+            this.fotoRecensionePath = path;
+            if (lblFotoRecensione != null) {
+                lblFotoRecensione.setText("✓ " + new File(path).getName());
+            }
+            if (btnRimuoviFotoRecensione != null) {
+                btnRimuoviFotoRecensione.setVisible(true);
+                btnRimuoviFotoRecensione.setManaged(true);
+            }
+        }
+    }
+
+    public void rimuoviFotoRecensione() {
+        this.fotoRecensionePath = null;
+        if (lblFotoRecensione != null) {
+            lblFotoRecensione.setText("Nessuna foto");
+        }
+        if (btnRimuoviFotoRecensione != null) {
+            btnRimuoviFotoRecensione.setVisible(false);
+            btnRimuoviFotoRecensione.setManaged(false);
+        }
+    }
+
     public void legaCampiMaestro(VBox boxCards, Label lblRiepilogo) {
         this.boxCardsRecensioniMaestro = boxCards;
         this.lblRiepilogoRecensioniMaestro = lblRiepilogo;
@@ -73,11 +128,13 @@ public class RecensioniControlGrafico {
             String comm = campoCommentoRecensione != null ? campoCommentoRecensione.getText() : "";
 
             RecensioneBean bean = new RecensioneBean(autoreEmail, autoreNome, stelle, tit, comm);
+            bean.setFotoPath(fotoRecensionePath);
             RecensioneBean salvata = recensioniControl.pubblicaRecensione(bean);
 
             if (campoTitoloRecensione != null) campoTitoloRecensione.clear();
             if (campoCommentoRecensione != null) campoCommentoRecensione.clear();
             if (comboVotoRecensione != null) comboVotoRecensione.setValue("⭐⭐⭐⭐⭐ (5 Stelle - Eccellente)");
+            rimuoviFotoRecensione();
 
             onEsito.accept("⭐ Grazie " + autoreNome + "! La tua recensione (" + salvata.getStelleIcone()
                     + ") è stata pubblicata. Il Maestro ti risponderà a breve!", false);
@@ -115,18 +172,23 @@ public class RecensioniControlGrafico {
     }
 
     public void aggiornaRecensioniCliente() {
-        if (boxCardsRecensioniCliente == null) return;
-        boxCardsRecensioniCliente.getChildren().clear();
+        if (boxCardsRecensioniCliente == null && libroEsperienzeView == null) return;
         try {
             List<RecensioneBean> lista = recensioniControl.visualizzaTutteRecensioni();
-            double media = recensioniControl.calcolaMediaVoti(lista);
-            if (lblMediaRecensioniCliente != null) {
-                lblMediaRecensioniCliente.setText(String.format("⭐ %.1f / 5.0 (Basato su %d recensioni dei clienti)", media, lista.size()));
+            if (libroEsperienzeView != null) {
+                libroEsperienzeView.aggiorna(lista);
             }
-            for (RecensioneBean r : lista) {
-                // Cliente autenticato: può mettere mi piace
-                boxCardsRecensioniCliente.getChildren().add(
-                        RecensioniView.buildCardRecensione(r, true, false, b -> mettiMiPiace(b.getCodiceRecensione()), null, null));
+            if (boxCardsRecensioniCliente != null) {
+                boxCardsRecensioniCliente.getChildren().clear();
+                double media = recensioniControl.calcolaMediaVoti(lista);
+                if (lblMediaRecensioniCliente != null) {
+                    lblMediaRecensioniCliente.setText(String.format("⭐ %.1f / 5.0 (Basato su %d recensioni dei clienti)", media, lista.size()));
+                }
+                boolean temaChiaro = RecensioniView.isTemaSalottoChiaro(boxCardsRecensioniCliente);
+                for (RecensioneBean r : lista) {
+                    boxCardsRecensioniCliente.getChildren().add(
+                            RecensioniView.buildCardRecensione(r, true, false, temaChiaro, b -> mettiMiPiace(b.getCodiceRecensione()), null, null));
+                }
             }
         } catch (FrostlyException ignored) {}
     }
@@ -145,10 +207,10 @@ public class RecensioniControlGrafico {
                 lblRiepilogoRecensioniMaestro.setText(String.format("Valutazione media: ★ %.1f / 5.0 (%d recensioni totali • %d in attesa di risposta)",
                         media, lista.size(), inAttesaDiRisposta));
             }
+            boolean temaChiaro = RecensioniView.isTemaSalottoChiaro(boxCardsRecensioniMaestro);
             for (RecensioneBean r : lista) {
-                // Maestro autenticato: può mettere mi piace e aprire pop-up risposta
                 boxCardsRecensioniMaestro.getChildren().add(
-                        RecensioniView.buildCardRecensione(r, true, true, b -> mettiMiPiace(b.getCodiceRecensione()), this::apriPopupRisposta, null));
+                        RecensioniView.buildCardRecensione(r, true, true, temaChiaro, b -> mettiMiPiace(b.getCodiceRecensione()), this::apriPopupRisposta, null));
             }
         } catch (FrostlyException ignored) {}
     }

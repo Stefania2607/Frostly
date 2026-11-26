@@ -22,4 +22,14 @@ public class EmergenzaDAOMemory implements EmergenzaDAO {
     public void salvaEmergenza(Emergenza emergenza) {
         archivio.salvaEmergenza(emergenza);
     }
+
+    @Override
+    public List<model.RichiestaIndisponibilita> caricaRichiesteIndisponibilita() {
+        return new ArrayList<>(archivio.getRichiesteIndisponibilita());
+    }
+
+    @Override
+    public void salvaRichiestaIndisponibilita(model.RichiestaIndisponibilita richiesta) {
+        archivio.salvaRichiestaIndisponibilita(richiesta);
+    }
 }

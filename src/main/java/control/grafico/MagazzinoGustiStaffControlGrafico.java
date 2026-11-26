@@ -374,7 +374,7 @@ public class MagazzinoGustiStaffControlGrafico {
             bean.setQuantitaDisponibile(qta);
             bean.setSogliaMinima(soglia);
             bean.setUnitaMisura(unita);
-            bean.setCategoria(model.Ingrediente.inferisciCategoria(nome.trim(), unita));
+            bean.setCategoria(MagazzinoControl.inferisciCategoriaIngrediente(nome.trim(), unita));
 
             new MagazzinoControl().aggiungiNuovoIngrediente(bean);
 

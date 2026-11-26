@@ -191,7 +191,7 @@
 .tab-pane .tab {
     -fx-background-color: transparent;
     -fx-background-radius: 8 8 0 0;
-    -fx-padding: 7 16;
+    -fx-padding: 6 10;
     -fx-cursor: hand;
 }
 
@@ -202,7 +202,7 @@
 .tab-pane .tab .tab-label {
     -fx-text-fill: #b5a898;
     -fx-font-weight: bold;
-    -fx-font-size: 13.5px;
+    -fx-font-size: 12.5px;
 }
 
 .tab-pane .tab:selected .tab-label {
@@ -463,4 +463,51 @@
 .chart-legend-item {
     -fx-text-fill: #f5ebe0;
     -fx-font-size: 12px;
+}
+
+/* Pannello Centro Urgenze (stile minimal macOS) */
+.urgenze-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.urgenze-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 2 0;
+}
+
+.urgenze-scroll .scroll-bar:vertical,
+.urgenze-list .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 6;
+}
+
+.urgenze-scroll .scroll-bar:vertical .track,
+.urgenze-list .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.urgenze-scroll .scroll-bar:vertical .thumb,
+.urgenze-list .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 6;
+}
+
+.urgenze-scroll .scroll-bar .increment-button,
+.urgenze-scroll .scroll-bar .decrement-button,
+.urgenze-list .scroll-bar .increment-button,
+.urgenze-list .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.urgenze-scroll .scroll-bar .increment-arrow,
+.urgenze-scroll .scroll-bar .decrement-arrow,
+.urgenze-list .scroll-bar .increment-arrow,
+.urgenze-list .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
 }

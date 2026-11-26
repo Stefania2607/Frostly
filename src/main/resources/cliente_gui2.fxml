@@ -1,60 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefWidth="1220" prefHeight="780" stylesheets="@style_gui2.css" styleClass="root-dark"
+<BorderPane prefWidth="1220" prefHeight="780" stylesheets="@style_gui2.css" styleClass="root-light"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="control.grafico.GelateriaControlGrafico">
 
     <top>
-        <HBox spacing="14" alignment="CENTER_LEFT" styleClass="top-bar-dark">
-            <Label text="FROSTLY"
-                   style="-fx-font-family: 'Georgia'; -fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 18px;"/>
-            <Label text="•  Haute Gelateria &amp; Tea Salon"
-                   style="-fx-text-fill: #baa487; -fx-font-size: 13px;"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="lblIntestazione" text="Ospite"
-                   style="-fx-text-fill: #f5ebe0; -fx-font-weight: bold; -fx-font-size: 13.5px;"/>
-            <Button fx:id="btnApriCarrello" text="🛒 Vedi Carrello (0 prodotti • EUR 0.00)"
-                    onAction="#onClickApriCarrello" styleClass="btn-primary"/>
-            <Button text="Esci (Logout)" onAction="#onClickLogout" styleClass="btn-outline"/>
-        </HBox>
+        <VBox style="-fx-padding: 10 18 4 18;">
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="top-bar-light">
+                <HBox fx:id="boxBrandInfo" spacing="9" alignment="CENTER_LEFT" onMouseClicked="#onClickInfoBoutique"
+                      style="-fx-cursor: hand; -fx-padding: 2 8 2 2;">
+                    <Label text="✾" style="-fx-font-size: 28px; -fx-text-fill: #8d619e;"/>
+                    <VBox spacing="0" alignment="CENTER_LEFT">
+                        <Label text="Frostly"
+                               style="-fx-font-family: 'Georgia'; -fx-text-fill: #37253d; -fx-font-weight: bold; -fx-font-size: 22px;"/>
+                        <Label text="MAESTRI GELATIERI DAL 1984  ▾"
+                               style="-fx-text-fill: #5e316f; -fx-font-size: 9px; -fx-font-weight: bold; -fx-letter-spacing: 1.5px;"/>
+                    </VBox>
+                </HBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ImageView fitWidth="240" fitHeight="48" preserveRatio="false" smooth="true" opacity="0.88">
+                    <image>
+                        <Image url="@provenza_banner.png"/>
+                    </image>
+                </ImageView>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="7" alignment="CENTER_LEFT"
+                      style="-fx-background-color: #f3eae5; -fx-border-color: #e2d3df; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 5 12;">
+                    <Label text="●" style="-fx-text-fill: #764c86; -fx-font-size: 9px;"/>
+                    <Label fx:id="lblIntestazione" text="Ospite"
+                           style="-fx-text-fill: #37253d; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                </HBox>
+                <Button fx:id="btnApriCarrello" text="🛒 Carrello (0 • EUR 0.00)"
+                        onAction="#onClickApriCarrello" styleClass="btn-primary"/>
+                <Button text="Esci (Logout)" onAction="#onClickLogout" styleClass="btn-outline"/>
+            </HBox>
+        </VBox>
     </top>
 
     <center>
-        <VBox spacing="4" style="-fx-padding: 8 12;">
-            <TabPane side="LEFT" rotateGraphic="false" tabMinWidth="46" tabMaxWidth="46" tabMinHeight="215" tabMaxHeight="215"
-                     tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <VBox spacing="4" style="-fx-padding: 4 18 14 18;">
+            <TabPane side="TOP" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                 <Tab>
-                    <graphic><Label text="🍨 Menu &amp; Ordinazione" styleClass="sidebar-tab-label"/></graphic>
-                    <VBox spacing="6" styleClass="dark-card" style="-fx-padding: 10 14;">
-                        <ScrollPane vbarPolicy="NEVER" hbarPolicy="AS_NEEDED" minHeight="52" prefHeight="52"
-                                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-                            <HBox fx:id="boxCategorieCliente" spacing="6" alignment="CENTER_LEFT" visible="false" managed="false" style="-fx-padding: 2 2 10 2;"/>
-                        </ScrollPane>
+                    <graphic><Label text="🍨 Esplora Menu" styleClass="pill-tab-label"/></graphic>
+                    <HBox spacing="14" style="-fx-padding: 6 0 0 0;">
+                        <VBox fx:id="boxCatalogoProvenza" HBox.hgrow="ALWAYS"/>
 
-                        <!-- CONTENUTO PRINCIPALE: PRODOTTI A SINISTRA + COMPOSITORE VASCHETTA A DESTRA -->
-                        <HBox spacing="12" VBox.vgrow="ALWAYS">
-                            <!-- GRIGLIA PRODOTTI SELEZIONABILI (SINISTRA) -->
-                            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" HBox.hgrow="ALWAYS"
-                                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-                                <VBox fx:id="boxGustiDisponibili" spacing="8" style="-fx-padding: 4;"/>
-                            </ScrollPane>
-
-                            <!-- COLONNA DESTRA: COMPOSIZIONE VASCHETTA (VISIBILE QUANDO SI SELEZIONA GELATI) -->
-                            <VBox fx:id="boxSezioneVaschetta" spacing="9" prefWidth="320" minWidth="320" maxWidth="320"
-                                  visible="false" managed="false"
-                                  style="-fx-background-color: rgba(26,24,28,0.94); -fx-border-color: rgba(186,164,135,0.35); -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 12 14;">
+                        <VBox fx:id="boxSezioneVaschetta" spacing="9" prefWidth="325" minWidth="320" maxWidth="330"
+                              visible="false" managed="false"
+                              style="-fx-background-color: #fffaf7; -fx-border-color: #e8d9dd; -fx-border-width: 1.2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-padding: 14 16;">
                                 <HBox spacing="8" alignment="CENTER_LEFT">
                                     <Label text="🍨 Componi la Vaschetta" minWidth="-Infinity"
-                                           style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #f5ebe0;"/>
+                                           style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #37253d;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Button text="🔄 Svuota" minWidth="-Infinity" onAction="#onClickSvuotaVaschetta"
-                                            styleClass="btn-outline" style="-fx-font-size: 12px; -fx-padding: 3 8;"/>
+                                            styleClass="btn-outline" style="-fx-font-size: 11.5px; -fx-padding: 4 10;"/>
                                 </HBox>
 
                                 <Label text="1. Scegli il formato desiderato:"
-                                       style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;"/>
+                                       style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #5e316f;"/>
                                 <VBox spacing="6">
                                     <HBox spacing="6">
                                         <Button fx:id="btnFormato350" text="350g" maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#onClickFormato350" styleClass="btn-outline" style="-fx-font-size: 12.5px;"/>
@@ -68,93 +74,78 @@
 
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text="2. Scomparti vaschetta:"
-                                           style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #2D4A3E;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Label fx:id="lblCapienzaVaschetta" text="0/4 gusti scelti (500g)" minWidth="-Infinity"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #C86D44;"/>
                                 </HBox>
 
                                 <HBox fx:id="boxVaschettaGrafica" alignment="CENTER" spacing="6" VBox.vgrow="ALWAYS"
-                                      style="-fx-background-color: rgba(18,16,20,0.85); -fx-border-color: rgba(186,164,135,0.30); -fx-border-width: 1.5; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 8;"/>
+                                      style="-fx-background-color: #FFFFFF; -fx-border-color: #E2DDD2; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 8;"/>
 
-                                <VBox spacing="5" style="-fx-background-color: rgba(32,29,35,0.90); -fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 10;">
+                                <VBox spacing="5" style="-fx-background-color: #FFFFFF; -fx-border-color: #E2DDD2; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 9 12;">
                                     <Label text="3. Guarnizioni extra sulla vaschetta:"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
-                                    <CheckBox fx:id="checkPanna" text="☁️ +Panna Montata Fresca" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
-                                    <CheckBox fx:id="checkGranella" text="✨ +Granella di Pistacchio" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #f5ebe0;"/>
+                                           style="-fx-font-weight: bold; -fx-font-size: 12.5px; -fx-text-fill: #2D4A3E;"/>
+                                    <CheckBox fx:id="checkPanna" text="☁️ +Panna Montata Fresca" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #1B1E1C;"/>
+                                    <CheckBox fx:id="checkGranella" text="✨ +Granella di Pistacchio" minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-text-fill: #1B1E1C;"/>
                                 </VBox>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="Prezzo Vaschetta:" style="-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #baa487;"/>
+                                    <Label text="Prezzo Vaschetta:" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #686D69;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Label fx:id="lblPrezzoVaschettaCorrente" text="EUR 0.00" minWidth="-Infinity"
-                                           style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #baa487;"/>
+                                           style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #2D4A3E;"/>
                                 </HBox>
 
                                 <Button text="➕ Metti Vaschetta nel Carrello" maxWidth="Infinity" minWidth="-Infinity"
                                         onAction="#onClickAggiungiVaschettaAlCarrello"
-                                        styleClass="btn-primary" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 9 14;"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                </Tab>
-                <Tab>
-                    <graphic><Label text="⭐ Recensioni" styleClass="sidebar-tab-label"/></graphic>
-                    <HBox spacing="18" alignment="TOP_LEFT" style="-fx-padding: 14 8;">
-                        <VBox spacing="11" prefWidth="335" minWidth="320" maxHeight="-Infinity" styleClass="dark-card" style="-fx-padding: 20 22;">
-                            <Label text="Lascia la tua Recensione" wrapText="true"
-                                   style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #f5ebe0;"/>
-                            <Label text="Condividi la tua esperienza con il Maestro e con la community!"
-                                   wrapText="true" style="-fx-font-size: 12.5px; -fx-text-fill: #d6b48a;"/>
-
-                            <Label text="Valutazione (Stelle)" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
-                            <ComboBox fx:id="comboVotoRecensione" maxWidth="Infinity"/>
-
-                            <Label text="Titolo della Recensione" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
-                            <TextField fx:id="campoTitoloRecensione" promptText="Es. Il miglior pistacchio di Roma!"/>
-
-                            <Label text="Il tuo Commento Artigianale" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;"/>
-                            <TextArea fx:id="campoCommentoRecensione" promptText="Racconta cosa ti è piaciuto del gelato, delle crepes o del servizio..."
-                                      wrapText="true" prefRowCount="5"/>
-
-                            <Button text="⭐ Pubblica la tua Recensione" onAction="#onClickPubblicaRecensione"
-                                    maxWidth="Infinity" styleClass="btn-primary" style="-fx-padding: 10 16; -fx-font-weight: bold;"/>
-                        </VBox>
-
-                        <VBox spacing="12" HBox.hgrow="ALWAYS" maxHeight="510" styleClass="dark-card" style="-fx-padding: 20 22;">
-                            <HBox alignment="CENTER_LEFT" spacing="10">
-                                <VBox spacing="2">
-                                    <Label text="Cosa Dicono i Nostri Clienti"
-                                           style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #f5ebe0;"/>
-                                    <Label fx:id="lblMediaRecensioniCliente" text="⭐ Valutazione in caricamento..."
-                                           style="-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #d6b48a;"/>
-                                </VBox>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Button text="🔄 Aggiorna" onAction="#onClickAggiornaRecensioni" styleClass="btn-outline" style="-fx-font-size: 12.5px; -fx-padding: 5 12;"/>
-                            </HBox>
-
-                            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
-                                <VBox fx:id="boxCardsRecensioniCliente" spacing="12" style="-fx-padding: 4 4;"/>
-                            </ScrollPane>
-
-                            <ListView fx:id="listaNotificheCliente" visible="false" managed="false"/>
+                                        styleClass="btn-terracotta" style="-fx-font-size: 13.5px; -fx-padding: 9 14;"/>
                         </VBox>
                     </HBox>
                 </Tab>
+
                 <Tab>
-                    <graphic><Label text="📦 I Miei Ordini" styleClass="sidebar-tab-label"/></graphic>
-                    <VBox spacing="10" styleClass="dark-card" style="-fx-padding: 16;">
+                    <graphic><Label text="📖 Il Libro delle Esperienze" styleClass="pill-tab-label"/></graphic>
+                    <VBox spacing="0" style="-fx-padding: 4 0 0 0;">
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
+                                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                            <VBox fx:id="boxLibroEsperienze" style="-fx-padding: 10 12 24 12;"/>
+                        </ScrollPane>
+                        <ListView fx:id="listaNotificheCliente" visible="false" managed="false"/>
+                    </VBox>
+                </Tab>
+
+                <Tab>
+                    <graphic><Label text="📦 I Miei Ordini" styleClass="pill-tab-label"/></graphic>
+                    <VBox spacing="10" styleClass="dark-card" style="-fx-padding: 18 20;">
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <VBox spacing="2">
                                 <Label text="I Miei Pre-Ordini in Boutique"
-                                       style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f5ebe0;"/>
-                                <Label text="Consulta i tuoi ordini inviati alla gelateria, il dettaglio dei prodotti e lo stato di conferma."
-                                       style="-fx-font-size: 13px; -fx-text-fill: #baa487;"/>
+                                       style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #1B1E1C;"/>
+                                <Label text="Consulta i tuoi ordini inviati alla gelateria, il dettaglio dei prodotti e lo stato di consegna."
+                                       style="-fx-font-size: 13px; -fx-text-fill: #686D69;"/>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button text="🔄 Aggiorna Ordini" onAction="#onClickAggiornaOrdini" styleClass="btn-outline"/>
                         </HBox>
                         <ListView fx:id="listaMieiOrdini" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </Tab>
+
+                <Tab fx:id="tabChatCliente">
+                    <graphic><Label fx:id="lblTabChatCliente" text="💬 Concierge Chat" styleClass="pill-tab-label"/></graphic>
+                    <VBox spacing="10" styleClass="dark-card" style="-fx-padding: 18 20;">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <VBox spacing="2">
+                                <Label text="Concierge Chat del Salotto"
+                                       style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #1B1E1C;"/>
+                                <Label text="Puoi scrivere alla gelateria mentre hai un ordine attivo. Clicca su un ordine per aprire la conversazione."
+                                       style="-fx-font-size: 13px; -fx-text-fill: #686D69;"/>
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="🔄 Aggiorna Chat" onAction="#onClickAggiornaOrdini" styleClass="btn-outline"/>
+                        </HBox>
+                        <ListView fx:id="listaChatCliente" VBox.vgrow="ALWAYS"/>
                     </VBox>
                 </Tab>
             </TabPane>

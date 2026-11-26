@@ -24,4 +24,14 @@ public class TurnoDAOMemory implements TurnoDAO {
     public void eliminaTurno(String codiceTurno) throws FrostlyException {
         ArchivioMemoria.getDemoInstance().eliminaTurno(codiceTurno);
     }
+
+    @Override
+    public java.util.Map<String, model.FabbisognoTurno> caricaFabbisogni() {
+        return ArchivioMemoria.getDemoInstance().getFabbisogniTurni();
+    }
+
+    @Override
+    public void salvaFabbisogni(java.util.Map<String, model.FabbisognoTurno> fabbisogni) {
+        ArchivioMemoria.getDemoInstance().salvaFabbisogniTurni(fabbisogni);
+    }
 }

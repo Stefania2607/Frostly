@@ -43,14 +43,23 @@
 
             <Label text="Password"
                    style="-fx-font-family: 'Georgia'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #ded7cd;"/>
-            <PasswordField fx:id="campoPassword" promptText="Inserisci la password" styleClass="luxury-input"/>
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <StackPane HBox.hgrow="ALWAYS">
+                    <PasswordField fx:id="campoPassword" promptText="Inserisci la password" styleClass="luxury-input"/>
+                    <TextField fx:id="campoPasswordVisibile" promptText="Inserisci la password" styleClass="luxury-input"
+                               visible="false" managed="false"/>
+                </StackPane>
+                <Button fx:id="btnMostraPassword" text="👁" onAction="#onClickMostraNascondiPassword"
+                        minWidth="40" prefWidth="40"
+                        style="-fx-background-color: #1c1a20; -fx-text-fill: #baa487; -fx-border-color: rgba(186,164,135,0.35); -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 7 0; -fx-cursor: hand;"/>
+            </HBox>
 
             <HBox spacing="16" alignment="CENTER" style="-fx-padding: 4 0 2 0;">
                 <HBox spacing="8" alignment="CENTER">
                     <Label text="Versione:" style="-fx-font-family: 'Georgia'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #b5a898;"/>
                     <ComboBox fx:id="comboModalita" prefWidth="120" styleClass="luxury-combo"/>
                 </HBox>
-                <CheckBox fx:id="checkSecondaGui" text="GUI 2 (Nero &amp; Oro)"
+                <CheckBox fx:id="checkSecondaGui" text="GUI 2 (Provenza Lavanda)"
                           style="-fx-font-family: 'Georgia'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #b5a898;"/>
             </HBox>
         </VBox>

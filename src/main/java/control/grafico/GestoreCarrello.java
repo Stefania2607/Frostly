@@ -3,13 +3,12 @@ package control.grafico;
 import bean.CarrelloBean;
 import bean.GustoBean;
 import bean.OrdineBean;
+import bean.RegoleVaschettaBean;
 import bean.VaschettaItemBean;
+import control.applicativo.OrdiniControl;
 import frostly.exception.DatiNonValidiException;
 import java.util.ArrayList;
 import java.util.List;
-import model.ConGranellaBronteDecorator;
-import model.ConPannaMontataDecorator;
-import model.VaschettaBase;
 
 /**
  * Componente di presentazione che gestisce le operazioni sul carrello
@@ -112,12 +111,13 @@ public final class GestoreCarrello {
         if (carrello == null) return 0.0;
         List<GustoBean> gusti = carrello.getGustiNellaVaschetta();
         double pesoKg = carrello.getPesoVaschettaKg();
+        RegoleVaschettaBean regole = OrdiniControl.ottieniRegoleVaschetta();
         if (gusti.isEmpty()) {
             if (!conPanna) {
                 return 0.0;
             }
-            double p = Math.round(VaschettaBase.PREZZO_SOLA_PANNA_AL_KG * pesoKg * 100.0) / 100.0;
-            return conGranella ? p + ConGranellaBronteDecorator.SUPPLEMENTO_GRANELLA : p;
+            double p = Math.round(regole.getPrezzoSolaPannaAlKg() * pesoKg * 100.0) / 100.0;
+            return conGranella ? p + regole.getSupplementoGranella() : p;
         }
         double sommaPrezziAlKg = 0.0;
         for (GustoBean g : gusti) {
@@ -125,8 +125,8 @@ public final class GestoreCarrello {
         }
         double mediaKg = sommaPrezziAlKg / gusti.size();
         double prezzo = Math.round(mediaKg * pesoKg * 100.0) / 100.0;
-        if (conPanna) prezzo += ConPannaMontataDecorator.SUPPLEMENTO_PANNA;
-        if (conGranella) prezzo += ConGranellaBronteDecorator.SUPPLEMENTO_GRANELLA;
+        if (conPanna) prezzo += regole.getSupplementoPanna();
+        if (conGranella) prezzo += regole.getSupplementoGranella();
         return prezzo;
     }
 

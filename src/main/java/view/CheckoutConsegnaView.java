@@ -202,6 +202,7 @@ public final class CheckoutConsegnaView {
             Scene scene = new Scene(contenitoreRadice, width, height);
             scene.setFill(javafx.scene.paint.Color.web("#121114"));
             stage.setScene(scene);
+            TemaProvenzaHelper.applicaSeGui2(stage.getScene());
         } else {
             javafx.scene.Parent currentRoot = stage.getScene().getRoot();
             if (currentRoot instanceof javafx.scene.layout.StackPane contenitoreRadice) {
@@ -320,7 +321,9 @@ public final class CheckoutConsegnaView {
         ));
         comboOraDelivery.setValue(datiIniziali != null ? datiIniziali.getOrarioRichiesto() : "Subito (~25-35 min)");
 
-        TextField txtNomeRitiro = new TextField(datiIniziali != null ? datiIniziali.getNominativoRitiro() : "");
+        TextField txtNomeRitiro = new TextField(datiIniziali != null ? datiIniziali.getNomeRitiro() : "");
+        TextField txtCognomeRitiro = new TextField(datiIniziali != null ? datiIniziali.getCognomeRitiro() : "");
+        TextField txtTelefonoBanco = new TextField(datiIniziali != null ? datiIniziali.getTelefono() : "");
         TextField txtNoteBanco = new TextField(datiIniziali != null ? datiIniziali.getNoteCitofono() : "");
         ComboBox<String> comboOraBanco = new ComboBox<>(FXCollections.observableArrayList(
                 "Subito (~15-20 min)",
@@ -373,21 +376,41 @@ public final class CheckoutConsegnaView {
             rigaOraCit.getChildren().addAll(bOra, bCit);
             cardForm.getChildren().addAll(lblIndPrompt, txtIndirizzo, rigaCittaTel, rigaOraCit);
         } else {
+            String stileCampo = "-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;";
+
             Label lblOraTit = new Label("⏰ Seleziona l'Orario di Ritiro al Banco della Gelateria *");
             lblOraTit.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;");
             comboOraBanco.setMaxWidth(Double.MAX_VALUE);
 
-            Label lblNomeTit = new Label("👤 Nominativo per il Ritiro");
-            lblNomeTit.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
-            txtNomeRitiro.setPromptText("Nome e cognome per il ritiro dell'ordine al banco (es. Mario Rossi)");
-            txtNomeRitiro.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
+            HBox rigaNomeCognome = new HBox(12);
+            VBox boxNome = new VBox(4);
+            Label lblNomeTit = new Label("👤 Nome di chi ritira *");
+            lblNomeTit.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+            txtNomeRitiro.setPromptText("Es. Mario");
+            txtNomeRitiro.setStyle(stileCampo);
+            HBox.setHgrow(boxNome, Priority.ALWAYS);
+            boxNome.getChildren().addAll(lblNomeTit, txtNomeRitiro);
+
+            VBox boxCognome = new VBox(4);
+            Label lblCognomeTit = new Label("👤 Cognome di chi ritira *");
+            lblCognomeTit.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+            txtCognomeRitiro.setPromptText("Es. Rossi");
+            txtCognomeRitiro.setStyle(stileCampo);
+            HBox.setHgrow(boxCognome, Priority.ALWAYS);
+            boxCognome.getChildren().addAll(lblCognomeTit, txtCognomeRitiro);
+            rigaNomeCognome.getChildren().addAll(boxNome, boxCognome);
+
+            Label lblTelBanco = new Label("📞 Recapito Telefonico *");
+            lblTelBanco.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+            txtTelefonoBanco.setPromptText("Es. 333 1234567");
+            txtTelefonoBanco.setStyle(stileCampo);
 
             Label lblNoteTit = new Label("💬 Note per il Personale al Banco (Facoltativo)");
             lblNoteTit.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #ded7cd;");
             txtNoteBanco.setPromptText("Es. Confezionare con cura, vaschette separate...");
-            txtNoteBanco.setStyle("-fx-background-color: #1a1820; -fx-text-fill: #f5ebe0; -fx-prompt-text-fill: #8c837b; -fx-border-color: rgba(186,164,135,0.3); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
+            txtNoteBanco.setStyle(stileCampo);
 
-            cardForm.getChildren().addAll(lblOraTit, comboOraBanco, lblNomeTit, txtNomeRitiro, lblNoteTit, txtNoteBanco);
+            cardForm.getChildren().addAll(lblOraTit, comboOraBanco, rigaNomeCognome, lblTelBanco, txtTelefonoBanco, lblNoteTit, txtNoteBanco);
         }
 
         Label lblErrore = new Label();
@@ -421,7 +444,9 @@ public final class CheckoutConsegnaView {
             } else {
                 bean.setTipoConsegna(TipoConsegna.ASPORTO);
                 bean.setOrarioRichiesto(comboOraBanco.getValue());
-                bean.setNominativoRitiro(txtNomeRitiro.getText() != null ? txtNomeRitiro.getText().trim() : "");
+                bean.setNomeRitiro(txtNomeRitiro.getText() != null ? txtNomeRitiro.getText().trim() : "");
+                bean.setCognomeRitiro(txtCognomeRitiro.getText() != null ? txtCognomeRitiro.getText().trim() : "");
+                bean.setTelefono(txtTelefonoBanco.getText() != null ? txtTelefonoBanco.getText().trim() : "");
                 bean.setNoteCitofono(txtNoteBanco.getText() != null ? txtNoteBanco.getText().trim() : "");
             }
 

@@ -30,24 +30,25 @@ public final class StatisticheMaestroView {
         }
         contenitore.getChildren().clear();
 
+        boolean provenza = RecensioniView.isTemaSalottoChiaro(contenitore);
         HBox rigaKpi = new HBox(14);
         int totMag = stats.getIngredientiOk() + stats.getIngredientiSottoSoglia() + stats.getIngredientiEsauriti();
         int percOk = totMag > 0 ? (int) Math.round((stats.getIngredientiOk() * 100.0) / totMag) : 100;
 
         VBox kpiIncasso = creaKpiCard("💰 INCASSO ATTIVO",
                 String.format(Locale.US, "EUR %.2f", stats.getIncassoTotale()),
-                "Ordini confermati e in attesa", "#baa487");
+                "Ordini confermati e in attesa", provenza ? "#5e316f" : "#baa487", provenza);
         VBox kpiMedio = creaKpiCard("🧾 SCONTRINO MEDIO",
                 String.format(Locale.US, "EUR %.2f", stats.getScontrinoMedio()),
-                "Valore medio per ordine", "#f5ebe0");
+                "Valore medio per ordine", provenza ? "#37253d" : "#f5ebe0", provenza);
         VBox kpiOrdini = creaKpiCard("🛵 ORDINI RICEVUTI",
                 String.valueOf(stats.getOrdiniConfermati() + stats.getOrdiniInAttesa()),
                 stats.getOrdiniConfermati() + " confermati • " + stats.getOrdiniInAttesa() + " in attesa • " + stats.getOrdiniDisdetti() + " disdetti",
-                "#a7f3d0");
+                provenza ? "#2e7d32" : "#a7f3d0", provenza);
         VBox kpiMag = creaKpiCard("📦 SALUTE MAGAZZINO",
                 percOk + "% Ottimale",
                 stats.getIngredientiEsauriti() + " esauriti • " + stats.getIngredientiSottoSoglia() + " sotto soglia",
-                stats.getIngredientiEsauriti() > 0 ? "#fca5a5" : "#a7f3d0");
+                stats.getIngredientiEsauriti() > 0 ? (provenza ? "#b91c1c" : "#fca5a5") : (provenza ? "#2e7d32" : "#a7f3d0"), provenza);
 
         HBox.setHgrow(kpiIncasso, Priority.ALWAYS);
         HBox.setHgrow(kpiMedio, Priority.ALWAYS);
@@ -58,43 +59,49 @@ public final class StatisticheMaestroView {
         HBox rigaGrafici = new HBox(16);
         VBox.setVgrow(rigaGrafici, Priority.ALWAYS);
 
-        VBox boxBar = creaCardGraficoTopProdotti(stats);
-        VBox boxPie = creaCardGraficoMagazzino(stats);
+        VBox boxBar = creaCardGraficoTopProdotti(stats, provenza);
+        VBox boxPie = creaCardGraficoMagazzino(stats, provenza);
         HBox.setHgrow(boxBar, Priority.ALWAYS);
         HBox.setHgrow(boxPie, Priority.ALWAYS);
         rigaGrafici.getChildren().addAll(boxBar, boxPie);
 
-        HBox barraCanali = creaBarraCanaliConsegna(stats);
+        HBox barraCanali = creaBarraCanaliConsegna(stats, provenza);
 
         contenitore.getChildren().addAll(rigaKpi, rigaGrafici, barraCanali);
     }
 
-    private static VBox creaKpiCard(String titolo, String valore, String sottotitolo, String coloreValore) {
+    private static VBox creaKpiCard(String titolo, String valore, String sottotitolo, String coloreValore, boolean provenza) {
         VBox card = new VBox(5);
-        card.setStyle("-fx-background-color: rgba(26, 24, 30, 0.94); -fx-border-color: rgba(186,164,135,0.32); "
-                + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 14 16;");
+        card.setStyle(provenza
+                ? "-fx-background-color: #ffffff; -fx-border-color: #e9dbdf; "
+                  + "-fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 14 16;"
+                : "-fx-background-color: rgba(26, 24, 30, 0.94); -fx-border-color: rgba(186,164,135,0.32); "
+                  + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 14 16;");
 
         Label lblTit = new Label(titolo);
-        lblTit.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #baa487;");
+        lblTit.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: " + (provenza ? "#764c86;" : "#baa487;"));
 
         Label lblVal = new Label(valore);
         lblVal.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: " + coloreValore + ";");
 
         Label lblSub = new Label(sottotitolo);
         lblSub.setWrapText(true);
-        lblSub.setStyle("-fx-font-size: 12px; -fx-text-fill: #c7beb2;");
+        lblSub.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (provenza ? "#756978;" : "#c7beb2;"));
 
         card.getChildren().addAll(lblTit, lblVal, lblSub);
         return card;
     }
 
-    private static VBox creaCardGraficoTopProdotti(StatisticheBean stats) {
+    private static VBox creaCardGraficoTopProdotti(StatisticheBean stats, boolean provenza) {
         VBox box = new VBox(8);
-        box.setStyle("-fx-background-color: rgba(22, 20, 25, 0.92); -fx-border-color: rgba(186,164,135,0.28); "
-                + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 14 16;");
+        box.setStyle(provenza
+                ? "-fx-background-color: #ffffff; -fx-border-color: #e9dbdf; "
+                  + "-fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 14 16;"
+                : "-fx-background-color: rgba(22, 20, 25, 0.92); -fx-border-color: rgba(186,164,135,0.28); "
+                  + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 14 16;");
 
         Label tit = new Label("🏆 Prodotti più Ordinati");
-        tit.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
+        tit.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
@@ -122,14 +129,17 @@ public final class StatisticheMaestroView {
         return box;
     }
 
-    private static VBox creaCardGraficoMagazzino(StatisticheBean stats) {
+    private static VBox creaCardGraficoMagazzino(StatisticheBean stats, boolean provenza) {
         VBox box = new VBox(8);
         box.setPrefWidth(380);
-        box.setStyle("-fx-background-color: rgba(22, 20, 25, 0.92); -fx-border-color: rgba(186,164,135,0.28); "
-                + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 14 16;");
+        box.setStyle(provenza
+                ? "-fx-background-color: #ffffff; -fx-border-color: #e9dbdf; "
+                  + "-fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 14 16;"
+                : "-fx-background-color: rgba(22, 20, 25, 0.92); -fx-border-color: rgba(186,164,135,0.28); "
+                  + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 14 16;");
 
         Label tit = new Label("📊 Distribuzione Scorte Magazzino");
-        tit.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0;");
+        tit.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
         PieChart pie = new PieChart(FXCollections.observableArrayList(
                 new PieChart.Data("Ottimali (" + stats.getIngredientiOk() + ")", stats.getIngredientiOk()),
@@ -146,20 +156,23 @@ public final class StatisticheMaestroView {
         return box;
     }
 
-    private static HBox creaBarraCanaliConsegna(StatisticheBean stats) {
+    private static HBox creaBarraCanaliConsegna(StatisticheBean stats, boolean provenza) {
         HBox barra = new HBox(24);
         barra.setAlignment(Pos.CENTER_LEFT);
-        barra.setStyle("-fx-background-color: rgba(24, 22, 28, 0.92); -fx-border-color: rgba(186,164,135,0.25); "
-                + "-fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 18;");
+        barra.setStyle(provenza
+                ? "-fx-background-color: #fffaf7; -fx-border-color: #e9dbdf; "
+                  + "-fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 10 18;"
+                : "-fx-background-color: rgba(24, 22, 28, 0.92); -fx-border-color: rgba(186,164,135,0.25); "
+                  + "-fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 18;");
 
         Label lblTit = new Label("Canali di Ricezione Ordini Attivi:");
-        lblTit.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #baa487;");
+        lblTit.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + (provenza ? "#764c86;" : "#baa487;"));
 
         Label lblDom = new Label("🛵 Consegna a Domicilio: " + stats.getOrdiniDomicilio());
-        lblDom.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #f5ebe0;");
+        lblDom.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
         Label lblBan = new Label("🛍️ Ritiro al Banco: " + stats.getOrdiniRitiroBanco());
-        lblBan.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: #f5ebe0;");
+        lblBan.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
         barra.getChildren().addAll(lblTit, lblDom, lblBan);
         return barra;

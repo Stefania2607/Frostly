@@ -15,6 +15,10 @@ public class TurnoBean {
     private String emailDipendente;
     private String nomeDipendente;
     private String stato;
+    private boolean bloccato;
+    private boolean generatoAutomaticamente;
+    private boolean personalizzato;
+    private int pausaMinuti;
 
     public TurnoBean() {
     }
@@ -62,12 +66,8 @@ public class TurnoBean {
         if (oraInizio == null || !oraInizio.matches("\\d{2}:\\d{2}")) {
             throw new DatiNonValidiException("Ora inizio non valida: usare il formato HH:mm (es. 08:00).");
         }
-        if (this.oraFine != null) {
-            String fineNorm = ("00:00".equals(this.oraFine) || "24:00".equals(this.oraFine)) ? "24:00" : this.oraFine;
-            String inizioNorm = ("00:00".equals(oraInizio) || "24:00".equals(oraInizio)) ? "24:00" : oraInizio;
-            if (inizioNorm.compareTo(fineNorm) >= 0) {
-                throw new DatiNonValidiException("L'ora di fine deve essere successiva all'ora di inizio.");
-            }
+        if (this.oraFine != null && !isIntervalloOrarioValido(oraInizio, this.oraFine)) {
+            throw new DatiNonValidiException("L'ora di fine deve essere successiva all'ora di inizio (o turno notturno oltre la mezzanotte).");
         }
         this.oraInizio = oraInizio;
     }
@@ -76,13 +76,23 @@ public class TurnoBean {
         if (oraFine == null || !oraFine.matches("\\d{2}:\\d{2}")) {
             throw new DatiNonValidiException("Ora fine non valida: usare il formato HH:mm (es. 14:00).");
         }
-        String fineNorm = ("00:00".equals(oraFine) || "24:00".equals(oraFine)) ? "24:00" : oraFine;
-        String inizioNorm = (this.oraInizio != null && ("00:00".equals(this.oraInizio) || "24:00".equals(this.oraInizio)))
-                ? "24:00" : this.oraInizio;
-        if (this.oraInizio != null && inizioNorm.compareTo(fineNorm) >= 0) {
-            throw new DatiNonValidiException("L'ora di fine deve essere successiva all'ora di inizio.");
+        if (this.oraInizio != null && !isIntervalloOrarioValido(this.oraInizio, oraFine)) {
+            throw new DatiNonValidiException("L'ora di fine deve essere successiva all'ora di inizio (o turno notturno oltre la mezzanotte).");
         }
         this.oraFine = oraFine;
+    }
+
+    private static boolean isIntervalloOrarioValido(String inizio, String fine) {
+        if (inizio.equals(fine)) {
+            return false;
+        }
+        String fineNorm = ("00:00".equals(fine) || "24:00".equals(fine)) ? "24:00" : fine;
+        String inizioNorm = ("00:00".equals(inizio) || "24:00".equals(inizio)) ? "24:00" : inizio;
+        if (inizioNorm.compareTo(fineNorm) < 0) {
+            return true;
+        }
+        // Turno notturno che attraversa la mezzanotte (es. 20:00 -> 02:00)
+        return inizio.compareTo("18:00") >= 0 && fine.compareTo("06:00") <= 0;
     }
 
     public void setEmailDipendente(String emailDipendente) throws DatiNonValidiException {
@@ -98,5 +108,37 @@ public class TurnoBean {
 
     public void setStato(String stato) {
         this.stato = stato;
+    }
+
+    public boolean isBloccato() {
+        return bloccato;
+    }
+
+    public void setBloccato(boolean bloccato) {
+        this.bloccato = bloccato;
+    }
+
+    public boolean isGeneratoAutomaticamente() {
+        return generatoAutomaticamente;
+    }
+
+    public void setGeneratoAutomaticamente(boolean generatoAutomaticamente) {
+        this.generatoAutomaticamente = generatoAutomaticamente;
+    }
+
+    public boolean isPersonalizzato() {
+        return personalizzato;
+    }
+
+    public void setPersonalizzato(boolean personalizzato) {
+        this.personalizzato = personalizzato;
+    }
+
+    public int getPausaMinuti() {
+        return pausaMinuti;
+    }
+
+    public void setPausaMinuti(int pausaMinuti) {
+        this.pausaMinuti = Math.max(0, pausaMinuti);
     }
 }

@@ -50,6 +50,37 @@ public final class MagazzinoStaffView {
     public static void configuraCelleMagazzino(ListView<IngredienteBean> listaMagazzino) {
         if (listaMagazzino == null) return;
         listaMagazzino.setCellFactory(lv -> new ListCell<IngredienteBean>() {
+            {
+                selectedProperty().addListener((obs, oldSel, newSel) -> applicaStileMagazzino());
+            }
+
+            private void applicaStileMagazzino() {
+                IngredienteBean ing = getItem();
+                if (isEmpty() || ing == null) {
+                    setStyle("-fx-background-color: transparent;");
+                    return;
+                }
+                boolean basso = ing.isSottoSoglia();
+                boolean provenza = RecensioniView.isTemaSalottoChiaro(listaMagazzino);
+                if (provenza) {
+                    if (isSelected()) {
+                        setStyle("-fx-background-color: #eee2ee; -fx-padding: 7 12; "
+                                + "-fx-border-color: #764c86; -fx-border-width: 1.3; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
+                    } else {
+                        setStyle("-fx-background-color: " + (basso ? "#fdf2f2" : "#ffffff")
+                                + "; -fx-padding: 7 12; -fx-border-color: transparent transparent #e9dbdf transparent; -fx-cursor: hand;");
+                    }
+                    return;
+                }
+                if (isSelected()) {
+                    setStyle("-fx-background-color: rgba(186, 164, 135, 0.24); -fx-padding: 7 12; "
+                            + "-fx-border-color: #d4b483; -fx-border-width: 1.2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+                } else {
+                    setStyle("-fx-background-color: " + (basso ? "rgba(45,20,24,0.75)" : "rgba(24,22,26,0.75)")
+                            + "; -fx-padding: 7 12; -fx-border-color: transparent transparent rgba(186,164,135,0.15) transparent; -fx-cursor: hand;");
+                }
+            }
+
             @Override
             protected void updateItem(IngredienteBean ing, boolean empty) {
                 super.updateItem(ing, empty);
@@ -60,11 +91,12 @@ public final class MagazzinoStaffView {
                     return;
                 }
                 boolean basso = ing.isSottoSoglia();
+                boolean provenza = RecensioniView.isTemaSalottoChiaro(listaMagazzino);
                 Label nome = new Label(ing.getNome());
                 nome.setPrefWidth(210);
                 nome.setMinWidth(150);
                 HBox.setHgrow(nome, Priority.ALWAYS);
-                nome.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
+                nome.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
                 String cat = ing.getCategoria() != null && !ing.getCategoria().isEmpty()
                         ? ing.getCategoria() : "Laboratorio & Basi";
@@ -72,15 +104,21 @@ public final class MagazzinoStaffView {
                 badgeCat.setPrefWidth(130);
                 badgeCat.setMinWidth(110);
                 badgeCat.setAlignment(Pos.CENTER);
-                badgeCat.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #baa487; "
-                        + "-fx-background-color: rgba(38,35,40,0.85); -fx-padding: 3 8; -fx-background-radius: 8; "
-                        + "-fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 8;");
+                badgeCat.setStyle(provenza
+                        ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #5e316f; "
+                          + "-fx-background-color: #f3eae5; -fx-padding: 3 8; -fx-background-radius: 10; "
+                          + "-fx-border-color: #ddcddc; -fx-border-radius: 10;"
+                        : "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #baa487; "
+                          + "-fx-background-color: rgba(38,35,40,0.85); -fx-padding: 3 8; -fx-background-radius: 8; "
+                          + "-fx-border-color: rgba(186,164,135,0.22); -fx-border-radius: 8;");
 
                 double riferimento = Math.max(ing.getSogliaMinima() * 2, 0.0001);
                 ProgressBar barra = new ProgressBar(Math.min(1.0, ing.getQuantitaDisponibile() / riferimento));
                 barra.setPrefWidth(140);
                 barra.setMinWidth(100);
-                barra.setStyle("-fx-accent: " + (basso ? "#e63946" : "#baa487") + ";");
+                barra.setMouseTransparent(true);
+                barra.setFocusTraversable(false);
+                barra.setStyle("-fx-accent: " + (basso ? "#e63946" : (provenza ? "#764c86" : "#baa487")) + ";");
 
                 String qtaStr = (ing.getQuantitaDisponibile() % 1 == 0)
                         ? String.valueOf((long) ing.getQuantitaDisponibile())
@@ -93,28 +131,33 @@ public final class MagazzinoStaffView {
                         + " (min. " + sogliaStr + ")");
                 qta.setPrefWidth(140);
                 qta.setMinWidth(120);
-                qta.setStyle("-fx-text-fill: #d5bdaf; -fx-font-size: 13px;");
+                qta.setStyle("-fx-text-fill: " + (provenza ? "#5e525e" : "#d5bdaf") + "; -fx-font-size: 13px;");
 
                 Label badge = new Label(basso ? "⚠ DA RIORDINARE" : "✔ OK");
                 badge.setPrefWidth(115);
                 badge.setAlignment(Pos.CENTER);
                 badge.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 3 8; -fx-background-radius: 10; "
-                        + (basso
-                        ? "-fx-background-color: rgba(90,20,25,0.85); -fx-text-fill: #fca5a5; -fx-border-color: #ef4444; -fx-border-radius: 10;"
-                        : "-fx-background-color: rgba(25,60,42,0.85); -fx-text-fill: #a7f3d0; -fx-border-color: #10b981; -fx-border-radius: 10;"));
+                        + (provenza
+                        ? (basso
+                           ? "-fx-background-color: #fde8e8; -fx-text-fill: #b91c1c; -fx-border-color: #fca5a5; -fx-border-radius: 10;"
+                           : "-fx-background-color: #e6f4ea; -fx-text-fill: #1e6b3a; -fx-border-color: #a7d7b8; -fx-border-radius: 10;")
+                        : (basso
+                           ? "-fx-background-color: rgba(90,20,25,0.85); -fx-text-fill: #fca5a5; -fx-border-color: #ef4444; -fx-border-radius: 10;"
+                           : "-fx-background-color: rgba(25,60,42,0.85); -fx-text-fill: #a7f3d0; -fx-border-color: #10b981; -fx-border-radius: 10;")));
 
                 HBox riga = new HBox(10, nome, badgeCat, barra, qta, badge);
                 riga.setAlignment(Pos.CENTER_LEFT);
+                riga.setMouseTransparent(true);
                 setText(null);
                 setGraphic(riga);
-                setStyle("-fx-background-color: " + (basso ? "rgba(45,20,24,0.75)" : "rgba(24,22,26,0.75)")
-                        + "; -fx-padding: 7 12; -fx-border-color: transparent transparent rgba(186,164,135,0.15) transparent;");
+                applicaStileMagazzino();
             }
         });
     }
 
     public static void configuraCelleUrgenzeMagazzino(ListView<String> listaUrgenze) {
         if (listaUrgenze == null) return;
+        collegaAltezzaDinamica(listaUrgenze, 230);
         listaUrgenze.setCellFactory(lv -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -126,11 +169,7 @@ public final class MagazzinoStaffView {
                     return;
                 }
                 if (item.startsWith("✅")) {
-                    Label lblOk = new Label(item);
-                    lblOk.setWrapText(true);
-                    lblOk.maxWidthProperty().bind(listaUrgenze.widthProperty().subtract(26));
-                    lblOk.setStyle("-fx-text-fill: #a7f3d0; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 6 8;");
-                    setGraphic(lblOk);
+                    setGraphic(creaRigaStatoOk(item, listaUrgenze));
                     setText(null);
                     setStyle("-fx-background-color: transparent; -fx-padding: 2 0;");
                     return;
@@ -140,18 +179,19 @@ public final class MagazzinoStaffView {
                 String nome = parti[0].replace("⚠️", "").trim();
                 String dettaglio = parti.length > 1 ? parti[1].trim() : "";
 
-                javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(3);
-                card.maxWidthProperty().bind(listaUrgenze.widthProperty().subtract(24));
-                card.setStyle("-fx-background-color: rgba(52, 20, 24, 0.90); -fx-border-color: rgba(239, 68, 68, 0.55); "
-                        + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 10; -fx-cursor: hand;");
+                javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(2);
+                card.setMouseTransparent(true);
+                card.maxWidthProperty().bind(listaUrgenze.widthProperty().subtract(10));
+                card.setStyle("-fx-background-color: rgba(255, 69, 58, 0.12); -fx-border-color: rgba(255, 69, 58, 0.35); "
+                        + "-fx-border-width: 1; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 11; -fx-cursor: hand;");
 
-                Label lblNome = new Label("⚠️ " + nome);
+                Label lblNome = new Label(nome);
                 lblNome.setWrapText(true);
-                lblNome.setStyle("-fx-text-fill: #f5ebe0; -fx-font-size: 13px; -fx-font-weight: bold;");
+                lblNome.setStyle("-fx-text-fill: #f5f5f7; -fx-font-size: 12.5px; -fx-font-weight: bold;");
 
                 Label lblDet = new Label(dettaglio);
                 lblDet.setWrapText(true);
-                lblDet.setStyle("-fx-text-fill: #fca5a5; -fx-font-size: 12px; -fx-font-weight: bold;");
+                lblDet.setStyle("-fx-text-fill: #ff8a80; -fx-font-size: 11.5px;");
 
                 card.getChildren().addAll(lblNome, lblDet);
                 setGraphic(card);
@@ -163,6 +203,7 @@ public final class MagazzinoStaffView {
 
     public static void configuraCelleListaTendina(ListView<String> lista, String coloreBordo) {
         if (lista == null) return;
+        collegaAltezzaDinamica(lista, 180);
         lista.setCellFactory(lv -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -173,24 +214,86 @@ public final class MagazzinoStaffView {
                     setStyle("-fx-background-color: transparent;");
                     return;
                 }
-                boolean isOk = item.startsWith("✅");
-                Label lbl = new Label(item);
-                lbl.setWrapText(true);
-                lbl.maxWidthProperty().bind(lista.widthProperty().subtract(28));
-                if (isOk) {
-                    lbl.setStyle("-fx-text-fill: #a7f3d0; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 6 8;");
-                    setGraphic(lbl);
+                if (item.startsWith("✅")) {
+                    setGraphic(creaRigaStatoOk(item, lista));
+                } else if (item.split("\\|").length == 5) {
+                    String[] p = item.split("\\|", 5);
+                    Label lblCod = new Label(p[0].trim());
+                    lblCod.setStyle("-fx-background-color: rgba(212, 180, 131, 0.18); -fx-text-fill: #e5c99b; "
+                            + "-fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 2 7; -fx-background-radius: 6;");
+                    lblCod.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+
+                    Label lblCli = new Label(p[1].trim());
+                    lblCli.setStyle("-fx-text-fill: #f5f5f7; -fx-font-size: 12.5px; -fx-font-weight: bold;");
+                    HBox.setHgrow(lblCli, Priority.ALWAYS);
+
+                    Label lblPrezzo = new Label(p[4].trim());
+                    lblPrezzo.setStyle("-fx-text-fill: #e5c99b; -fx-font-size: 12.5px; -fx-font-weight: bold;");
+                    lblPrezzo.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+
+                    HBox riga1 = new HBox(8, lblCod, lblCli, lblPrezzo);
+                    riga1.setAlignment(Pos.CENTER_LEFT);
+
+                    Label lblSub = new Label(p[2].trim() + "  •  " + p[3].trim());
+                    lblSub.setWrapText(true);
+                    lblSub.setStyle("-fx-text-fill: #aeaeb2; -fx-font-size: 11.5px;");
+
+                    javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(5, riga1, lblSub);
+                    card.setMouseTransparent(true);
+                    card.maxWidthProperty().bind(lista.widthProperty().subtract(10));
+                    card.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + coloreBordo + "; "
+                            + "-fx-border-width: 1; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 9 11; -fx-cursor: hand;");
+                    setGraphic(card);
                 } else {
+                    Label lbl = new Label(item);
+                    lbl.setWrapText(true);
+                    lbl.maxWidthProperty().bind(lista.widthProperty().subtract(28));
+                    lbl.setStyle("-fx-text-fill: #f5f5f7; -fx-font-size: 12.5px;");
+
                     javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(lbl);
-                    card.maxWidthProperty().bind(lista.widthProperty().subtract(24));
-                    card.setStyle("-fx-background-color: rgba(30, 27, 34, 0.92); -fx-border-color: " + coloreBordo + "; "
-                            + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 10; -fx-cursor: hand;");
-                    lbl.setStyle("-fx-text-fill: #f5ebe0; -fx-font-size: 12.5px; -fx-font-weight: bold;");
+                    card.maxWidthProperty().bind(lista.widthProperty().subtract(10));
+                    card.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + coloreBordo + "; "
+                            + "-fx-border-width: 1; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 11; -fx-cursor: hand;");
                     setGraphic(card);
                 }
                 setText(null);
                 setStyle("-fx-background-color: transparent; -fx-padding: 3 0;");
             }
         });
+    }
+
+    private static HBox creaRigaStatoOk(String item, ListView<String> lista) {
+        String testoPulito = item.replace("✅", "").trim();
+        Label dot = new Label("●");
+        dot.setStyle("-fx-text-fill: #30d158; -fx-font-size: 9px;");
+        dot.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+
+        Label lbl = new Label(testoPulito);
+        lbl.setWrapText(true);
+        lbl.maxWidthProperty().bind(lista.widthProperty().subtract(34));
+        lbl.setStyle("-fx-text-fill: #98d8b6; -fx-font-size: 12.5px;");
+
+        HBox riga = new HBox(8, dot, lbl);
+        riga.setAlignment(Pos.CENTER_LEFT);
+        riga.setStyle("-fx-background-color: rgba(48, 209, 88, 0.08); -fx-background-radius: 10; -fx-padding: 8 10;");
+        return riga;
+    }
+
+    private static void collegaAltezzaDinamica(ListView<String> lista, int maxAltezza) {
+        Runnable aggiorna = () -> {
+            int n = lista.getItems() == null ? 0 : lista.getItems().size();
+            if (n <= 1 && (n == 0 || lista.getItems().get(0).startsWith("✅"))) {
+                lista.setPrefHeight(46);
+                lista.setMinHeight(46);
+                lista.setMaxHeight(54);
+            } else {
+                double h = Math.min(maxAltezza, n * 70.0 + 12.0);
+                lista.setPrefHeight(h);
+                lista.setMinHeight(74);
+                lista.setMaxHeight(maxAltezza);
+            }
+        };
+        lista.getItems().addListener((javafx.collections.ListChangeListener<String>) c -> aggiorna.run());
+        aggiorna.run();
     }
 }

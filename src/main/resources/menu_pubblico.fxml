@@ -25,10 +25,7 @@
             <Button text="✨ Crea un Profilo Cliente" onAction="#onClickVaiARegistrazione" styleClass="btn-primary"
                     minWidth="-Infinity" style="-fx-font-weight: bold; -fx-padding: 7 16;"/>
         </HBox>
-        <ScrollPane fitToHeight="true" vbarPolicy="NEVER" hbarPolicy="AS_NEEDED"
-                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-            <HBox fx:id="boxCategorie" spacing="8" alignment="CENTER" style="-fx-padding: 2 4;"/>
-        </ScrollPane>
+        <HBox fx:id="boxCategorie" spacing="6" alignment="CENTER" style="-fx-padding: 4 2 6 2;"/>
 
         <HBox fx:id="boxSottocategorie" spacing="8" alignment="CENTER" minHeight="26"/>
 

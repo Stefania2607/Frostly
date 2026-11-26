@@ -2,6 +2,8 @@ package control.grafico;
 
 import bean.CarrelloBean;
 import bean.GustoBean;
+import bean.RegoleVaschettaBean;
+import control.applicativo.OrdiniControl;
 import frostly.exception.FrostlyException;
 import java.util.List;
 import java.util.Locale;
@@ -10,9 +12,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import model.ConGranellaBronteDecorator;
-import model.ConPannaMontataDecorator;
-import model.VaschettaBase;
 import view.VaschettaView;
 
 /**
@@ -63,30 +62,31 @@ public class VaschettaControlGrafico {
     }
 
     public void inizializza() {
-        // Popola etichette di formati e supplementi dinamicamente dalle costanti di dominio
+        // Popola etichette di formati e supplementi dinamicamente dalle regole applicative
+        RegoleVaschettaBean regole = OrdiniControl.ottieniRegoleVaschetta();
         if (btnFormato350 != null) {
-            btnFormato350.setText("350g (" + VaschettaBase.MAX_GUSTI_350G + " gusti)");
+            btnFormato350.setText("350g (" + regole.getMaxGusti350g() + " gusti)");
         }
         if (btnFormato500 != null) {
-            btnFormato500.setText("500g (" + VaschettaBase.MAX_GUSTI_500G + " gusti)");
+            btnFormato500.setText("500g (" + regole.getMaxGusti500g() + " gusti)");
         }
         if (btnFormato750 != null) {
-            btnFormato750.setText("750g (" + VaschettaBase.MAX_GUSTI_750G + " gusti)");
+            btnFormato750.setText("750g (" + regole.getMaxGusti750g() + " gusti)");
         }
         if (btnFormato1000 != null) {
-            btnFormato1000.setText("1 Kg (" + VaschettaBase.MAX_GUSTI_1000G + " gusti)");
+            btnFormato1000.setText("1 Kg (" + regole.getMaxGusti1000g() + " gusti)");
         }
         if (checkPanna != null) {
             checkPanna.setText(String.format(Locale.US, "☁️ +Panna Montata Fresca (+%.2f€)",
-                    ConPannaMontataDecorator.SUPPLEMENTO_PANNA));
+                    regole.getSupplementoPanna()));
             checkPanna.setOnAction(e -> aggiornaVaschettaGrafica());
         }
         if (checkGranella != null) {
             checkGranella.setText(String.format(Locale.US, "✨ +Granella di Pistacchio (+%.2f€)",
-                    ConGranellaBronteDecorator.SUPPLEMENTO_GRANELLA));
+                    regole.getSupplementoGranella()));
             checkGranella.setOnAction(e -> aggiornaVaschettaGrafica());
         }
-        selezionaFormato(VaschettaBase.PESO_500G, VaschettaBase.MAX_GUSTI_500G);
+        selezionaFormato(regole.getPeso500g(), regole.getMaxGusti500g());
     }
 
     public void selezionaFormato(double pesoKg, int maxGusti) {

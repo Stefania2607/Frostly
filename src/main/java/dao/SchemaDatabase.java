@@ -17,9 +17,12 @@ public final class SchemaDatabase {
     public static void inizializzaSchemaEDati(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
             creaTabelle(stmt);
+            migraUtentiSeNecessario(stmt);
+            migraTurniSeNecessario(stmt);
             migraMenuGustiSeNecessario(stmt);
             migraIngredientiSeNecessario(stmt);
             migraOrdiniClientiSeNecessario(stmt);
+            migraRecensioniSeNecessario(stmt);
             popolaDatiIniziali(conn, stmt);
         }
     }
@@ -30,7 +33,16 @@ public final class SchemaDatabase {
                 + "nome VARCHAR(50) NOT NULL, "
                 + "cognome VARCHAR(50) NOT NULL, "
                 + "password VARCHAR(64) NOT NULL, "
-                + "ruolo VARCHAR(30) NOT NULL)");
+                + "ruolo VARCHAR(30) NOT NULL, "
+                + "modalita_ore VARCHAR(24), "
+                + "ore_minime DOUBLE, "
+                + "ore_massime DOUBLE, "
+                + "tolleranza_sotto DOUBLE DEFAULT 0, "
+                + "tolleranza_sopra DOUBLE DEFAULT 0, "
+                + "mansioni VARCHAR(120) DEFAULT 'BANCO', "
+                + "attivo BOOLEAN DEFAULT TRUE, "
+                + "max_turni_settimanali INT, "
+                + "disponibilita_config VARCHAR(1000))");
 
         stmt.execute("CREATE TABLE IF NOT EXISTS turni ("
                 + "codice_turno VARCHAR(32) PRIMARY KEY, "
@@ -38,7 +50,29 @@ public final class SchemaDatabase {
                 + "ora_inizio VARCHAR(10) NOT NULL, "
                 + "ora_fine VARCHAR(10) NOT NULL, "
                 + "email_dipendente VARCHAR(64) NOT NULL, "
-                + "stato VARCHAR(20) NOT NULL)");
+                + "stato VARCHAR(20) NOT NULL, "
+                + "bloccato BOOLEAN NOT NULL DEFAULT FALSE, "
+                + "generato_auto BOOLEAN NOT NULL DEFAULT FALSE, "
+                + "personalizzato BOOLEAN NOT NULL DEFAULT FALSE, "
+                + "pausa_minuti INT NOT NULL DEFAULT 0)");
+
+        stmt.execute("CREATE TABLE IF NOT EXISTS fabbisogni_turni ("
+                + "chiave VARCHAR(16) PRIMARY KEY, "
+                + "giorno INT NOT NULL, "
+                + "indice_fascia INT NOT NULL, "
+                + "totale_richiesto INT NOT NULL, "
+                + "min_banco INT NOT NULL DEFAULT 0, "
+                + "min_laboratorio INT NOT NULL DEFAULT 0, "
+                + "min_responsabile INT NOT NULL DEFAULT 0)");
+
+        stmt.execute("CREATE TABLE IF NOT EXISTS richieste_indisponibilita ("
+                + "codice_richiesta VARCHAR(32) PRIMARY KEY, "
+                + "email_dipendente VARCHAR(64) NOT NULL, "
+                + "nome_dipendente VARCHAR(100) NOT NULL, "
+                + "data_richiesta VARCHAR(20) NOT NULL, "
+                + "motivazione VARCHAR(255) NOT NULL, "
+                + "stato VARCHAR(20) NOT NULL, "
+                + "nota_maestro VARCHAR(255))");
 
         stmt.execute("CREATE TABLE IF NOT EXISTS emergenze ("
                 + "codice_emergenza VARCHAR(32) PRIMARY KEY, "
@@ -103,7 +137,8 @@ public final class SchemaDatabase {
                 + "data_ora VARCHAR(32) NOT NULL, "
                 + "risposta_maestro VARCHAR(1000), "
                 + "data_risposta VARCHAR(32), "
-                + "mi_piace INT NOT NULL DEFAULT 0)");
+                + "mi_piace INT NOT NULL DEFAULT 0, "
+                + "foto_path VARCHAR(500))");
 
         stmt.execute("CREATE TABLE IF NOT EXISTS pagamenti ("
                 + "codice_transazione VARCHAR(64) PRIMARY KEY, "
@@ -113,6 +148,79 @@ public final class SchemaDatabase {
                 + "stato VARCHAR(20) NOT NULL, "
                 + "carta_mascherata VARCHAR(30) NOT NULL, "
                 + "modalita_consegna VARCHAR(255) NOT NULL)");
+    }
+
+    private static void migraUtentiSeNecessario(Statement stmt) throws SQLException {
+        boolean haModalita = false;
+        boolean haMin = false;
+        boolean haMax = false;
+        boolean haDisp = false;
+        boolean haTollSotto = false;
+        boolean haTollSopra = false;
+        boolean haMansioni = false;
+        boolean haAttivo = false;
+        boolean haMaxTurni = false;
+        try (ResultSet rs = stmt.executeQuery("SELECT * FROM utenti LIMIT 1")) {
+            ResultSetMetaData meta = rs.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                String col = meta.getColumnName(i);
+                if ("modalita_ore".equalsIgnoreCase(col)) haModalita = true;
+                else if ("ore_minime".equalsIgnoreCase(col)) haMin = true;
+                else if ("ore_massime".equalsIgnoreCase(col)) haMax = true;
+                else if ("disponibilita_config".equalsIgnoreCase(col)) haDisp = true;
+                else if ("tolleranza_sotto".equalsIgnoreCase(col)) haTollSotto = true;
+                else if ("tolleranza_sopra".equalsIgnoreCase(col)) haTollSopra = true;
+                else if ("mansioni".equalsIgnoreCase(col)) haMansioni = true;
+                else if ("attivo".equalsIgnoreCase(col)) haAttivo = true;
+                else if ("max_turni_settimanali".equalsIgnoreCase(col)) haMaxTurni = true;
+            }
+        }
+        if (!haModalita) stmt.execute("ALTER TABLE utenti ADD COLUMN modalita_ore VARCHAR(24)");
+        if (!haMin) stmt.execute("ALTER TABLE utenti ADD COLUMN ore_minime DOUBLE");
+        if (!haMax) stmt.execute("ALTER TABLE utenti ADD COLUMN ore_massime DOUBLE");
+        if (!haDisp) stmt.execute("ALTER TABLE utenti ADD COLUMN disponibilita_config VARCHAR(1000)");
+        if (!haTollSotto) stmt.execute("ALTER TABLE utenti ADD COLUMN tolleranza_sotto DOUBLE DEFAULT 0");
+        if (!haTollSopra) stmt.execute("ALTER TABLE utenti ADD COLUMN tolleranza_sopra DOUBLE DEFAULT 0");
+        if (!haMansioni) stmt.execute("ALTER TABLE utenti ADD COLUMN mansioni VARCHAR(120) DEFAULT 'BANCO'");
+        if (!haAttivo) stmt.execute("ALTER TABLE utenti ADD COLUMN attivo BOOLEAN DEFAULT TRUE");
+        if (!haMaxTurni) stmt.execute("ALTER TABLE utenti ADD COLUMN max_turni_settimanali INT");
+    }
+
+    private static void migraTurniSeNecessario(Statement stmt) throws SQLException {
+        boolean haBloccato = false;
+        boolean haGeneratoAuto = false;
+        boolean haPersonalizzato = false;
+        boolean haPausaMinuti = false;
+        try (ResultSet rs = stmt.executeQuery("SELECT * FROM turni LIMIT 1")) {
+            ResultSetMetaData meta = rs.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                String col = meta.getColumnName(i);
+                if ("bloccato".equalsIgnoreCase(col)) haBloccato = true;
+                else if ("generato_auto".equalsIgnoreCase(col)) haGeneratoAuto = true;
+                else if ("personalizzato".equalsIgnoreCase(col)) haPersonalizzato = true;
+                else if ("pausa_minuti".equalsIgnoreCase(col)) haPausaMinuti = true;
+            }
+        }
+        if (!haBloccato) stmt.execute("ALTER TABLE turni ADD COLUMN bloccato BOOLEAN NOT NULL DEFAULT FALSE");
+        if (!haGeneratoAuto) stmt.execute("ALTER TABLE turni ADD COLUMN generato_auto BOOLEAN NOT NULL DEFAULT FALSE");
+        if (!haPersonalizzato) stmt.execute("ALTER TABLE turni ADD COLUMN personalizzato BOOLEAN NOT NULL DEFAULT FALSE");
+        if (!haPausaMinuti) stmt.execute("ALTER TABLE turni ADD COLUMN pausa_minuti INT NOT NULL DEFAULT 0");
+    }
+
+    private static void migraRecensioniSeNecessario(Statement stmt) throws SQLException {
+        boolean haFotoPath = false;
+        try (ResultSet rs = stmt.executeQuery("SELECT * FROM recensioni LIMIT 1")) {
+            ResultSetMetaData meta = rs.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                if ("foto_path".equalsIgnoreCase(meta.getColumnName(i))) {
+                    haFotoPath = true;
+                    break;
+                }
+            }
+        }
+        if (!haFotoPath) {
+            stmt.execute("ALTER TABLE recensioni ADD COLUMN foto_path VARCHAR(500)");
+        }
     }
 
     private static void migraMenuGustiSeNecessario(Statement stmt) throws SQLException {

@@ -64,7 +64,8 @@ public class RecensioniControl {
                 dataOra,
                 null,
                 null,
-                0);
+                0,
+                bean.getFotoPath() != null && !bean.getFotoPath().trim().isEmpty() ? bean.getFotoPath().trim() : null);
 
         Recensione salvata = recensioneDAO.salvaNuovaRecensione(r);
 
@@ -136,6 +137,7 @@ public class RecensioniControl {
         b.setRispostaMaestro(r.getRispostaMaestro());
         b.setDataRisposta(r.getDataRisposta());
         b.setMiPiace(r.getMiPiace());
+        b.setFotoPath(r.getFotoPath());
         return b;
     }
 }

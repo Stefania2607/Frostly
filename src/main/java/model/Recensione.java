@@ -17,6 +17,7 @@ public class Recensione {
     private String rispostaMaestro;
     private String dataRisposta;
     private int miPiace;
+    private String fotoPath;
 
     public Recensione(String codiceRecensione,
                       String autoreEmail,
@@ -28,6 +29,21 @@ public class Recensione {
                       String rispostaMaestro,
                       String dataRisposta,
                       int miPiace) {
+        this(codiceRecensione, autoreEmail, autoreNome, votoStelle, titolo, commento,
+                dataOra, rispostaMaestro, dataRisposta, miPiace, null);
+    }
+
+    public Recensione(String codiceRecensione,
+                      String autoreEmail,
+                      String autoreNome,
+                      int votoStelle,
+                      String titolo,
+                      String commento,
+                      String dataOra,
+                      String rispostaMaestro,
+                      String dataRisposta,
+                      int miPiace,
+                      String fotoPath) {
         this.codiceRecensione = codiceRecensione;
         this.autoreEmail = autoreEmail;
         this.autoreNome = autoreNome;
@@ -38,6 +54,7 @@ public class Recensione {
         this.rispostaMaestro = rispostaMaestro;
         this.dataRisposta = dataRisposta;
         this.miPiace = miPiace;
+        this.fotoPath = fotoPath;
     }
 
     public String getCodiceRecensione() {
@@ -122,5 +139,13 @@ public class Recensione {
 
     public void incrementaMiPiace() {
         this.miPiace++;
+    }
+
+    public String getFotoPath() {
+        return fotoPath;
+    }
+
+    public void setFotoPath(String fotoPath) {
+        this.fotoPath = fotoPath;
     }
 }

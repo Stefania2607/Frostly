@@ -44,6 +44,9 @@ public class TurniStaffControlGrafico {
     private VBox boxCalendarioTurni;
     private DatePicker datePickerSettimana;
     private Label lblSettimanaAttiva;
+    private VBox boxDisponibilitaStaff;
+    private javafx.scene.layout.HBox boxKpiTurni;
+    private java.util.function.Consumer<String> onConfiguraDipendente;
 
     private final BiConsumer<String, Boolean> onEsito;
     private final Runnable onRichiediAggiornamento;
@@ -80,6 +83,14 @@ public class TurniStaffControlGrafico {
         this.campoCodiceTurno = campoCodiceTurno;
         this.onEsito = onEsito;
         this.onRichiediAggiornamento = onRichiediAggiornamento;
+    }
+
+    public void legaPannelloDisponibilita(VBox boxDisponibilitaStaff,
+                                          javafx.scene.layout.HBox boxKpiTurni,
+                                          java.util.function.Consumer<String> onConfiguraDipendente) {
+        this.boxDisponibilitaStaff = boxDisponibilitaStaff;
+        this.boxKpiTurni = boxKpiTurni;
+        this.onConfiguraDipendente = onConfiguraDipendente;
     }
 
     public void legaControlliCalendario(VBox boxCalendarioTurni,
@@ -209,12 +220,142 @@ public class TurniStaffControlGrafico {
         onRichiediAggiornamento.run();
     }
 
+    public void apriConfigurazioneFabbisogni() {
+        Window owner = boxCalendarioTurni != null && boxCalendarioTurni.getScene() != null
+                ? boxCalendarioTurni.getScene().getWindow() : null;
+        GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+        try {
+            java.util.Map<String, model.FabbisognoTurno> attuali = turniCtrl.caricaFabbisogniTurni();
+            view.GeneratoreTurniView.apriDialogConfiguraFabbisogni(owner, attuali, nuovi -> {
+                try {
+                    turniCtrl.salvaFabbisogniTurni(nuovi);
+                    onEsito.accept("✅ Fabbisogni di copertura turni salvati correttamente.", false);
+                } catch (FrostlyException ex) {
+                    onEsito.accept("⚠️ " + ex.getMessage(), true);
+                }
+            });
+        } catch (FrostlyException ex) {
+            onEsito.accept("⚠️ " + ex.getMessage(), true);
+        }
+    }
+
+    public void apriGeneratoreTurniAutomatico() {
+        Window owner = boxCalendarioTurni != null && boxCalendarioTurni.getScene() != null
+                ? boxCalendarioTurni.getScene().getWindow() : null;
+        GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+        List<bean.DipendenteBean> dipendenti = new control.applicativo.LoginControl().caricaTuttiDipendentiBean();
+
+        view.GeneratoreTurniView.apriDialogConfigurazione(
+                owner,
+                lunediSettimanaAttiva,
+                dipendenti,
+                this::apriConfigurazioneFabbisogni,
+                cfgScelta -> {
+                    try {
+                        final model.ConfigurazioneGenerazioneTurni[] cfgRef = {cfgScelta};
+                        final bean.PropostaTurniSettimanaBean[] propRef = {
+                                turniCtrl.generaPropostaSettimana(lunediSettimanaAttiva, cfgRef[0])
+                        };
+                        view.AnteprimaTurniView.apriAnteprima(
+                                owner,
+                                propRef[0],
+                                dipendenti,
+                                () -> {
+                                    try {
+                                        // Premendo Rigenera in anteprima ricalcola tutti i turni non bloccati
+                                        // con un nuovo seed (mantenendo sempre intatti i turni con lucchetto)
+                                        model.ConfigurazioneGenerazioneTurni nextCfg = cfgRef[0].conNuovoSeed();
+                                        if (nextCfg.mantieneTurniNonBloccatiEsistenti()) {
+                                            nextCfg.setModalita(model.ConfigurazioneGenerazioneTurni.ModalitaGenerazione.RIGENERA_NON_BLOCCATI);
+                                        }
+                                        cfgRef[0] = nextCfg;
+                                        propRef[0] = turniCtrl.generaPropostaSettimana(lunediSettimanaAttiva, cfgRef[0]);
+                                        return propRef[0];
+                                    } catch (FrostlyException ex) {
+                                        onEsito.accept("⚠️ " + ex.getMessage(), true);
+                                        return null;
+                                    }
+                                },
+                                listaModificata -> {
+                                    try {
+                                        propRef[0] = turniCtrl.rivalutaPropostaModificata(propRef[0], listaModificata);
+                                        return propRef[0];
+                                    } catch (FrostlyException ex) {
+                                        onEsito.accept("⚠️ " + ex.getMessage(), true);
+                                        return propRef[0];
+                                    }
+                                },
+                                propostaConfermata -> {
+                                    try {
+                                        turniCtrl.confermaEApplicaProposta(propostaConfermata);
+                                        onEsito.accept("✅ Pianificazione settimanale applicata e salvata ("
+                                                + propostaConfermata.getPercentualeCopertura() + "% copertura).", false);
+                                        onRichiediAggiornamento.run();
+                                    } catch (FrostlyException ex) {
+                                        onEsito.accept("⚠️ " + ex.getMessage(), true);
+                                    }
+                                });
+                    } catch (FrostlyException ex) {
+                        onEsito.accept("⚠️ " + ex.getMessage(), true);
+                    }
+                });
+    }
+
+    public void ripristinaUltimaPianificazione() {
+        GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+        try {
+            if (!turniCtrl.haSnapshotRipristinabile(lunediSettimanaAttiva)) {
+                onEsito.accept("ℹ️ Nessuna pianificazione precedente da ripristinare per questa settimana.", false);
+                return;
+            }
+            turniCtrl.ripristinaUltimaPianificazione(lunediSettimanaAttiva);
+            onEsito.accept("↩ Pianificazione precedente ripristinata per la settimana selezionata.", false);
+            onRichiediAggiornamento.run();
+        } catch (FrostlyException ex) {
+            onEsito.accept("⚠️ " + ex.getMessage(), true);
+        }
+    }
+
+    public void apriRichiestaIndisponibilitaDipendente(String emailDipendente) {
+        Window owner = boxCalendarioTurni != null && boxCalendarioTurni.getScene() != null
+                ? boxCalendarioTurni.getScene().getWindow() : null;
+        GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+        List<bean.RichiestaIndisponibilitaBean> mie = turniCtrl.caricaRichiesteIndisponibilitaBean(emailDipendente);
+        view.RichiesteIndisponibilitaView.apriDialogDipendente(owner, mie, (data, motivazione) -> {
+            try {
+                bean.RichiestaIndisponibilitaBean creata = turniCtrl.inviaRichiestaIndisponibilitaBean(emailDipendente, data, motivazione);
+                onEsito.accept("📨 Richiesta " + creata.getCodiceRichiesta()
+                        + " inviata al Maestro per il " + data.format(FMT_DATA)
+                        + " (in attesa di approvazione).", false);
+                onRichiediAggiornamento.run();
+            } catch (FrostlyException ex) {
+                onEsito.accept("⚠️ " + ex.getMessage(), true);
+            }
+        });
+    }
+
+    public void apriGestionePermessiMaestro() {
+        Window owner = boxCalendarioTurni != null && boxCalendarioTurni.getScene() != null
+                ? boxCalendarioTurni.getScene().getWindow() : null;
+        GestioneTurniEmergenzeControl turniCtrl = new GestioneTurniEmergenzeControl();
+        List<bean.RichiestaIndisponibilitaBean> tutte = turniCtrl.caricaRichiesteIndisponibilitaBean(null);
+        view.RichiesteIndisponibilitaView.apriDialogMaestro(owner, tutte, (codice, approva, nota) -> {
+            try {
+                String esito = turniCtrl.valutaRichiestaIndisponibilita(codice, approva, nota);
+                onEsito.accept(esito, false);
+                onRichiediAggiornamento.run();
+            } catch (FrostlyException ex) {
+                onEsito.accept("⚠️ " + ex.getMessage(), true);
+            }
+        });
+    }
+
     public void aggiornaListeTurni(GestioneTurniEmergenzeControl turniCtrl, String emailUtente) {
         try {
             LocalDate domenicaSettimana = lunediSettimanaAttiva.plusDays(6);
             if (lblSettimanaAttiva != null) {
-                lblSettimanaAttiva.setText("📅 Settimana: Lunedì " + lunediSettimanaAttiva.format(FMT_DATA)
-                        + " — Domenica " + domenicaSettimana.format(FMT_DATA));
+                lblSettimanaAttiva.setText("Lun " + lunediSettimanaAttiva.format(FMT_DATA)
+                        + " – Dom " + domenicaSettimana.format(FMT_DATA));
             }
 
             List<TurnoBean> tuttiTurni = turniCtrl.visualizzaTuttiTurni();
@@ -234,8 +375,47 @@ public class TurniStaffControlGrafico {
                 );
             }
 
+            if (isMaestro && (boxDisponibilitaStaff != null || boxKpiTurni != null)) {
+                List<bean.RiepilogoOreDipendenteBean> riepiloghi = turniCtrl.calcolaRiepiloghiOreSettimana(lunediSettimanaAttiva);
+                view.DisponibilitaStaffView.popolaPannelloDisponibilita(
+                        boxDisponibilitaStaff, riepiloghi, onConfiguraDipendente);
+
+                int turniSett = 0;
+                double oreTot = 0.0;
+                int alertCount = 0;
+                int attivi = 0;
+                for (bean.RiepilogoOreDipendenteBean r : riepiloghi) {
+                    turniSett += r.getNumeroTurniSettimana();
+                    oreTot += r.getOreAssegnate();
+                    if (r.getNumeroTurniSettimana() > 0) attivi++;
+                    if (r.getStato() == bean.RiepilogoOreDipendenteBean.StatoMonteOre.OLTRE_MASSIMO
+                            || r.getStato() == bean.RiepilogoOreDipendenteBean.StatoMonteOre.CONFIGURAZIONE_RICHIESTA) {
+                        alertCount++;
+                    }
+                }
+                view.DisponibilitaStaffView.popolaBarraKpiSettimana(
+                        boxKpiTurni, turniSett, attivi, oreTot, alertCount);
+
+                if (lblConteggioTurni != null) {
+                    int permessiInAttesa = turniCtrl.contaRichiesteIndisponibilitaInAttesa();
+                    StringBuilder summary = new StringBuilder();
+                    summary.append(turniSett).append(" turni · ")
+                           .append(model.ConfigurazioneOreDipendente.formattaOre(oreTot)).append(" h");
+                    if (alertCount > 0) {
+                        summary.append(" · ").append(alertCount).append(" avvisi");
+                    }
+                    if (permessiInAttesa > 0) {
+                        summary.append(" · ").append(permessiInAttesa)
+                               .append(permessiInAttesa == 1 ? " permesso" : " permessi");
+                    }
+                    lblConteggioTurni.setText(summary.toString());
+                }
+            }
+
             aggiornaTurniPersonali(turniCtrl, emailUtente);
-            aggiornaTurniTotali(tuttiTurni);
+            if (!isMaestro) {
+                aggiornaTurniTotali(tuttiTurni);
+            }
         } catch (FrostlyException ignored) {
             // Ignorato in caricamento vista
         }
@@ -269,16 +449,38 @@ public class TurniStaffControlGrafico {
                 turniCella,
                 dipendentiFormattati,
                 turniCtrl::trovaEmergenzaAttivaPerTurno,
-                emailDaAssegnare -> {
+                emailSel -> {
+                    try {
+                        return turniCtrl.calcolaAnteprimaAssegnazione(
+                                emailSel, lunediSettimanaAttiva, dataGiorno, oraInizio, oraFine);
+                    } catch (FrostlyException ignored) {
+                        return null;
+                    }
+                },
+                (emailDaAssegnare, bloccato) -> {
                     try {
                         TurnoBean nuovo = new TurnoBean();
                         nuovo.setEmailDipendente(emailDaAssegnare);
                         nuovo.setData(chiaveDataGiorno);
                         nuovo.setOraInizio(oraInizio);
                         nuovo.setOraFine(oraFine);
+                        nuovo.setBloccato(Boolean.TRUE.equals(bloccato));
                         TurnoBean creato = turniCtrl.pubblicaNuovoTurno(nuovo);
-                        onEsito.accept("✅ Turno " + creato.getCodiceTurno() + " assegnato a "
-                                + creato.getNomeDipendente() + " per " + titoloGiornoEsteso + " (" + rangeLabel + ").", false);
+                        onEsito.accept("✅ Turno " + creato.getCodiceTurno()
+                                + (creato.isBloccato() ? " (🔒 bloccato)" : "")
+                                + " assegnato a " + creato.getNomeDipendente()
+                                + " per " + titoloGiornoEsteso + " (" + rangeLabel + ").", false);
+                        onRichiediAggiornamento.run();
+                    } catch (FrostlyException ex) {
+                        onEsito.accept("⚠️ " + ex.getMessage(), true);
+                    }
+                },
+                (codiceTurnoBlocco, nuovoStatoBlocco) -> {
+                    try {
+                        turniCtrl.impostaBloccoTurno(codiceTurnoBlocco, nuovoStatoBlocco);
+                        onEsito.accept(nuovoStatoBlocco
+                                ? "🔒 Turno " + codiceTurnoBlocco + " bloccato: il generatore non lo modificherà."
+                                : "🔓 Turno " + codiceTurnoBlocco + " sbloccato.", false);
                         onRichiediAggiornamento.run();
                     } catch (FrostlyException ex) {
                         onEsito.accept("⚠️ " + ex.getMessage(), true);

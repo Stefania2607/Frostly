@@ -12,12 +12,18 @@ import frostly.exception.DatiNonValidiException;
 import frostly.exception.FrostlyException;
 import frostly.exception.IngredienteEsauritoException;
 import frostly.exception.RisorsaNonTrovataException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import model.Cliente;
 import model.ConGranellaBronteDecorator;
 import model.ConPannaMontataDecorator;
@@ -38,6 +44,62 @@ import model.VaschettaOrdinata;
 public class OrdiniControl {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter TRX_DATETIME_FMT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private static final Pattern PATTERN_TRX_DATETIME = Pattern.compile("TRX-(\\d{8}-\\d{6})");
+    private static final Map<String, LocalDateTime> ORARI_APPROVAZIONE = new ConcurrentHashMap<>();
+
+    public static final long MINUTI_PREPARAZIONE = 4;
+    public static final long MINUTI_CONSEGNA = 10;
+
+    public static bean.RegoleVaschettaBean ottieniRegoleVaschetta() {
+        bean.RegoleVaschettaBean b = new bean.RegoleVaschettaBean();
+        b.setMaxGusti350g(VaschettaBase.MAX_GUSTI_350G);
+        b.setMaxGusti500g(VaschettaBase.MAX_GUSTI_500G);
+        b.setMaxGusti750g(VaschettaBase.MAX_GUSTI_750G);
+        b.setMaxGusti1000g(VaschettaBase.MAX_GUSTI_1000G);
+        b.setPeso350g(0.35);
+        b.setPeso500g(VaschettaBase.PESO_500G);
+        b.setPeso750g(0.75);
+        b.setPeso1000g(1.00);
+        b.setPrezzoSolaPannaAlKg(VaschettaBase.PREZZO_SOLA_PANNA_AL_KG);
+        b.setSupplementoPanna(ConPannaMontataDecorator.SUPPLEMENTO_PANNA);
+        b.setSupplementoGranella(ConGranellaBronteDecorator.SUPPLEMENTO_GRANELLA);
+        return b;
+    }
+
+    public static String calcolaFaseConsegna(OrdineBean item) {
+        if (item == null || item.getStato() == null) {
+            return "IN_ATTESA";
+        }
+        if (!"APPROVATA".equalsIgnoreCase(item.getStato())) {
+            return item.getStato();
+        }
+        String raw = item.getDataRitiro() != null ? item.getDataRitiro() : "";
+        boolean isAsporto = raw.toLowerCase().contains("banco") || raw.toLowerCase().contains("ritiro in gelateria");
+        String codice = item.getCodiceOrdine() != null ? item.getCodiceOrdine().toUpperCase(Locale.ROOT) : "";
+        LocalDateTime inizio = ORARI_APPROVAZIONE.get(codice);
+        if (inizio == null) {
+            Matcher m = PATTERN_TRX_DATETIME.matcher(raw);
+            if (m.find()) {
+                try {
+                    inizio = LocalDateTime.parse(m.group(1), TRX_DATETIME_FMT);
+                } catch (Exception ignored) {
+                    inizio = null;
+                }
+            }
+        }
+        if (inizio == null) {
+            return isAsporto ? "RITIRATO" : "CONSEGNATO";
+        }
+        long minutiTrascorsi = Math.max(0, Duration.between(inizio, LocalDateTime.now()).toMinutes());
+        if (minutiTrascorsi < MINUTI_PREPARAZIONE) {
+            return "IN_PREPARAZIONE";
+        }
+        if (minutiTrascorsi < MINUTI_PREPARAZIONE + MINUTI_CONSEGNA) {
+            return isAsporto ? "PRONTO_AL_BANCO" : "IN_CONSEGNA";
+        }
+        return isAsporto ? "RITIRATO" : "CONSEGNATO";
+    }
 
     private final OrdineDAO ordineDAO;
     private final GustoDAO gustoDAO;
@@ -198,12 +260,11 @@ public class OrdiniControl {
     public void confermaOrdine(String codiceOrdine, String operatore) throws FrostlyException {
         for (OrdineCliente oc : ordineDAO.caricaTuttiOrdini()) {
             if (oc.getCodiceOrdine().equalsIgnoreCase(codiceOrdine)) {
-                boolean eraDisdetto = oc.getStato() == StatoRichiesta.RIFIUTATA;
-                if (eraDisdetto) {
-                    // Se l'ordine era stato disdetto (e quindi ripristinato in magazzino), riscala le giacenze prima di riaccettarlo
-                    scalaGiacenzeMagazzino(oc);
+                if (oc.getStato() == StatoRichiesta.RIFIUTATA) {
+                    throw new DatiNonValidiException("Impossibile confermare l'ordine " + codiceOrdine + ": l'ordine è già stato disdetto.");
                 }
                 oc.setStato(StatoRichiesta.APPROVATA);
+                ORARI_APPROVAZIONE.put(oc.getCodiceOrdine().toUpperCase(Locale.ROOT), LocalDateTime.now());
                 ordineDAO.salvaOrdine(oc);
                 if (oc.getCliente() != null) {
                     notificaDAO.inviaNotifica(new Notifica(
@@ -216,6 +277,69 @@ public class OrdiniControl {
             }
         }
         throw new RisorsaNonTrovataException("Ordine " + codiceOrdine + " non trovato.");
+    }
+
+    public static boolean isOrdineAttivoPerChatCliente(OrdineBean item) {
+        String fase = calcolaFaseConsegna(item);
+        return "IN_ATTESA".equalsIgnoreCase(fase)
+                || "IN_PREPARAZIONE".equalsIgnoreCase(fase)
+                || "IN_CONSEGNA".equalsIgnoreCase(fase)
+                || "PRONTO_AL_BANCO".equalsIgnoreCase(fase);
+    }
+
+    public void contattaClientePerEmergenzaOrdine(String codiceOrdine, String emailCliente,
+                                                  String messaggio, String operatore) throws FrostlyException {
+        inviaMessaggioChatOrdine(codiceOrdine, emailCliente, operatore, true, messaggio);
+    }
+
+    public void inviaMessaggioChatOrdine(String codiceOrdine, String emailCliente,
+                                         String mittenteNome, boolean daStaff, String testo) throws FrostlyException {
+        if (codiceOrdine == null || codiceOrdine.isBlank()) {
+            throw new DatiNonValidiException("Codice ordine non valido.");
+        }
+        if (emailCliente == null || emailCliente.isBlank()) {
+            throw new DatiNonValidiException("Email del cliente non disponibile.");
+        }
+        if (testo == null || testo.trim().isEmpty()) {
+            throw new DatiNonValidiException("Scrivi un messaggio prima di inviare.");
+        }
+        String mittente = (mittenteNome != null && !mittenteNome.isBlank())
+                ? mittenteNome.trim()
+                : (daStaff ? "Staff Frostly" : emailCliente.trim());
+        String prefisso = daStaff ? "[STAFF] " : "[CLIENTE] ";
+        String titoloChat = "💬 Chat Ordine " + codiceOrdine.trim();
+
+        notificaDAO.inviaNotifica(new Notifica(
+                emailCliente.trim(),
+                titoloChat,
+                prefisso + mittente + ": " + testo.trim(),
+                oraCorrente()));
+
+        if (!daStaff) {
+            String avvisoStaff = mittente + " ha scritto nella chat dell'ordine " + codiceOrdine.trim()
+                    + ": \"" + testo.trim() + "\"";
+            notificaDAO.inviaNotifica(new Notifica(
+                    utenteDAO.getMaestroGelataio().getEmail(),
+                    "💬 Risposta Cliente • Ordine " + codiceOrdine.trim(),
+                    avvisoStaff,
+                    oraCorrente()));
+        }
+    }
+
+    public List<bean.NotificaBean> caricaMessaggiChatOrdine(String codiceOrdine, String emailCliente) {
+        List<bean.NotificaBean> messaggi = new ArrayList<>();
+        if (codiceOrdine == null || codiceOrdine.isBlank() || emailCliente == null || emailCliente.isBlank()) {
+            return messaggi;
+        }
+        String titoloChat = "💬 Chat Ordine " + codiceOrdine.trim();
+        String titoloLegacy = "⚠️ Comunicazione Urgente Ordine " + codiceOrdine.trim();
+        for (Notifica n : notificaDAO.caricaNotifichePerUtente(emailCliente.trim())) {
+            if (titoloChat.equalsIgnoreCase(n.getTitolo()) || titoloLegacy.equalsIgnoreCase(n.getTitolo())) {
+                messaggi.add(new bean.NotificaBean(n.getTitolo(), n.getMessaggio(), n.getTimestamp()));
+            }
+        }
+        java.util.Collections.reverse(messaggi);
+        return messaggi;
     }
 
     public void disdiciOrdine(String codiceOrdine, String operatore) throws FrostlyException {
@@ -258,6 +382,19 @@ public class OrdiniControl {
         }
         java.util.Collections.reverse(lista);
         return lista;
+    }
+
+    public OrdineBean trovaOrdinePerCodice(String codiceOrdine) {
+        if (codiceOrdine == null || codiceOrdine.isBlank()) {
+            return null;
+        }
+        String target = codiceOrdine.trim();
+        for (OrdineCliente oc : ordineDAO.caricaTuttiOrdini()) {
+            if (oc.getCodiceOrdine() != null && oc.getCodiceOrdine().equalsIgnoreCase(target)) {
+                return convertiOrdineInBean(oc);
+            }
+        }
+        return null;
     }
 
     private OrdineBean convertiOrdineInBean(OrdineCliente oc) {

@@ -222,6 +222,7 @@ public class VetrinaMenuView {
         scheda.setTranslateY(-16);
 
         Popup popup = new Popup();
+        TemaProvenzaHelper.applicaSeGui2(scheda);
         popup.getContent().add(scheda);
         scheda.setOnMouseClicked(e -> popup.hide());
 
@@ -278,6 +279,7 @@ public class VetrinaMenuView {
 
         Popup popup = new Popup();
         popup.setAutoFix(true);
+        TemaProvenzaHelper.applicaSeGui2(scheda);
         popup.getContent().add(scheda);
         scheda.setOnMouseClicked(e -> popup.hide());
         toastAttivo = popup;
@@ -355,15 +357,23 @@ public class VetrinaMenuView {
 
     private void disegnaCategorie(List<String> categorie) {
         boxCategorie.getChildren().clear();
-        boxCategorie.setSpacing(6);
+        boxCategorie.setSpacing(7);
+        boolean provenza = util.SessionManager.getInstance().isGui2Attiva();
         for (String c : categorie) {
             Button b = new Button(emojiCategoria(c) + " " + c);
             b.setMinWidth(Region.USE_PREF_SIZE);
+            b.setMinHeight(Region.USE_PREF_SIZE);
             boolean attiva = c.equals(categoriaSelezionata);
-            b.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 6 14;"
-                    + " -fx-cursor: hand; "
-                    + (attiva ? "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.4), 6, 0, 0, 1);"
-                    : "-fx-background-color: rgba(28,26,30,0.85); -fx-text-fill: #baa487; -fx-border-color: rgba(186,164,135,0.32); -fx-border-radius: 18;"));
+            if (provenza) {
+                b.setStyle("-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 5 10; -fx-cursor: hand; "
+                        + (attiva ? "-fx-background-color: #764c86; -fx-text-fill: #ffffff;"
+                        : "-fx-background-color: #f3eae5; -fx-text-fill: #37253d; -fx-border-color: #e2d3df; -fx-border-radius: 16;"));
+            } else {
+                b.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 5 11;"
+                        + " -fx-cursor: hand; "
+                        + (attiva ? "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.4), 6, 0, 0, 1);"
+                        : "-fx-background-color: rgba(28,26,30,0.85); -fx-text-fill: #baa487; -fx-border-color: rgba(186,164,135,0.32); -fx-border-radius: 16;"));
+            }
             b.setOnAction(e -> {
                 categoriaSelezionata = c;
                 sottocategoriaSelezionata = null;
@@ -397,11 +407,18 @@ public class VetrinaMenuView {
         Button chip = new Button(testo);
         chip.setMinWidth(Region.USE_PREF_SIZE);
         boolean attiva = Objects.equals(valore, sottocategoriaSelezionata);
-        chip.setStyle("-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 14; -fx-padding: 4 14;"
-                + " -fx-cursor: hand; "
-                + (attiva ? "-fx-background-color: #baa487; -fx-text-fill: #141312;"
-                : "-fx-background-color: rgba(28,26,30,0.85); -fx-text-fill: #ded7cd; -fx-border-color: rgba(186,164,135,0.25);"
-                + " -fx-border-radius: 14;"));
+        boolean provenza = util.SessionManager.getInstance().isGui2Attiva();
+        if (provenza) {
+            chip.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 16; -fx-padding: 4 13; -fx-cursor: hand; "
+                    + (attiva ? "-fx-background-color: #764c86; -fx-text-fill: #ffffff;"
+                    : "-fx-background-color: #f3eae5; -fx-text-fill: #5e525e; -fx-border-color: #e2d3df; -fx-border-radius: 16;"));
+        } else {
+            chip.setStyle("-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 14; -fx-padding: 4 14;"
+                    + " -fx-cursor: hand; "
+                    + (attiva ? "-fx-background-color: #baa487; -fx-text-fill: #141312;"
+                    : "-fx-background-color: rgba(28,26,30,0.85); -fx-text-fill: #ded7cd; -fx-border-color: rgba(186,164,135,0.25);"
+                    + " -fx-border-radius: 14;"));
+        }
         chip.setOnAction(e -> {
             sottocategoriaSelezionata = valore;
             if (alCambioFiltro != null) {
@@ -431,43 +448,46 @@ public class VetrinaMenuView {
                                                double altezzaFoto,
                                                javafx.scene.Node nodoExtra,
                                                boolean selezionata) {
+        boolean provenza = util.SessionManager.getInstance().isGui2Attiva();
         StackPane foto = creaBoxFotoProdotto(g.getImmagineUrl(), emojiCategoria(g.getCategoria()), larghezza, altezzaFoto, 22);
-        foto.setStyle("-fx-background-color: rgba(18,16,20,0.95); -fx-background-radius: 11 11 0 0; -fx-border-color: rgba(186,164,135,0.18); -fx-border-width: 0 0 1 0;");
+        foto.setStyle(provenza
+                ? "-fx-background-color: #eee1d7; -fx-background-radius: 13 13 0 0; -fx-border-color: #eadde3; -fx-border-width: 0 0 1 0;"
+                : "-fx-background-color: rgba(18,16,20,0.95); -fx-background-radius: 11 11 0 0; -fx-border-color: rgba(186,164,135,0.18); -fx-border-width: 0 0 1 0;");
 
         Label nome = new Label(g.getNome());
         nome.setWrapText(true);
         nome.setPrefWidth(larghezza - 18);
         nome.setMinHeight(Region.USE_PREF_SIZE);
-        nome.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f5ebe0;");
+        nome.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
         Label descrizione = new Label(g.getDescrizione());
         descrizione.setWrapText(true);
         descrizione.setPrefWidth(larghezza - 18);
         descrizione.setMaxHeight(32);
-        descrizione.setStyle("-fx-font-size: 12px; -fx-text-fill: #ded7cd;");
+        descrizione.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (provenza ? "#5e525e;" : "#ded7cd;"));
 
         String unita = "Gelati".equalsIgnoreCase(g.getCategoria()) ? "/kg" : "";
         Label prezzo = new Label(String.format("EUR %.2f%s", g.getPrezzoAlKg(), unita));
         prezzo.setMinWidth(Region.USE_PREF_SIZE);
-        prezzo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #baa487;");
+        prezzo.setStyle("-fx-font-weight: bold; -fx-font-size: 13.5px; -fx-text-fill: " + (provenza ? "#5e316f;" : "#baa487;"));
 
         String testoBadge;
         String coloreBadge;
         if (!g.isDisponibileOggi()) {
             testoBadge = "● Esaurito";
-            coloreBadge = "#fca5a5";
+            coloreBadge = provenza ? "#ad443f" : "#fca5a5";
         } else if (!"Gelati".equalsIgnoreCase(g.getCategoria()) && g.getVaschetteDisponibili() > 0) {
             int qtaDisp = g.getVaschetteDisponibili();
             if (qtaDisp <= 5) {
                 testoBadge = "● Ultime " + qtaDisp + " disp.";
-                coloreBadge = "#fcd34d";
+                coloreBadge = provenza ? "#b45309" : "#fcd34d";
             } else {
                 testoBadge = "● " + qtaDisp + " disp.";
-                coloreBadge = "#a7f3d0";
+                coloreBadge = provenza ? "#2e7d32" : "#a7f3d0";
             }
         } else {
             testoBadge = "● Disponibile";
-            coloreBadge = "#a7f3d0";
+            coloreBadge = provenza ? "#2e7d32" : "#a7f3d0";
         }
         Label badge = new Label(testoBadge);
         badge.setMinWidth(Region.USE_PREF_SIZE);
@@ -481,7 +501,7 @@ public class VetrinaMenuView {
         allergeni.setWrapText(true);
         allergeni.setPrefWidth(larghezza - 18);
         allergeni.setMaxHeight(26);
-        allergeni.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #a89f92;");
+        allergeni.setStyle("-fx-font-size: 11.5px; -fx-text-fill: " + (provenza ? "#756978;" : "#a89f92;"));
 
         VBox testi = new VBox(3, nome, descrizione, riga, allergeni);
         if (nodoExtra != null) {
@@ -493,12 +513,19 @@ public class VetrinaMenuView {
         scheda.setPrefWidth(larghezza);
         scheda.setMinWidth(larghezza);
         scheda.setMaxWidth(larghezza);
-        scheda.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-background-radius: 12;"
-                + (selezionata
-                ? " -fx-border-color: #baa487; -fx-border-width: 2.2; -fx-border-radius: 12;"
-                + " -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.45), 14, 0, 0, 2);"
-                : " -fx-border-color: rgba(186,164,135,0.28); -fx-border-width: 1; -fx-border-radius: 12;"
-                + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0, 0, 3);"));
+        if (provenza) {
+            scheda.setStyle("-fx-background-color: #fffcf9; -fx-background-radius: 14;"
+                    + (selezionata
+                    ? " -fx-border-color: #764c86; -fx-border-width: 2; -fx-border-radius: 14;"
+                    : " -fx-border-color: #eadde3; -fx-border-width: 1; -fx-border-radius: 14;"));
+        } else {
+            scheda.setStyle("-fx-background-color: rgba(26,24,28,0.92); -fx-background-radius: 12;"
+                    + (selezionata
+                    ? " -fx-border-color: #baa487; -fx-border-width: 2.2; -fx-border-radius: 12;"
+                    + " -fx-effect: dropshadow(gaussian, rgba(186,164,135,0.45), 14, 0, 0, 2);"
+                    : " -fx-border-color: rgba(186,164,135,0.28); -fx-border-width: 1; -fx-border-radius: 12;"
+                    + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0, 0, 3);"));
+        }
         if (!g.isDisponibileOggi()) {
             scheda.setOpacity(0.55);
         }
@@ -511,8 +538,12 @@ public class VetrinaMenuView {
         if (allaSelezione != null) {
             btnModifica = new Button("✏️ Modifica");
             btnModifica.setMaxWidth(Double.MAX_VALUE);
-            btnModifica.setStyle("-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold;"
-                    + " -fx-font-size: 13px; -fx-background-radius: 9; -fx-padding: 5 10; -fx-cursor: hand;");
+            boolean provenza = util.SessionManager.getInstance().isGui2Attiva();
+            btnModifica.setStyle(provenza
+                    ? "-fx-background-color: linear-gradient(to right, #9366a0, #6d427b); -fx-text-fill: #ffffff; -fx-font-weight: bold;"
+                      + " -fx-font-size: 12.5px; -fx-background-radius: 14; -fx-padding: 5 10; -fx-cursor: hand;"
+                    : "-fx-background-color: #baa487; -fx-text-fill: #141312; -fx-font-weight: bold;"
+                      + " -fx-font-size: 13px; -fx-background-radius: 9; -fx-padding: 5 10; -fx-cursor: hand;");
             btnModifica.setOnAction(e -> {
                 prodottoSelezionato = g.getNome();
                 disegnaProdotti();
