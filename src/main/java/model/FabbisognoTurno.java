@@ -79,7 +79,7 @@ public class FabbisognoTurno {
      * (fascia Extra Weekend attiva solo Sabato e Domenica). Personalizzabile da Fabbisogni.
      */
     public static FabbisognoTurno predefinito(DayOfWeek giorno, int indiceFascia) {
-        boolean weekend = (giorno == DayOfWeek.SATURDAY || giorno == DayOfWeek.SUNDAY);
+        boolean weekend = DayOfWeek.SATURDAY.equals(giorno) || DayOfWeek.SUNDAY.equals(giorno);
         if (indiceFascia == 4 && !weekend) {
             return new FabbisognoTurno(giorno, indiceFascia, 0);
         }

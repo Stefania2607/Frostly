@@ -198,7 +198,7 @@ class GeneratoreTurniTest {
                 LocalDate dt = CalcolatoreOreSettimanali.estraiDataTurno(t.getData(), LUNEDI_W1);
                 assertNotEquals(LocalDate.of(2026, 11, 24), dt, "Non deve lavorare in ferie");
                 assertNotEquals(DayOfWeek.WEDNESDAY, dt.getDayOfWeek(), "Non deve lavorare di mercoledi'");
-                if (dt.getDayOfWeek() == DayOfWeek.THURSDAY) {
+                if (DayOfWeek.THURSDAY.equals(dt.getDayOfWeek())) {
                     assertTrue(t.getOraInizio().compareTo("14:00") >= 0, "Giovedi' solo dopo le 14:00");
                 }
             }

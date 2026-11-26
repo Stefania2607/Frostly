@@ -159,12 +159,18 @@ public final class DettaglioAvvisoResolver {
         Matcher mTrx = PATTERN_TRX_BOX.matcher(raw);
         if (mTrx.find()) {
             String contenutoTrx = mTrx.group(1).trim();
-            String[] partiTrx = contenutoTrx.split("\\s+•\\s+", 2);
-            if (partiTrx.length > 0 && !partiTrx[0].trim().isEmpty()) {
-                out.setCodiceTransazione(partiTrx[0].trim());
-            }
-            if (partiTrx.length > 1 && !partiTrx[1].trim().isEmpty()) {
-                out.setDettaglioCartaMascherata(normalizzaCartaMascherata(partiTrx[1].trim()));
+            int idxSep = contenutoTrx.indexOf(" • ");
+            if (idxSep >= 0) {
+                String trx = contenutoTrx.substring(0, idxSep).trim();
+                String carta = contenutoTrx.substring(idxSep + 3).trim();
+                if (!trx.isEmpty()) {
+                    out.setCodiceTransazione(trx);
+                }
+                if (!carta.isEmpty()) {
+                    out.setDettaglioCartaMascherata(normalizzaCartaMascherata(carta));
+                }
+            } else if (!contenutoTrx.isEmpty()) {
+                out.setCodiceTransazione(contenutoTrx);
             }
             out.setMetodoPagamento("Pagamento online");
             out.setStatoPagamento("Pagato");
@@ -353,7 +359,7 @@ public final class DettaglioAvvisoResolver {
             return;
         }
         Map<String, Integer> raggruppati = new LinkedHashMap<>();
-        String[] pezzi = descrizioneCompleta.split("\\s*\\|\\s*");
+        String[] pezzi = descrizioneCompleta.split("\\|");
         for (String p : pezzi) {
             String cleaned = p.trim().replaceFirst("^[Vv]aschetta #\\d+:\\s*", "").trim();
             if (cleaned.isEmpty()) continue;
@@ -414,7 +420,7 @@ public final class DettaglioAvvisoResolver {
                 bloccoDettagli = bloccoDettagli.isEmpty() ? coda : (bloccoDettagli + " • " + coda);
             }
         } else if (nome.contains(" + ")) {
-            String[] partiPlus = nome.split("\\s*\\+\\s*");
+            String[] partiPlus = nome.split("\\+");
             nome = partiPlus[0].trim();
             for (int i = 1; i < partiPlus.length; i++) {
                 String add = partiPlus[i].trim();
@@ -425,7 +431,7 @@ public final class DettaglioAvvisoResolver {
         }
 
         if (!bloccoDettagli.isEmpty()) {
-            String[] token = bloccoDettagli.split("\\s*[•;]\\s*");
+            String[] token = bloccoDettagli.split("[•;]");
             for (String rawTok : token) {
                 String tok = rawTok.trim();
                 if (tok.isEmpty()) continue;
@@ -489,8 +495,14 @@ public final class DettaglioAvvisoResolver {
     public static String normalizzaCartaMascherata(String raw) {
         if (raw == null || raw.isBlank()) return "";
         String pulita = mascheraEventualiNumeriCarta(raw.trim());
-        // Compatta "VISA •••• •••• •••• 5671" in "VISA •••• 5671"
-        return pulita.replaceAll("(?:[•*]\\s*){6,}", "•••• ");
+        // Compatta sequenze lunghe di pallini/asterischi (es. "VISA •••• •••• •••• 5671" -> "VISA •••• 5671")
+        while (pulita.contains("•••• ••••")) {
+            pulita = pulita.replace("•••• ••••", "••••");
+        }
+        while (pulita.contains("**** ****")) {
+            pulita = pulita.replace("**** ****", "••••");
+        }
+        return pulita;
     }
 
     public static String mascheraEventualiNumeriCarta(String testo) {

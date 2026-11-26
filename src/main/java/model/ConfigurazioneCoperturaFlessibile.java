@@ -38,12 +38,12 @@ public class ConfigurazioneCoperturaFlessibile {
 
     private void inizializzaPredefiniti() {
         for (DayOfWeek g : DayOfWeek.values()) {
-            boolean weekend = (g == DayOfWeek.SATURDAY || g == DayOfWeek.SUNDAY);
+            boolean weekend = DayOfWeek.SATURDAY.equals(g) || DayOfWeek.SUNDAY.equals(g);
             List<IntervalloCopertura> lista = new ArrayList<>();
             lista.add(new IntervalloCopertura("08:00", "12:00", 1, false));
             lista.add(new IntervalloCopertura("12:00", "16:00", weekend ? 2 : 1, false));
-            lista.add(new IntervalloCopertura("16:00", "20:00", weekend ? 2 : 2, false));
-            lista.add(new IntervalloCopertura("20:00", "22:00", weekend ? 2 : 2, false));
+            lista.add(new IntervalloCopertura("16:00", "20:00", 2, false));
+            lista.add(new IntervalloCopertura("20:00", "22:00", 2, false));
             lista.add(new IntervalloCopertura(oraInizioChiusura, oraFineChiusura, personaleMinimoChiusura, true));
             fascePerGiorno.put(g, lista);
         }

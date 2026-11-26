@@ -190,10 +190,9 @@ public final class TurniStaffView {
             lblRange.setMinWidth(Region.USE_PREF_SIZE);
             lblRange.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " + (provenza ? "#37253d;" : "#f5ebe0;"));
 
-            String shortDesc = descFascia
-                    .replaceAll("\\s*\\([^)]*\\)", "")
-                    .replaceAll("^[^\\p{L}]+", "")
-                    .trim();
+            int idxPar = descFascia.indexOf('(');
+            String baseDesc = idxPar >= 0 ? descFascia.substring(0, idxPar) : descFascia;
+            String shortDesc = baseDesc.replaceFirst("^[^\\p{L}]+", "").trim();
             Label lblDesc = new Label(shortDesc);
             lblDesc.setWrapText(true);
             lblDesc.setStyle("-fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: " + (provenza ? (soloWeekend ? "#ad443f;" : "#764c86;") : (soloWeekend ? "#fcd34d;" : "#baa487;")));

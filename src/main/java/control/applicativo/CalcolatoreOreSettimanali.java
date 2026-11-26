@@ -4,7 +4,6 @@ import bean.RiepilogoOreDipendenteBean;
 import bean.RiepilogoOreDipendenteBean.StatoMonteOre;
 import bean.TurnoBean;
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -71,7 +70,7 @@ public final class CalcolatoreOreSettimanali {
         LocalDate base = LocalDate.of(2026, 1, 5);
         LocalDateTime start = parseInizio(base, oraInizio);
         LocalDateTime end = parseFine(base, start, oraFine);
-        long minutiLordi = Math.max(0, Duration.between(start, end).toMinutes());
+        long minutiLordi = Math.max(0, java.time.temporal.ChronoUnit.MINUTES.between(start, end));
         long pausa = Math.max(0, Math.min(minutiLordi, pausaMinuti));
         return ConfigurazioneOreDipendente.arrotonda((minutiLordi - pausa) / 60.0);
     }
@@ -91,7 +90,7 @@ public final class CalcolatoreOreSettimanali {
         }
         LocalDateTime inizioTurno = parseInizio(dataTurno, turno.getOraInizio());
         LocalDateTime fineTurno = parseFine(dataTurno, inizioTurno, turno.getOraFine());
-        long durataTotaleMin = Math.max(0, Duration.between(inizioTurno, fineTurno).toMinutes());
+        long durataTotaleMin = Math.max(0, java.time.temporal.ChronoUnit.MINUTES.between(inizioTurno, fineTurno));
         if (durataTotaleMin <= 0) {
             return 0.0;
         }
@@ -104,7 +103,7 @@ public final class CalcolatoreOreSettimanali {
         if (!overlapEnd.isAfter(overlapStart)) {
             return 0.0;
         }
-        long minutiInSettimana = Duration.between(overlapStart, overlapEnd).toMinutes();
+        long minutiInSettimana = java.time.temporal.ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
         int pausaTot = Math.max(0, Math.min((int) durataTotaleMin, turno.getPausaMinuti()));
         double pausaProporzionale = pausaTot * ((double) minutiInSettimana / (double) durataTotaleMin);
         return ConfigurazioneOreDipendente.arrotonda(Math.max(0.0, minutiInSettimana - pausaProporzionale) / 60.0);
@@ -451,9 +450,9 @@ public final class CalcolatoreOreSettimanali {
         }
         long gapMinuti;
         if (!endA.isAfter(startB)) {
-            gapMinuti = Duration.between(endA, startB).toMinutes();
+            gapMinuti = java.time.temporal.ChronoUnit.MINUTES.between(endA, startB);
         } else {
-            gapMinuti = Duration.between(endB, startA).toMinutes();
+            gapMinuti = java.time.temporal.ChronoUnit.MINUTES.between(endB, startA);
         }
         return gapMinuti < (long) riposoMinimoOre * 60L;
     }

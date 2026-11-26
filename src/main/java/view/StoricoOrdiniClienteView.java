@@ -110,13 +110,13 @@ public final class StoricoOrdiniClienteView {
 
     private static VBox creaBoxConsegnaPulito(String rawDataRitiro) {
         String raw = rawDataRitiro != null ? rawDataRitiro : "Ritiro al banco";
-        String senzaTrx = raw.replaceAll("\\s*\\[Transazione Online:[^\\]]*\\]", "").trim();
+        String senzaTrx = rimuoviBloccoTransazione(raw);
         String rigaPrincipale = senzaTrx;
         String dettagli = "";
-        if (senzaTrx.contains("• Indirizzo/Note:")) {
-            String[] parti = senzaTrx.split("• Indirizzo/Note:", 2);
-            rigaPrincipale = parti[0].trim();
-            dettagli = parti[1].trim();
+        int idxNote = senzaTrx.indexOf("• Indirizzo/Note:");
+        if (idxNote >= 0) {
+            rigaPrincipale = senzaTrx.substring(0, idxNote).trim();
+            dettagli = senzaTrx.substring(idxNote + "• Indirizzo/Note:".length()).trim();
         }
 
         VBox box = new VBox(3);
@@ -137,6 +137,15 @@ public final class StoricoOrdiniClienteView {
             box.getChildren().add(lblDet);
         }
         return box;
+    }
+
+    private static String rimuoviBloccoTransazione(String raw) {
+        if (raw == null) return "";
+        int start = raw.indexOf("[Transazione Online:");
+        if (start < 0) return raw.trim();
+        int end = raw.indexOf(']', start);
+        if (end < 0) return raw.substring(0, start).trim();
+        return (raw.substring(0, start) + " " + raw.substring(end + 1)).trim();
     }
 
     private static String estraiTransazione(String rawDataRitiro) {

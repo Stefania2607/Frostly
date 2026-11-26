@@ -91,7 +91,9 @@ public class OrdiniControl {
         if (inizio == null) {
             return isAsporto ? "RITIRATO" : "CONSEGNATO";
         }
-        long minutiTrascorsi = Math.max(0, Duration.between(inizio, LocalDateTime.now()).toMinutes());
+        long minutiTrascorsi = Math.max(0, Duration.between(
+                inizio.atZone(java.time.ZoneId.systemDefault()),
+                java.time.ZonedDateTime.now()).toMinutes());
         if (minutiTrascorsi < MINUTI_PREPARAZIONE) {
             return "IN_PREPARAZIONE";
         }

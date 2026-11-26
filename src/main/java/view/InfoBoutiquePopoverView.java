@@ -161,13 +161,13 @@ public final class InfoBoutiquePopoverView {
 
         DayOfWeek oggi = LocalDate.now().getDayOfWeek();
         VBox boxOrari = new VBox(5,
-                creaRigaOrario("Lunedì", "06:30 – 22:00", oggi == DayOfWeek.MONDAY),
-                creaRigaOrario("Martedì", "06:30 – 22:00", oggi == DayOfWeek.TUESDAY),
-                creaRigaOrario("Mercoledì", "06:30 – 22:00", oggi == DayOfWeek.WEDNESDAY),
-                creaRigaOrario("Giovedì", "06:30 – 22:00", oggi == DayOfWeek.THURSDAY),
-                creaRigaOrario("Venerdì", "06:30 – 00:00", oggi == DayOfWeek.FRIDAY),
-                creaRigaOrario("Sabato", "06:30 – 00:00", oggi == DayOfWeek.SATURDAY),
-                creaRigaOrario("Domenica", "06:30 – 22:00", oggi == DayOfWeek.SUNDAY)
+                creaRigaOrario("Lunedì", "06:30 – 22:00", DayOfWeek.MONDAY.equals(oggi)),
+                creaRigaOrario("Martedì", "06:30 – 22:00", DayOfWeek.TUESDAY.equals(oggi)),
+                creaRigaOrario("Mercoledì", "06:30 – 22:00", DayOfWeek.WEDNESDAY.equals(oggi)),
+                creaRigaOrario("Giovedì", "06:30 – 22:00", DayOfWeek.THURSDAY.equals(oggi)),
+                creaRigaOrario("Venerdì", "06:30 – 00:00", DayOfWeek.FRIDAY.equals(oggi)),
+                creaRigaOrario("Sabato", "06:30 – 00:00", DayOfWeek.SATURDAY.equals(oggi)),
+                creaRigaOrario("Domenica", "06:30 – 22:00", DayOfWeek.SUNDAY.equals(oggi))
         );
         boxOrari.setStyle("-fx-background-color: rgba(28, 26, 33, 0.80); -fx-border-color: rgba(255,255,255,0.06); "
                 + "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 10 13;");
