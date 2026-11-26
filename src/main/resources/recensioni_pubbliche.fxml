@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane prefWidth="1160" prefHeight="760" stylesheets="@style.css" styleClass="luxury-root-dark"
+           style="-fx-padding: 18;"
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="control.grafico.LoginControlGrafico">
+
+    <VBox spacing="0" maxWidth="1100" styleClass="luxury-black-gold-card" style="-fx-padding: 0;">
+
+        <!-- Barra superiore di navigazione -->
+        <HBox spacing="14" alignment="CENTER_LEFT"
+              style="-fx-padding: 12 22; -fx-background-color: rgba(14, 13, 15, 0.92); -fx-background-radius: 16 16 0 0; -fx-border-color: transparent transparent rgba(186,164,135,0.22) transparent; -fx-border-width: 1;">
+            <Button text="⬅ Torna all'Accesso" onAction="#onClickTornaALogin" styleClass="luxury-outline-btn"
+                    minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-padding: 6 14;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="FROSTLY"
+                       style="-fx-font-family: 'Georgia'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #f5ebe0; -fx-letter-spacing: 2px;"/>
+                <Label text="•" style="-fx-text-fill: #baa487; -fx-font-size: 13px;"/>
+                <Label text="Recensioni Certificate dal 1984"
+                       style="-fx-font-size: 12.5px; -fx-text-fill: #baa487;"/>
+            </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="✨ Crea un Profilo" onAction="#onClickVaiARegistrazione" styleClass="luxury-gold-btn"
+                    minWidth="-Infinity" style="-fx-font-size: 12.5px; -fx-padding: 6 16;"/>
+        </HBox>
+
+        <!-- Contenuto principale scrollabile popolato da RecensioniPubblicheView -->
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+            <VBox fx:id="boxContenutoRecensioniPubbliche" spacing="20" style="-fx-padding: 24 30 28 30;"/>
+        </ScrollPane>
+
+    </VBox>
+</StackPane>
