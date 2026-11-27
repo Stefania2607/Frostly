@@ -17,11 +17,6 @@ import model.Dipendente;
 import model.StatoTurno;
 import model.Turno;
 
-/**
- * Seconda versione persistente di TurnoDAO: salva e recupera l'Entity Turno su File System (CSV).
- * Usa il file CSV su disco come unica fonte di verita' (lettura-modifica-scrittura atomica),
- * evitando qualsiasi perdita di turni gia' salvati al riavvio dell'applicazione.
- */
 public class TurnoDAOFileSystem implements TurnoDAO {
 
     private static final String DEFAULT_CSV_FILE = "turni_frostly.csv";
