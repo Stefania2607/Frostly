@@ -43,10 +43,20 @@ public class OrdiniControlCLI {
         ob.setPesoDaTesto(scanner.nextLine().trim());
         System.out.print("Giorno ritiro: ");
         ob.setDataRitiro(scanner.nextLine().trim());
-        ob.setConPanna(true);
+        System.out.print("Aggiungere panna montata? (s/n): ");
+        String respPanna = scanner.nextLine().trim();
+        ob.setConPanna("s".equalsIgnoreCase(respPanna) || "si".equalsIgnoreCase(respPanna));
+        System.out.print("Aggiungere granella di pistacchio di Bronte? (s/n): ");
+        String respGranella = scanner.nextLine().trim();
+        ob.setConGranellaBronte("s".equalsIgnoreCase(respGranella) || "si".equalsIgnoreCase(respGranella));
 
         OrdineBean res = ordiniControl.effettuaPreOrdine(ob);
-        System.out.println("-> Confermato: " + res.getDescrizioneCompleta() + " | EUR " + res.getPrezzoTotale());
+        String stato = res.getStato() != null ? res.getStato() : "IN_ATTESA";
+        String etichettaStato = "IN_ATTESA".equalsIgnoreCase(stato)
+                ? "Inviato (in attesa di conferma dallo staff)"
+                : stato;
+        System.out.println("-> Ordine " + res.getCodiceOrdine() + " — " + etichettaStato + ": "
+                + res.getDescrizioneCompleta() + " | EUR " + res.getPrezzoTotale());
     }
 
     public void inviaRichiestaGustoPersonalizzato(String emailCliente) throws FrostlyException {
